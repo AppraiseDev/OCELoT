@@ -1,0 +1,3 @@
+[submodule "compare-mt"]
+	path = compare-mt
+	url = https://github.com/neulab/compare-mt
