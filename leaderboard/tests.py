@@ -23,3 +23,7 @@ class LeaderboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         for expected_selector in expected_selectors:
             self.assertContains(response, expected_selector)
+
+    def test_frontpage_knows_about_test_sets(self):
+        """Checks that frontpage retrieve list of test sets."""
+        from leaderboard.models import Language, TestSet
