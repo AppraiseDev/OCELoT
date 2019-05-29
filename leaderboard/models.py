@@ -31,6 +31,9 @@ class Language(models.Model):
     def __repr__(self):
         return 'Language(code={0}, name={1})'.format(self.code, self.name)
 
+    def __str__(self):
+        return '{0} ({1})'.format(self.name, self.code)
+
 
 class TestSet(models.Model):
     """Models a test set."""
