@@ -9,4 +9,5 @@ class LeaderboardTests(TestCase):
 
     def test_frontpage_renders_correctly(self):
         """Checks that frontpage renders correctly."""
-        from leaderboard.views import frontpage  # this will raise
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)

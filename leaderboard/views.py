@@ -6,4 +6,4 @@ from django.shortcuts import render
 
 def frontpage(request):
     """Renders OCELoT frontpage."""
-    return render(request, 'frontpage.html')
+    return render(request, 'leaderboard/frontpage.html')
