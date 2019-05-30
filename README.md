@@ -7,3 +7,21 @@ OCELoT stands for **O**pen, **Co**mpetitive **E**valuation **L**eaderboard **o**
 ## Build Status
 
 [![Build Status](https://dev.azure.com/cfedermann/Project%20OCELoT/_apis/build/status/cfedermann.OCELoT?branchName=master)](https://dev.azure.com/cfedermann/Project%20OCELoT/_build/latest?definitionId=1&branchName=master)
+
+## License
+
+OCELoT is released under [BSD 3-Clause License](https://github.com/cfedermann/OCELoT/blob/master/LICENSE)
+
+## Contributors
+
+We are grateful to the following contributors for their support:
+
+- Christian Federmann ([Microsoft](https://www.microsoft.com/en-us/research/people/chrife/))
+- Zi-Yi Dou ([Carnegie Mellon University](https://lti.cs.cmu.edu/people/222218769/zi-yi-dou))
+
+## Acknowledgments
+
+We acknowledge the following licenses and thank the respective authors for making their work available:
+
+- Project `compare-mt` by [NeuLab](https://github.com/neulab/compare-mt) released under [BSD 3-Clause License](https://github.com/neulab/compare-mt/blob/master/LICENSE); you should also [read their NAACL19 paper](http://arxiv.org/abs/1903.07926)!
+- Logo `Glyphe Ocelotl (jaguar)` by [Katepanomegas](https://commons.wikimedia.org/wiki/User:Katepanomegas) released on [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Ocelotl_(glyph)#/media/File:Ocelotl.svg) under [CC BY 3.0 License](https://creativecommons.org/licenses/by/3.0/)
