@@ -49,3 +49,6 @@ class TestSet(models.Model):
 
     def __repr__(self):
         return 'TestSet(name={0})'.format(self.name)
+
+    def __str__(self):
+        return '{0} test set'.format(self.name)
