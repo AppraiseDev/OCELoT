@@ -10,22 +10,79 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+import logging
 import os
+
+from logging.handlers import RotatingFileHandler
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'vpbajn5=%6z)^@=^mu%*xk17mx4=uk006ow(cz34-^4-xrijmc'
+# Try to load local settings, otherwise use defaults.
+try:
+    # pylint: disable=W0611
+    from ocelot.local_settings import (
+        DEBUG,
+        ADMINS,
+        MANAGERS,
+        DATABASES,
+        SECRET_KEY,
+        ALLOWED_HOSTS,
+        SECURE_CONTENT_TYPE_NOSNIFF,
+        SECURE_BROWSER_XSS_FILTER,
+        SESSION_COOKIE_SECURE,
+        CSRF_COOKIE_SECURE,
+        X_FRAME_OPTIONS,
+        WSGI_APPLICATION,
+    )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+except ImportError:
+    DEBUG = True
 
-ALLOWED_HOSTS = []
+    ADMINS = ()
+    MANAGERS = ADMINS
+
+    # Database
+    # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+
+    SECRET_KEY = 'm6o2c3ovrxy&%9n@ez#b=qi!uc%j^g&cs_-8-%gwx**xmq64pc'
+    ALLOWED_HOSTS = ['127.0.0.1']
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    X_FRAME_OPTIONS = 'DENY'
+    WSGI_APPLICATION = 'ocelot.wsgi.application'
+
+FILE_UPLOAD_PERMISSIONS = 0o644
+
+# Logging settings for this Django project.
+LOG_LEVEL = logging.DEBUG
+LOG_FILENAME = os.path.join(BASE_DIR, 'ocelot.log')
+LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
+LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
+LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
+LOG_HANDLER = RotatingFileHandler(
+    filename=LOG_FILENAME,
+    mode="a",
+    maxBytes=50 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8",
+)
+LOG_HANDLER.setLevel(level=LOG_LEVEL)
+LOG_HANDLER.setFormatter(LOG_FORMATTER)
 
 
 # Application definition
@@ -67,19 +124,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'ocelot.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
 
 # Password validation
