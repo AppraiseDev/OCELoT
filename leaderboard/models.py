@@ -1,6 +1,9 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from json import loads
+from json.decoder import JSONDecodeError
+from django.core.exceptions import ValidationError
 from django.db import models
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
@@ -56,3 +59,16 @@ class TestSet(models.Model):
 
     def __str__(self):
         return '{0} test set'.format(self.name)
+
+    def full_clean(self, exclude=None, validate_unique=True):
+        """Validates test set JSON data."""
+        if isinstance(self.json_data, (str, bytes, bytearray)):
+            try:
+                _unused = loads(self.json_data)
+
+            except JSONDecodeError:
+                raise ValidationError('This field contains invalid JSON.')
+
+        super().full_clean(
+            exclude=exclude, validate_unique=validate_unique
+        )

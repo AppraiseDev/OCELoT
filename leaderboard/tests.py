@@ -61,9 +61,18 @@ class LeaderboardTests(TestCase):
 
         _bad = TestSet()
         _bad.json_data = 'bar'
-        _msg = "{'name': ['This field cannot be blank.']}"
+        _msg = "['This field contains invalid JSON.']"
         with self.assertRaisesMessage(ValidationError, _msg):
             _bad.full_clean()
 
-        _good = TestSet(name='foo', json_data='bar')
+        _good = TestSet(name='foo', json_data='{"valid": "json"}')
         _good.full_clean()
+
+    def test_testset_can_validate_json_data(self):
+        """Checks that TestSet model can validate JSON data."""
+        from leaderboard.models import TestSet
+
+        _bad = TestSet(name='foo', json_data='bar')
+        _msg = "['This field contains invalid JSON.']"
+        with self.assertRaisesMessage(ValidationError, _msg):
+            _bad.full_clean()
