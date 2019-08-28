@@ -47,6 +47,10 @@ class TestSet(models.Model):
         ),
     )
 
+    json_data = models.TextField(
+        blank=False, null=True, help_text=('JSON data for test set')
+    )
+
     def __repr__(self):
         return 'TestSet(name={0})'.format(self.name)
 
