@@ -1,0 +1,22 @@
+{
+    "json_version": 1,
+    "source_language": "eng",
+    "target_language": "deu",
+    "task_type": "translation",
+    "json_text_src": [
+        "First source text",
+        "Second source text"
+    ],
+    "json_text_ref": [
+        "First reference text",
+        "Second reference text"
+    ],
+    "json_auto_src": [
+        "First auto source text",
+        "Second auto source text"
+    ],
+    "json_auto_ref": [
+        "First auto reference text",
+        "Second auto reference text"
+    ]
+}

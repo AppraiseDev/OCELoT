@@ -1,6 +1,8 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from json import loads
+from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
@@ -76,3 +78,20 @@ class LeaderboardTests(TestCase):
         _msg = "['This field contains invalid JSON.']"
         with self.assertRaisesMessage(ValidationError, _msg):
             _bad.full_clean()
+
+    def test_testset_validates_valid_json(self):
+        """Checks that TestSet model validates valid JSON data."""
+        from leaderboard.models import TestSet
+
+        json_path = Path('leaderboard', 'testdata', 'valid_data.json')
+        with open(json_path, encoding='utf-8') as json_file:
+            json_str = json_file.read()
+
+        _good = TestSet(name='foo', json_data=json_str)
+        _good.full_clean()
+
+        json_obj = loads(json_str)
+        self.assertEqual(json_obj['json_version'], 1)
+        self.assertEqual(json_obj['source_language'], 'eng')
+        self.assertEqual(json_obj['target_language'], 'deu')
+        self.assertEqual(json_obj['task_type'], 'translation')
