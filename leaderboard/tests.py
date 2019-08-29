@@ -95,3 +95,16 @@ class LeaderboardTests(TestCase):
         self.assertEqual(json_obj['source_language'], 'eng')
         self.assertEqual(json_obj['target_language'], 'deu')
         self.assertEqual(json_obj['task_type'], 'translation')
+        self.assertTrue('json_text_src' in json_obj)
+
+        if 'json_text_ref' in json_obj:
+            self.assertEqual(
+                len(json_obj['json_text_src']),
+                len(json_obj['json_text_ref'])
+            )
+
+        if 'json_auto_src' in json_obj:
+            self.assertEqual(
+                len(json_obj['json_auto_src']),
+                len(json_obj['json_auto_ref'])
+            )
