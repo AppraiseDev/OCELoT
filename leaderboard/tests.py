@@ -84,8 +84,7 @@ class LeaderboardTests(TestCase):
         from leaderboard.models import TestSet
 
         json_path = Path(Path(__file__).parent, 'testdata', 'valid_data.json')
-        with open(json_path, encoding='utf-8') as json_file:
-            json_str = json_file.read()
+        json_str = json_path.read_text(encoding='utf-8')
 
         _good = TestSet(name='foo', json_data=json_str)
         _good.full_clean()
