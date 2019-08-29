@@ -83,7 +83,7 @@ class LeaderboardTests(TestCase):
         """Checks that TestSet model validates valid JSON data."""
         from leaderboard.models import TestSet
 
-        json_path = Path(Path.cwd(), 'leaderboard', 'testdata', 'valid_data.json')
+        json_path = Path(Path(__file__).parent, 'testdata', 'valid_data.json')
         with open(json_path, encoding='utf-8') as json_file:
             json_str = json_file.read()
 
