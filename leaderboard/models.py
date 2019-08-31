@@ -72,3 +72,78 @@ class TestSet(models.Model):
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique
         )
+
+
+class Submission(models.Model):
+    """Models a submission."""
+
+    is_primary = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is primary sumission?',
+    )
+
+    name = models.CharField(
+        blank=False,
+        db_index=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text=(
+            'Test set name (max {0} characters)'.format(MAX_NAME_LENGTH)
+        ),
+    )
+
+    score = models.FloatField(
+        blank=True, db_index=True, help_text='SacreBLEU score', null=True
+    )
+
+    sgml_file = models.FileField(
+        upload_to='submissions',
+        help_text='SGML file containing submission output',
+        null=True,
+    )
+
+    test_set = models.ForeignKey(TestSet, on_delete=models.PROTECT)
+
+    def __repr__(self):
+        return 'Submission(name={0}, is_primary={1})'.format(
+            self.name, self.is_primary
+        )
+
+    def __str__(self):
+        _name = self.name if self.is_primary else 'Anonymous'
+        # pylint: disable=no-member
+        return '{0} submission #{1}'.format(_name, self.id)
+
+    def _compute_score(self):
+        """Computes sacreBLEU score for current submission."""
+
+        sgml_path = str(self.sgml_file.name)
+        text_path = sgml_path.replace('.sgm', '.txt')
+        ref_path = 'testsets/wmt18.ende.ref.txt'
+
+        from sacrebleu import process_to_text, corpus_bleu
+        from pathlib import Path
+
+        if not Path(text_path).exists():
+            process_to_text(sgml_path, text_path)
+
+        hyp_stream = [x for x in open(text_path, encoding='utf-8')]
+        ref_stream = [r for r in open(ref_path, encoding='utf-8')]
+
+        bleu = corpus_bleu(hyp_stream, [ref_stream])
+
+        self.score = bleu.score
+        self.save()
+
+    # pylint: disable=no-member,arguments-differ
+    def save(self, *args, **kwargs):
+        """Compute sacreBLEU score on save()."""
+        super().save(*args, **kwargs)
+        if not self.score and self.id:
+            self._compute_score()
+
+    @property
+    def get_name(self):
+        """Make __str__() accessible in admin listings."""
+        return str(self)
