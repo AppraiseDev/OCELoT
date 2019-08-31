@@ -83,7 +83,9 @@ class LeaderboardTests(TestCase):
         """Checks that TestSet model validates valid JSON data."""
         from leaderboard.models import TestSet
 
-        json_path = Path(Path(__file__).parent, 'testdata', 'valid_data.json')
+        json_path = Path(
+            Path(__file__).parent, 'testdata', 'valid_data.json'
+        )
         json_str = json_path.read_text(encoding='utf-8')
 
         _good = TestSet(name='foo', json_data=json_str)
@@ -99,11 +101,11 @@ class LeaderboardTests(TestCase):
         if 'json_text_ref' in json_obj:
             self.assertEqual(
                 len(json_obj['json_text_src']),
-                len(json_obj['json_text_ref'])
+                len(json_obj['json_text_ref']),
             )
 
         if 'json_auto_src' in json_obj:
             self.assertEqual(
                 len(json_obj['json_auto_src']),
-                len(json_obj['json_auto_ref'])
+                len(json_obj['json_auto_ref']),
             )
