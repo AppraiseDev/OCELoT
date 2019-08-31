@@ -101,10 +101,7 @@
           <td>
             <button type="button" class="btn btn-primary btn-sm">Apply filters</button>
             &nbsp;
-              <!--
-              <button type="button" class="btn btn-primary btn-sm">Create submission</button>
-              -->
-              <a class="btn btn-primary btn-sm" role="button" href="http://127.0.0.1:8000/admin/leaderboard/submission/add/">Create submission</a>
+            <a class="btn btn-primary btn-sm" role="button" href="{% url 'admin:leaderboard_submission_add' %}">Create submission</a>
         </td>
         </tr>
       </table>
