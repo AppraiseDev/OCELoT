@@ -6,8 +6,8 @@ from json.decoder import JSONDecodeError
 from pathlib import Path
 
 from django.core.exceptions import ValidationError
-from django.db import models, DEFAULT_DB_ALIAS
-
+from django.db import DEFAULT_DB_ALIAS
+from django.db import models
 from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu.sacrebleu import process_to_text  # type: ignore
 
