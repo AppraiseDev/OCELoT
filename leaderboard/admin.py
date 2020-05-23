@@ -3,7 +3,9 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from django.contrib import admin
 
-from leaderboard.models import Language, Submission, TestSet
+from leaderboard.models import Language
+from leaderboard.models import Submission
+from leaderboard.models import TestSet
 
 
 class LanguageAdmin(admin.ModelAdmin):
