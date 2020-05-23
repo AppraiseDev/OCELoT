@@ -9,6 +9,7 @@ from django.test import TestCase
 
 from leaderboard.models import TestSet
 
+
 class LeaderboardTests(TestCase):
     """Tests leaderboard app."""
 
