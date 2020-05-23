@@ -3,9 +3,11 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from json import loads
 from pathlib import Path
+
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
+from leaderboard.models import TestSet
 
 class LeaderboardTests(TestCase):
     """Tests leaderboard app."""
@@ -29,7 +31,6 @@ class LeaderboardTests(TestCase):
 
     def test_frontpage_knows_about_test_sets(self):
         """Checks that frontpage retrieve list of test sets."""
-        from leaderboard.models import Language, TestSet
 
         _msg = 'Need to implement test for Language and TestSet objects'
         with self.assertRaisesMessage(NotImplementedError, _msg):
@@ -37,7 +38,6 @@ class LeaderboardTests(TestCase):
 
     def test_testset_model_has_name_and_json_data(self):
         """Checks that TestSet model has name and JSON data."""
-        from leaderboard.models import TestSet
 
         _good = TestSet(name='foo', json_data='bar')
         self.assertEqual(_good.name, 'foo')
@@ -45,7 +45,6 @@ class LeaderboardTests(TestCase):
 
     def test_testset_needs_both_name_and_json_data(self):
         """Checks that TestSet model needs both name and JSON data."""
-        from leaderboard.models import TestSet
 
         _bad = TestSet()
 
@@ -72,7 +71,6 @@ class LeaderboardTests(TestCase):
 
     def test_testset_can_validate_json_data(self):
         """Checks that TestSet model can validate JSON data."""
-        from leaderboard.models import TestSet
 
         _bad = TestSet(name='foo', json_data='bar')
         _msg = "['This field contains invalid JSON.']"
@@ -81,7 +79,6 @@ class LeaderboardTests(TestCase):
 
     def test_testset_validates_valid_json(self):
         """Checks that TestSet model validates valid JSON data."""
-        from leaderboard.models import TestSet
 
         json_path = Path(
             Path(__file__).parent, 'testdata', 'valid_data.json'

@@ -9,11 +9,9 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
 import logging
-from logging.handlers import RotatingFileHandler
-
 import os
+from logging.handlers import RotatingFileHandler
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Try to load local settings, otherwise use defaults.
 try:
     # pylint: disable=W0611
-    from ocelot.local_settings import (
+    from ocelot.local_settings import (  # type: ignore
         DEBUG,
         ADMINS,
         MANAGERS,

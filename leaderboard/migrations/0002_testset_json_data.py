@@ -13,6 +13,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='testset',
             name='json_data',
-            field=models.TextField(help_text='JSON data for test set', null=True),
+            field=models.TextField(
+                help_text='JSON data for test set', null=True
+            ),
         ),
     ]

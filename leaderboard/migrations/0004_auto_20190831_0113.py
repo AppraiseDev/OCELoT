@@ -13,16 +13,29 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='submission',
             name='is_primary',
-            field=models.BooleanField(db_index=True, default=False, help_text='Is primary sumission?'),
+            field=models.BooleanField(
+                db_index=True,
+                default=False,
+                help_text='Is primary sumission?',
+            ),
         ),
         migrations.AddField(
             model_name='submission',
             name='score',
-            field=models.FloatField(blank=True, db_index=True, help_text='SacreBLEU score', null=True),
+            field=models.FloatField(
+                blank=True,
+                db_index=True,
+                help_text='SacreBLEU score',
+                null=True,
+            ),
         ),
         migrations.AddField(
             model_name='submission',
             name='sgml_file',
-            field=models.FileField(help_text='SGML file containing submission output', null=True, upload_to='submissions'),
+            field=models.FileField(
+                help_text='SGML file containing submission output',
+                null=True,
+                upload_to='submissions',
+            ),
         ),
     ]

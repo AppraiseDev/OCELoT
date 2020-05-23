@@ -21,6 +21,5 @@ from leaderboard.views import frontpage
 # pylint: disable-msg=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
-
     path('', frontpage),
 ]

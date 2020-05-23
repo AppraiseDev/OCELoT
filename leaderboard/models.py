@@ -3,8 +3,14 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from json import loads
 from json.decoder import JSONDecodeError
+from pathlib import Path
+
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, DEFAULT_DB_ALIAS
+
+from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
+from sacrebleu.sacrebleu import process_to_text  # type: ignore
+
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
@@ -122,24 +128,29 @@ class Submission(models.Model):
         text_path = sgml_path.replace('.sgm', '.txt')
         ref_path = 'testsets/wmt18.ende.ref.txt'
 
-        from sacrebleu import process_to_text, corpus_bleu
-        from pathlib import Path
-
         if not Path(text_path).exists():
             process_to_text(sgml_path, text_path)
 
-        hyp_stream = [x for x in open(text_path, encoding='utf-8')]
-        ref_stream = [r for r in open(ref_path, encoding='utf-8')]
+        hyp_stream = (x for x in open(text_path, encoding='utf-8'))
+        ref_stream = (r for r in open(ref_path, encoding='utf-8'))
 
         bleu = corpus_bleu(hyp_stream, [ref_stream])
 
         self.score = bleu.score
         self.save()
 
-    # pylint: disable=no-member,arguments-differ
-    def save(self, *args, **kwargs):
+    # pylint: disable=no-member,bad-continuation
+    def save(
+        self,
+        force_insert=False,
+        force_update=False,
+        using=DEFAULT_DB_ALIAS,
+        update_fields=None,
+    ):
+        # def save(self, *args, **kwargs):
         """Compute sacreBLEU score on save()."""
-        super().save(*args, **kwargs)
+        # super().save(*args, **kwargs)
+        super().save(force_insert, force_update, using, update_fields)
         if not self.score and self.id:
             self._compute_score()
 

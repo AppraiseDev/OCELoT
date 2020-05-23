@@ -1,2 +1,4 @@
 django
+django-stubs
+sacrebleu
 sqlparse
