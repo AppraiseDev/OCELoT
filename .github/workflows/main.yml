@@ -1,0 +1,12 @@
+name: "PythonFormatting"
+
+on: [push, pull_request]
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Run reorder-python-imports + black formatter
+      - name: Black Code Formatter
+        uses: cfedermann/python-format-action@master
