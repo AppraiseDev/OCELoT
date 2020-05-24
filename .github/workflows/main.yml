@@ -1,4 +1,4 @@
-name: "PythonFormatting"
+name: "PythonCodeValidator"
 
 on: [push, pull_request]
 
@@ -7,6 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Run reorder-python-imports + black formatter
-      - name: Black Code Formatter
-        uses: cfedermann/python-format-action@master
+      - name: Python Code Validator
+        uses: cfedermann/python-code-validator@master
