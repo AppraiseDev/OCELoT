@@ -1,4 +1,4 @@
-django
-django-stubs
-sacrebleu
-sqlparse
+django==3.0.6
+django-stubs==1.5.0
+sacrebleu==1.4.9
+sqlparse==0.3.1
