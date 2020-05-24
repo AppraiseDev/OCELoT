@@ -9,3 +9,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Python Code Validator
         uses: cfedermann/python-code-validator@master
+        env:
+          PYLINT_THRESHOLD: 10
