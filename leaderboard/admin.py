@@ -19,7 +19,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     fields = ['name', 'test_set', 'is_primary', 'sgml_file', 'score']
 
-    list_display = ['__str__', 'test_set', 'test_set__source_language', 'test_set__target_language' 'score']
+    list_display = ['__str__', 'test_set', '_source_language', '_target_language', 'score']
 
     ordering = ('-score',)
 
@@ -31,7 +31,7 @@ class TestSetAdmin(admin.ModelAdmin):
 
     list_display = ['__str__', 'source_language', 'target_language']
 
-    ordering = ('-name')
+    ordering = ('-name', 'source_language', 'target_language')
 
 
 admin.site.register(Language, LanguageAdmin)

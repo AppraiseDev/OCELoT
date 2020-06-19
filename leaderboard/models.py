@@ -8,8 +8,8 @@ from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
-from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
-from sacrebleu.sacrebleu import process_to_text  # type: ignore
+from sacrebleu import corpus_bleu  # type: ignore
+from sacrebleu import process_to_text  # type: ignore
 
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
@@ -56,9 +56,19 @@ class TestSet(models.Model):
         ),
     )
 
-    source_language = model.ForeignKey(Language, on_delete=models.PROTECT)
+    source_language = models.ForeignKey(
+        Language,
+        on_delete=models.PROTECT,
+        related_name='source_language_set',
+        null=True,
+    )
 
-    target_language = model.ForeignKey(Language, on_delete=models.PROTECT)
+    target_language = models.ForeignKey(
+        Language,
+        on_delete=models.PROTECT,
+        related_name='target_language_set',
+        null=True,
+    )
 
     sgml_file = models.FileField(
         upload_to='testsets',
@@ -149,6 +159,14 @@ class Submission(models.Model):
 
         self.score = bleu.score
         self.save()
+
+    def _source_language(self):
+        """Returns test set source language."""
+        return self.test_set.source_language
+
+    def _target_language(self):
+        """Returns test set target language."""
+        return self.test_set.target_language
 
     # pylint: disable=no-member,bad-continuation
     def save(
