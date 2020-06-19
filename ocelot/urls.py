@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from leaderboard.views import frontpage
+from leaderboard.views import frontpage, submit
 
 # pylint: disable-msg=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', frontpage),
+    path('', frontpage, name='frontpage-view'),
+    path('submit', submit, name='submit-view'),
 ]
