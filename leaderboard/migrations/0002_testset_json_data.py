@@ -5,9 +5,7 @@ from django.db import models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('leaderboard', '0001_initial'),
-    ]
+    dependencies = [('leaderboard', '0001_initial')]
 
     operations = [
         migrations.AddField(
@@ -16,5 +14,5 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 help_text='JSON data for test set', null=True
             ),
-        ),
+        )
     ]

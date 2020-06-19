@@ -6,9 +6,7 @@ from django.db import models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('leaderboard', '0002_testset_json_data'),
-    ]
+    dependencies = [('leaderboard', '0002_testset_json_data')]
 
     operations = [
         migrations.CreateModel(
@@ -39,5 +37,5 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-        ),
+        )
     ]

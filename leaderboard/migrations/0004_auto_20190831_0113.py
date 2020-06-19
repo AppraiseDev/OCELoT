@@ -5,9 +5,7 @@ from django.db import models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('leaderboard', '0003_submission'),
-    ]
+    dependencies = [('leaderboard', '0003_submission')]
 
     operations = [
         migrations.AddField(
