@@ -137,6 +137,12 @@ class TestSet(models.Model):
 class Submission(models.Model):
     """Models a submission."""
 
+    date_created = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        help_text='Creation date of this submission',
+    )
+
     is_primary = models.BooleanField(
         blank=False,
         db_index=True,
@@ -156,7 +162,7 @@ class Submission(models.Model):
         db_index=True,
         max_length=MAX_NAME_LENGTH,
         help_text=(
-            'Test set name (max {0} characters)'.format(MAX_NAME_LENGTH)
+            'Submission name (max {0} characters)'.format(MAX_NAME_LENGTH)
         ),
     )
 
@@ -203,10 +209,13 @@ class Submission(models.Model):
 
     def _score(self):
         """Returns human-readable score."""
-        if not self.score:
-            self._compute_score()
+        try:
+            if not self.score:
+                self._compute_score()
 
-        return round(self.score, 1)
+            return round(self.score, 1)
+        except:
+            return '---'
 
     def _source_language(self):
         """Returns test set source language."""
