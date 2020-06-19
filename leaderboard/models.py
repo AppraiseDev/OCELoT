@@ -56,12 +56,23 @@ class TestSet(models.Model):
         ),
     )
 
-    json_data = models.TextField(
-        blank=False, null=True, help_text=('JSON data for test set')
+    source_language = model.ForeignKey(Language, on_delete=models.PROTECT)
+
+    target_language = model.ForeignKey(Language, on_delete=models.PROTECT)
+
+    sgml_file = models.FileField(
+        upload_to='testsets',
+        help_text='SGML file containing test set',
+        null=True,
     )
 
     def __repr__(self):
-        return 'TestSet(name={0})'.format(self.name)
+        return 'TestSet(name={0}, source={1}, target={2}, sgml={3})'.format(
+            self.name,
+            self.source_language.code,
+            self.target_language.code,
+            self.sgml_file.name,
+        )
 
     def __str__(self):
         return '{0} test set'.format(self.name)
