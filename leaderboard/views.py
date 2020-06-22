@@ -9,6 +9,8 @@ from leaderboard.forms import SubmissionForm
 from leaderboard.models import Submission, TestSet
 
 
+MAX_SUBMISSION_DISPLAY_COUNT = 10
+
 def frontpage(request):
     """Renders OCELoT frontpage."""
 
@@ -18,8 +20,10 @@ def frontpage(request):
     ):
         data[str(submission.test_set)].append(submission)
 
-    # pylint: disable=no-member
-    context = {'data': data.items()}
+    context = {
+        'data': data.items(),
+        'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT
+    }
     return render(request, 'leaderboard/frontpage.html', context=context)
 
 

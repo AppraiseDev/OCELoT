@@ -140,7 +140,7 @@
               </tr>
             </thead>
             <tbody>
-              {% for submission in submissions %}
+              {% for submission in submissions|slice:MAX_SUBMISSION_DISPLAY_COUNT %}
               <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{submission.get_name}}</td>
@@ -148,6 +148,12 @@
                 <td>{{submission.date_created}}</td>
               </tr>
               {% endfor %}
+              {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}
+              <tr>
+                <td>...</td>
+                <td colspan="3"><em>showing top-{{MAX_SUBMISSION_DISPLAY_COUNT}} only, total number of submissions: {{submissions|length}}</em></td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
