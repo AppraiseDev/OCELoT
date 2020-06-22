@@ -1,4 +1,4 @@
-django==3.0.6
+django==3.0.7
 django-stubs==1.5.0
-sacrebleu==1.4.9
+sacrebleu==1.4.10
 sqlparse==0.3.1
