@@ -13,14 +13,19 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
 from leaderboard.views import frontpage, submit
+from ocelot.settings import DEBUG, STATIC_URL, STATIC_ROOT
 
 # pylint: disable-msg=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', frontpage, name='frontpage-view'),
-    path('submit', submit, name='submit-view'),
+    path('submit', submit, name='submit-view')
 ]
+
+if DEBUG:
+    urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)

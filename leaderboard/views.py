@@ -23,7 +23,7 @@ def frontpage(request):
 
     context = {
         'data': data.items(),
-        'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT
+        'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
     }
     return render(request, 'leaderboard/frontpage.html', context=context)
 
