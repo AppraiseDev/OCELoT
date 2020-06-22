@@ -15,7 +15,8 @@ def frontpage(request):
     """Renders OCELoT frontpage."""
 
     data = defaultdict(list)
-    for submission in Submission.objects.all().order_by(
+    submissions = Submission.objects.filter(test_set__is_active=True)
+    for submission in submissions.order_by(
         'test_set', '-score'
     ):
         data[str(submission.test_set)].append(submission)

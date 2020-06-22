@@ -50,7 +50,7 @@
         <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'submit-view' %}">Submit</a>
+        <a class="nav-link disabled" href="#">Submit</a>
       </li>
       <li class="nav-item">
         <a class="nav-link disabled" href="#">About</a>
@@ -80,11 +80,15 @@
   <div class="container">
     <form>
       <p>
-        <a class="btn btn-primary btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
+        <a class="btn btn-danger btn-sm" role="button" href="#">Download test sets</a>
+        <a class="btn btn-success btn-sm" role="button" href="#">Register your team</a>
+        <a class="btn btn-primary btn-sm" role="button" href="#">Create submission</a>
+        <a class="btn btn-warning btn-sm" role="button" href="#">Competition updates</a>
       </p>
     </form>
   </div>
 
+  {% if False %}
   <!--
   <div class="container">
     <form>
@@ -123,9 +127,11 @@
     </form>
   </div>
   -->
+  {% endif %}
 
   <div class="container">
 
+      {% if data %}
         <h2>Leaderboard</h2>
         {% for testset, submissions in data %}
         <h3>{{testset}}</h3>
@@ -158,6 +164,10 @@
           </table>
         </div>
         {% endfor %}
+      {% else %}
+        <h2>Leaderboard</h2>
+        <p>Submissions will become available by 6/22/2020 at 11:59 pm, PDT.</p>
+      {% endif %}
     <hr>
 
   </div> <!-- /container -->
