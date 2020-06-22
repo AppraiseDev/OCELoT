@@ -49,6 +49,13 @@ class Language(models.Model):
 class TestSet(models.Model):
     """Models a test set."""
 
+    is_active = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is active test set?',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
