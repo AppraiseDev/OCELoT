@@ -90,9 +90,12 @@
     <form>
       <p>
         <a class="btn btn-danger btn-sm" role="button" href="{% static "wmt20-test-src.tgz" %}">Download test sets</a>
-        <a class="btn btn-warning btn-sm" role="button" href="#">Register your team</a>
-        <a class="btn btn-success btn-sm" role="button" href="#">Create submission</a>
-        <a class="btn btn-primary btn-sm" role="button" href="#">Competition updates</a>
+        <a class="btn btn-warning btn-sm disabled" role="button" href="#">Register your team</a>
+        <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
+        <a class="btn btn-primary btn-sm disabled" role="button" href="#">Competition updates</a>
+      </p>
+      <p>
+        <em>Team registration, submissions and competition updates will become available by 6/22/2020 at 11:59 pm, PDT.</em>
       </p>
     </form>
   </div>
@@ -174,8 +177,10 @@
         </div>
         {% endfor %}
       {% else %}
+        {% if False %}
         <h2>Leaderboard</h2>
         <p>Submissions will become available by 6/22/2020 at 11:59 pm, PDT.</p>
+        {% endif %}
       {% endif %}
     <hr>
 
