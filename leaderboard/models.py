@@ -9,8 +9,8 @@ from uuid import uuid4
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
-from sacrebleu import corpus_bleu  # type: ignore
-from sacrebleu import process_to_text  # type: ignore
+from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
+from sacrebleu.sacrebleu import process_to_text  # type: ignore
 
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
