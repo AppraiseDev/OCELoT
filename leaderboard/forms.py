@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from leaderboard.models import MAX_TOKEN_LENGTH, TestSet
 
 
-def validate_token(value):
+def _validate_token(value):
     if len(value) != MAX_TOKEN_LENGTH:
         raise ValidationError('Invalid token')
 
@@ -19,8 +19,7 @@ def validate_token(value):
 class SubmissionForm(forms.Form):
     email = forms.EmailField()
     token = forms.CharField(
-        max_length=MAX_TOKEN_LENGTH, validators=[validate_token]
+        max_length=MAX_TOKEN_LENGTH, validators=[_validate_token]
     )
-    all_test_sets = ((x.id, str(x)) for x in TestSet.objects.all())
-    test_set = forms.ChoiceField(choices=all_test_sets)
+    test_set = forms.ModelChoiceField(queryset=TestSet.objects.all())
     sgml_file = forms.FileField()
