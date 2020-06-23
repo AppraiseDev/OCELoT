@@ -1,6 +1,7 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+import re
 from json import loads
 from json.decoder import JSONDecodeError
 from pathlib import Path
@@ -16,6 +17,13 @@ from sacrebleu.sacrebleu import process_to_text  # type: ignore
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
 MAX_TOKEN_LENGTH = 10
+
+
+def _validate_team_name(value):
+    valid_name = re.compile(r'^[a-zA-Z0-9_\- ]{2,32}$')
+    if not valid_name.match(value):
+        _msg = 'Team name must match regexp r"^[a-zA-Z0-9_\- ]{2,32}$"'
+        raise ValidationError(_msg)
 
 
 class Language(models.Model):
@@ -291,8 +299,10 @@ class Team(models.Model):
         db_index=True,
         max_length=MAX_NAME_LENGTH,
         help_text=(
-            'Team name (max {0} characters)'.format(MAX_NAME_LENGTH)
+            'Team name (max {0} characters)'.format(32)  # see validation
         ),
+        unique=True,
+        validators=[_validate_team_name]
     )
 
     email = models.EmailField(
@@ -303,7 +313,10 @@ class Team(models.Model):
     )
 
     token = models.CharField(
-        blank=True, db_index=True, max_length=MAX_TOKEN_LENGTH
+        blank=True,
+        db_index=True,
+        max_length=MAX_TOKEN_LENGTH,
+        unique=True,
     )
 
     def __repr__(self):

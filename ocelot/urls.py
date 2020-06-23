@@ -17,14 +17,17 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from leaderboard.views import frontpage, submit
+from leaderboard.views import frontpage, signin, signout, signup, submit
 from ocelot.settings import DEBUG, STATIC_URL, STATIC_ROOT
 
 # pylint: disable-msg=invalid-name
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', frontpage, name='frontpage-view'),
-    path('submit', submit, name='submit-view')
+    path('sign-in', signin, name='signin-view'),
+    path('sign-out', signout, name='signout-view'),
+    path('signup', signup, name='signup-view'),
+    path('submit', submit, name='submit-view'),
 ]
 
 if DEBUG:
