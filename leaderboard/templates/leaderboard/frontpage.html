@@ -55,7 +55,7 @@
             <a class="btn btn-danger btn-sm" role="button" href="{% static "wmt20-test-src.tgz" %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm disabled" role="button" href="#">Already registered</a>
-            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %">Create submission</a>
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
             {% else %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
             <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
@@ -63,7 +63,7 @@
             <a class="btn btn-primary btn-sm disabled" role="button" href="#">Competition updates</a>
           </p>
           <p>
-            <em>Team registration, submissions and competition updates will become available by 6/22/2020 at 11:59 pm, PDT.</em>
+            <em>Submissions and competition updates will become available on 6/23/2020, PDT.</em>
           </p>
         </form>
       </div>

@@ -14,8 +14,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'frontpage-view' %}">Home</a>
           </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Submit <span class="sr-only">(current)</span></a>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'submit-view' %}">Submit</a>
+            {% else %}
+            <a class="nav-link disabled" href="#">Submit</a>
+            {% endif %}
           </li>
           <li class="nav-item">
             {% if ocelot_team_token %}
@@ -46,8 +50,13 @@
         <form>
           <p>
             <a class="btn btn-danger btn-sm" role="button" href="{% static "wmt20-test-src.tgz" %}">Download test sets</a>
-            <a class="btn btn-warning btn-sm disabled" role="button" href="#">Register your team</a>
-            <a class="btn btn-success btn-sm active" role="button" href="#">Create submission</a>
+            {% if ocelot_team_token %}
+            <a class="btn btn-warning btn-sm disabled" role="button" href="#">Already registered</a>
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %">Create submission</a>
+            {% else %}
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
+            <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
+            {% endif %}
             <a class="btn btn-primary btn-sm disabled" role="button" href="#">Competition updates</a>
           </p>
         </form>
@@ -55,18 +64,13 @@
 
       <div class="container">
 
-        <h2>Submission</h2>
+        <h2>Registration confirmation</h2>
         <p>
-          <em>Submissions and competition updates will become available on 6/23/2020, PDT.</em>
+            <strong>Team name:</strong> {{ocelot_team_name}}<br/>
+            <strong>Email:</strong> {{ocelot_team_email}}<br/>
+            <strong>Token:</strong> {{ocelot_team_token}}<br/>
         </p>
-
-        {% if False %}
-        <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
-          {% csrf_token %}
-          {{ form.as_p }}
-          <input type="submit" value="Submit">
-        </form>
-        {% endif %}
+    
         <hr>
     
       </div> <!-- /container -->

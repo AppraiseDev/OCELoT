@@ -16,11 +16,13 @@ MAX_SUBMISSION_PERTEAM_COUNT = 7
 def _get_team_data(request):
     """Returns team name for session token."""
     ocelot_team_name = None
+    ocelot_team_email = None
     ocelot_team_token = request.session.get('ocelot_team_token')
     if ocelot_team_token:
         the_team = Team.objects.get(token=ocelot_team_token)
         ocelot_team_name = the_team.name
-    return (ocelot_team_name, ocelot_team_token)
+        ocelot_team_email = the_team.email
+    return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
 
 def frontpage(request):
     """Renders OCELoT frontpage."""
@@ -32,12 +34,13 @@ def frontpage(request):
     ):
         data[str(submission.test_set)].append(submission)
 
-    ocelot_team_name, ocelot_team_token = _get_team_data(request)
+    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(request)
 
     context = {
         'data': data.items(),
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
     }
     return render(request, 'leaderboard/frontpage.html', context=context)
@@ -91,7 +94,7 @@ def signup(request):
             new_team = form.save()
             request.session['ocelot_team_token'] = new_team.token
             print(new_team.token)
-            return HttpResponseRedirect('/welcome/')
+            return HttpResponseRedirect(reverse('welcome-view'))
 
     else:
         form = TeamForm()
@@ -129,11 +132,25 @@ def submit(request):
     else:
         form = SubmissionForm()
 
-    ocelot_team_name, ocelot_team_token = _get_team_data(request)
+    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(request)
 
     context = {
         'form': form,
         'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
     }
     return render(request, 'leaderboard/submission.html', context=context)
+
+
+def welcome(request):
+    """Renders OCELoT welcome (registration confirmation) page."""
+
+    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(request)
+
+    context = {
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'leaderboard/welcome.html', context=context)
