@@ -11,7 +11,11 @@ from django.db import DEFAULT_DB_ALIAS
 from django.db import models
 from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu.sacrebleu import process_to_text  # type: ignore
+from sacrebleu.sacrebleu import TOKENIZERS
 
+
+# Add support for character-based BLEU scores
+TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
@@ -395,8 +399,25 @@ class Submission(models.Model):
         hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
         ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
 
+        tokenize = '13a'
+        src_language_code = self.test_set.target_language.code
+        if src_language_code == 'ja':
+            try:
+                import MeCab
+                tokenize = 'ja-mecab'
+
+            except ImportError:
+                tokenize = 'char-based'
+
+        elif src_language_code == 'zh':
+            tokenize = 'zh'
+
         try:
-            bleu = corpus_bleu(hyp_stream, [ref_stream])
+            _msg = 'language: {1}, tokenize: {2}'.format(
+                src_language_code, tokenize
+            )
+            print(_msg)
+            bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
             self.score = bleu.score
 
         except EOFError:
