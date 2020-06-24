@@ -375,15 +375,19 @@ class Submission(models.Model):
     def _compute_score(self):
         """Computes sacreBLEU score for current submission."""
 
-        # Get docids from ref SGML path -- these are non "testsuite-"
-        ref_docids = Submission._get_docids_from_path(
-            self.test_set.ref_sgml_file.name  # pylint: disable=no-member
-        )
+        sgml_path = self.sgml_file.name
+        sgml_filtered_path = sgml_path.replace('.sgm', '.filtered.sgm')
+        if not Path(sgml_filtered_path).exists():
+            # Get docids from ref SGML path -- these are non "testsuite-"
+            ref_docids = Submission._get_docids_from_path(
+                self.test_set.ref_sgml_file.name  # pylint: disable=no-member
+            )
 
-        # Filter hyp SGML in matching order, skipping testsuite-* docs
-        hyp_filtered_path = Submission._filter_sgml_by_docids(
-            self.sgml_file.name, ref_docids  # pylint: disable=no-member
-        )
+            # Filter hyp SGML in matching order, skipping testsuite-* docs
+            hyp_filtered_path = Submission._filter_sgml_by_docids(
+                self.sgml_file.name,
+                ref_docids,  # pylint: disable=no-member
+            )
 
         # Create text version of filtered hyp SGML
         hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
@@ -400,20 +404,18 @@ class Submission(models.Model):
         ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
 
         tokenize = '13a'
-        src_language_code = self.test_set.target_language.code
+        src_language_code = (
+            self.test_set.target_language.code  # pylint: disable=no-member
+        )
         if src_language_code == 'ja':
-            try:
-                import MeCab
-                tokenize = 'ja-mecab'
-
-            except ImportError:
-                tokenize = 'char-based'
+            # We use char-based tokenizer as MeCab was slow/unstable
+            tokenize = 'char-based'
 
         elif src_language_code == 'zh':
             tokenize = 'zh'
 
         try:
-            _msg = 'language: {1}, tokenize: {2}'.format(
+            _msg = 'language: {0}, tokenize: {1}'.format(
                 src_language_code, tokenize
             )
             print(_msg)
