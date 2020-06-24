@@ -340,7 +340,7 @@ class Submission(models.Model):
     def _filter_sgml_by_docids(sgml_path, docids, encoding='utf-8'):
         """Creates filtered SGML file which contains only docids."""
 
-        valid_docids = (x.lower() for x in docids)
+        valid_docids = [x.lower() for x in docids]
 
         with open(sgml_path, encoding=encoding) as sgml_handle:
             sgml_soup = BeautifulSoup(sgml_handle, 'lxml-xml')
@@ -348,14 +348,14 @@ class Submission(models.Model):
         sgml_docs = {}
         sgml_regexp = re.compile('doc', re.IGNORECASE)
         for doc in sgml_soup.find_all(sgml_regexp):
-            docid = doc.attrs.get('docid')
-            if not docid.lower() in valid_docids:
+            docid = doc.attrs.get('docid', '').lower()
+            if not docid in valid_docids:
                 doc.extract()
                 continue
             sgml_docs[docid] = doc.extract()
 
-        for docid in docids:
-            if docid in sgml_docs.keys():
+        for docid in valid_docids:
+            if docid in sgml_docs.keys() and sgml_soup.tstset:
                 sgml_soup.tstset.append(sgml_docs[docid])
 
         sgml_filtered_path = sgml_path.replace('.sgm', '.filtered.sgm')
@@ -395,19 +395,23 @@ class Submission(models.Model):
         hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
         ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
 
-        bleu = corpus_bleu(hyp_stream, [ref_stream])
+        try:
+            bleu = corpus_bleu(hyp_stream, [ref_stream])
+            self.score = bleu.score
 
-        self.score = bleu.score
-        self.save()
+        except EOFError:
+            self.score = None
+
+        finally:
+            self.save()
 
     def _score(self):
         """Returns human-readable score."""
         try:
-            if not self.score:
-                self._compute_score()
+            if self.score:
+                return round(self.score, 1)
 
-            return round(self.score, 1)
-        except:
+        except TypeError:
             return '---'
 
     def _source_language(self):

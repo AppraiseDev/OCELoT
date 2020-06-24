@@ -222,6 +222,7 @@ def updates(request):
     ) = _get_team_data(request)
 
     context = {
+        'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,

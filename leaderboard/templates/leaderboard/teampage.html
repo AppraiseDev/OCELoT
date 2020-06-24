@@ -93,7 +93,11 @@
               <tr>
                 <td>{{forloop.counter}}</td>
                 <td>{{submission.sgml_file.name}}</td>
+                {% if submission.score %}
                 <td>{{submission.score|stringformat:".1f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
                 <td>{{submission.date_created}}</td>
               </tr>
               {% endfor %}

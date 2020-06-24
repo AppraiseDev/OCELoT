@@ -100,7 +100,11 @@
                 {% else %}
                 <td>{{submission.get_name}}</td>
                 {% endif %}
+                {% if submission.score %}
                 <td>{{submission.score|stringformat:".1f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
                 <td>{{submission.date_created}}</td>
               </tr>
               {% endfor %}
