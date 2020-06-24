@@ -410,6 +410,7 @@ class Submission(models.Model):
         try:
             if self.score:
                 return round(self.score, 1)
+            return '---'
 
         except TypeError:
             return '---'
