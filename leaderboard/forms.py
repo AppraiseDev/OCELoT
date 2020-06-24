@@ -5,9 +5,9 @@ from django import forms
 
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
-from leaderboard.models import validate_token
 from leaderboard.models import Submission
 from leaderboard.models import Team
+from leaderboard.models import validate_token
 
 
 class SigninForm(forms.Form):
