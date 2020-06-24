@@ -40,7 +40,13 @@ def frontpage(request):
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True
     )
-    for submission in submissions.order_by('test_set', '-score'):
+    ordering = (
+        'test_set__name',
+        'test_set__source_language__code',
+        'test_set__target_language__code',
+        '-score',
+    )
+    for submission in submissions.order_by(*ordering):
         data[str(submission.test_set)].append(submission)
 
     (
