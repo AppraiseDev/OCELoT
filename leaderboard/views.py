@@ -1,7 +1,7 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
-from collections import defaultdict
+from collections import OrderedDict
 
 from django.contrib import messages
 from django.shortcuts import HttpResponseRedirect
@@ -36,7 +36,7 @@ def _get_team_data(request):
 def frontpage(request):
     """Renders OCELoT frontpage."""
 
-    data = defaultdict(list)
+    data = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True
     )
@@ -47,7 +47,10 @@ def frontpage(request):
         '-score',
     )
     for submission in submissions.order_by(*ordering):
-        data[str(submission.test_set)].append(submission)
+        key = str(submission.test_set)
+        if not key in data.keys():
+            data[key] = []
+        data[key].append(submission)
 
     (
         ocelot_team_name,
@@ -202,7 +205,7 @@ def teampage(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    data = defaultdict(list)
+    data = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True, submitted_by__token=ocelot_team_token,
     )
@@ -213,7 +216,10 @@ def teampage(request):
         '-score',
     )
     for submission in submissions.order_by(*ordering):
-        data[str(submission.test_set)].append(submission)
+        key = str(submission.test_set)
+        if not key in data.keys():
+            data[key] = []
+        data[key].append(submission)
 
     context = {
         'data': data.items(),
