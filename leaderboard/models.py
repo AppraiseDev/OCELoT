@@ -2,8 +2,6 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import re
-from json import loads
-from json.decoder import JSONDecodeError
 from pathlib import Path
 from uuid import uuid4
 
@@ -20,10 +18,19 @@ MAX_NAME_LENGTH = 200
 MAX_TOKEN_LENGTH = 10
 
 
-def _validate_team_name(value):
+def validate_team_name(value):
+    """Validates team name matches r'^[a-zA-Z0-9_\\- ]{2,32}$'."""
     valid_name = re.compile(r'^[a-zA-Z0-9_\- ]{2,32}$')
     if not valid_name.match(value):
         _msg = 'Team name must match regexp r"^[a-zA-Z0-9_\\- ]{2,32}$"'
+        raise ValidationError(_msg)
+
+
+def validate_token(value):
+    """Validates token matches r'[a-f0-9]{10}'."""
+    valid_token = re.compile(r'[a-f0-9]{10}')
+    if not valid_token.match(value):
+        _msg = 'Team name must match regexp r"[a-f0-9]{10}"'
         raise ValidationError(_msg)
 
 
@@ -103,15 +110,17 @@ class TestSet(models.Model):
     def __repr__(self):
         return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4})'.format(
             self.name,
-            self.source_language.code,
-            self.target_language.code,
+            self.source_language.code,  # pylint: disable=no-member
+            self.target_language.code,  # pylint: disable=no-member
             self.ref_sgml_file.name,
             self.ref_sgml_file.name,
         )
 
     def __str__(self):
         return '{0} test set ({1}-{2})'.format(
-            self.name, self.source_language.code, self.target_language.code
+            self.name,
+            self.source_language.code,  # pylint: disable=no-member
+            self.target_language.code,  # pylint: disable=no-member
         )
 
     def _create_text_files(self):
@@ -175,7 +184,7 @@ class Team(models.Model):
             'Team name (max {0} characters)'.format(32)  # see validation
         ),
         unique=True,
-        validators=[_validate_team_name],
+        validators=[validate_team_name],
     )
 
     email = models.EmailField(
@@ -186,7 +195,11 @@ class Team(models.Model):
     )
 
     token = models.CharField(
-        blank=True, db_index=True, max_length=MAX_TOKEN_LENGTH, unique=True
+        blank=True,
+        db_index=True,
+        max_length=MAX_TOKEN_LENGTH,
+        unique=True,
+        validators=[validate_token],
     )
 
     def __repr__(self):
@@ -217,23 +230,24 @@ class Team(models.Model):
 
 
 def _get_submission_upload_path(instance, filename):
+    """Construct upload path based on test set and team data."""
+    del filename  # not used
+
     submissions_count = 0
-    submissions_for_team = Submission.objects.filter(
-        submitted_by=instance.submitted_by.id
+    submissions_for_team = Submission.objects.filter(  # pylint: disable=no-member
+        submitted_by=instance.submitted_by.id, test_set=instance.test_set
     )
     if submissions_for_team.exists():
         submissions_count = submissions_for_team.count()
 
-    print('_get_submission_upload_path()')
-    print(instance.submitted_by)
-    print(submissions_count)
-    new_filename = 'submissions/{0}.{1}.{2}.sgm'.format(
+    new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.sgm'.format(
         instance.test_set.name,
+        instance.test_set.source_language.code,
+        instance.test_set.target_language.code,
         instance.submitted_by.name,
         submissions_count + 1,
     )
     new_filename.replace(' ', '_').lower()
-    print(new_filename)
 
     return new_filename
 
@@ -307,56 +321,75 @@ class Submission(models.Model):
         # pylint: disable=no-member
         return '{0} submission #{1}'.format(_name, self.id)
 
-    def _compute_score(self):
-        """Computes sacreBLEU score for current submission."""
+    @staticmethod
+    def _get_docids_from_path(sgml_path, encoding='utf-8'):
+        """Gets list of docids from SGML path."""
 
-        # Compute docid order from test set
-        ref_handle = open(
-            self.test_set.ref_sgml_file.name, encoding='utf-8'
-        )
-        ref_soup = BeautifulSoup(ref_handle, 'lxml-xml')
-        ref_handle.close()
-        ref_docids = []
-        for doc in ref_soup.find_all(re.compile('doc', re.IGNORECASE)):
+        with open(sgml_path, encoding=encoding) as sgml_handle:
+            sgml_soup = BeautifulSoup(sgml_handle, 'lxml-xml')
+
+        sgml_docids = []
+        sgml_regexp = re.compile('doc', re.IGNORECASE)
+        for doc in sgml_soup.find_all(sgml_regexp):
             docid = doc.attrs.get('docid')
-            if docid and docid.lower().startswith('testsuite-'):
-                continue
-            ref_docids.append(docid)
+            sgml_docids.append(docid)
 
-        # Compute hyp sgml in matching order, skipping testsuite-* docs
-        hyp_sgml_path = str(self.sgml_file.name)
-        hyp_handle = open(hyp_sgml_path, encoding='utf-8')
-        hyp_soup = BeautifulSoup(hyp_handle, 'lxml-xml')
-        hyp_handle.close()
-        hyp_docs = {}
-        for doc in hyp_soup.find_all(re.compile('doc', re.IGNORECASE)):
-            docid = doc.attrs.get('docid').lower()
-            if docid and docid.lower().startswith('testsuite-'):
+        return sgml_docids
+
+    @staticmethod
+    def _filter_sgml_by_docids(sgml_path, docids, encoding='utf-8'):
+        """Creates filtered SGML file which contains only docids."""
+
+        valid_docids = (x.lower() for x in docids)
+
+        with open(sgml_path, encoding=encoding) as sgml_handle:
+            sgml_soup = BeautifulSoup(sgml_handle, 'lxml-xml')
+
+        sgml_docs = {}
+        sgml_regexp = re.compile('doc', re.IGNORECASE)
+        for doc in sgml_soup.find_all(sgml_regexp):
+            docid = doc.attrs.get('docid')
+            if not docid.lower() in valid_docids:
                 doc.extract()
                 continue
-            hyp_docs[docid] = doc.extract()
+            sgml_docs[docid] = doc.extract()
 
-        for docid in ref_docids:
-            if docid in hyp_docs.keys():
-                hyp_soup.tstset.append(hyp_docs[docid])
+        for docid in docids:
+            if docid in sgml_docs.keys():
+                sgml_soup.tstset.append(sgml_docs[docid])
 
-        hyp_filtered_path = hyp_sgml_path.replace('.sgm', '.filtered.sgm')
-
-        with open(hyp_filtered_path, 'w', encoding='utf-8') as out_file:
-            out_soup = str(hyp_soup)
+        sgml_filtered_path = sgml_path.replace('.sgm', '.filtered.sgm')
+        with open(sgml_filtered_path, 'w', encoding=encoding) as out_file:
+            out_soup = str(sgml_soup)
             out_soup = out_soup.replace(
                 '<?xml version="1.0" encoding="utf-8"?>', ''
             )
             out_file.write(out_soup.strip())
 
-        hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
+        return sgml_filtered_path
 
+    def _compute_score(self):
+        """Computes sacreBLEU score for current submission."""
+
+        # Get docids from ref SGML path -- these are non "testsuite-"
+        ref_docids = Submission._get_docids_from_path(
+            self.test_set.ref_sgml_file.name  # pylint: disable=no-member
+        )
+
+        # Filter hyp SGML in matching order, skipping testsuite-* docs
+        hyp_filtered_path = Submission._filter_sgml_by_docids(
+            self.sgml_file.name, ref_docids  # pylint: disable=no-member
+        )
+
+        # Create text version of filtered hyp SGML
+        hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
         if not Path(hyp_text_path).exists():
-            print(hyp_filtered_path)
-            print(hyp_text_path)
             process_to_text(hyp_filtered_path, hyp_text_path)
 
-        ref_sgml_path = self.test_set.ref_sgml_file.name
+        # By design, the reference only contains valid docids
+        ref_sgml_path = (
+            self.test_set.ref_sgml_file.name  # pylint: disable=no-member
+        )
         ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
 
         hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
@@ -379,11 +412,11 @@ class Submission(models.Model):
 
     def _source_language(self):
         """Returns test set source language."""
-        return self.test_set.source_language
+        return self.test_set.source_language  # pylint: disable=no-member
 
     def _target_language(self):
         """Returns test set target language."""
-        return self.test_set.target_language
+        return self.test_set.target_language  # pylint: disable=no-member
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML file."""

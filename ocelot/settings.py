@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 import logging
 import os
-from logging.handlers import RotatingFileHandler
+from logging.handlers import (  # pylint: disable=ungrouped-imports
+    RotatingFileHandler,
+)
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
