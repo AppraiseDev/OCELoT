@@ -22,6 +22,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'name',
         'test_set',
         'sgml_file',
+        'submitted_by',
         'is_primary',
         'is_public',
         'score',
@@ -33,6 +34,13 @@ class SubmissionAdmin(admin.ModelAdmin):
         '_source_language',
         '_target_language',
         '_score',
+    ]
+
+    list_filter = [
+        'test_set',
+        'test_set__source_language',
+        'test_set__target_language',
+        'submitted_by',
     ]
 
     ordering = ('-score',)

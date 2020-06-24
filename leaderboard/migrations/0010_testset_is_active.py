@@ -5,14 +5,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('leaderboard', '0009_auto_20200618_2345'),
-    ]
+    dependencies = [('leaderboard', '0009_auto_20200618_2345')]
 
     operations = [
         migrations.AddField(
             model_name='testset',
             name='is_active',
-            field=models.BooleanField(db_index=True, default=False, help_text='Is active test set?'),
-        ),
+            field=models.BooleanField(
+                db_index=True,
+                default=False,
+                help_text='Is active test set?',
+            ),
+        )
     ]

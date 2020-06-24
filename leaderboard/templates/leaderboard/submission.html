@@ -56,11 +56,12 @@
       <div class="container">
 
         <h2>Submission</h2>
+
+        {% if False %}
         <p>
           <em>Submissions and competition updates will become available on 6/23/2020, PDT.</em>
         </p>
-
-        {% if False %}
+        {% else %}
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
           {% csrf_token %}
           {{ form.as_p }}
