@@ -375,8 +375,8 @@ class Submission(models.Model):
     def _compute_score(self):
         """Computes sacreBLEU score for current submission."""
 
-        sgml_path = self.sgml_file.name
-        sgml_filtered_path = sgml_path.replace('.sgm', '.filtered.sgm')
+        hyp_path = self.sgml_file.name
+        hyp_filtered_path = sgml_path.replace('.sgm', '.filtered.sgm')
         if not Path(sgml_filtered_path).exists():
             # Get docids from ref SGML path -- these are non "testsuite-"
             ref_docids = Submission._get_docids_from_path(
