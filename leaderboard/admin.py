@@ -43,7 +43,12 @@ class SubmissionAdmin(admin.ModelAdmin):
         'submitted_by',
     ]
 
-    ordering = ('-score',)
+    ordering = (
+        'test_set__name',
+        'test_set__source_language__code',
+        'test_set__target_language__code',
+        '-score',
+    )
 
 
 class TeamAdmin(admin.ModelAdmin):
