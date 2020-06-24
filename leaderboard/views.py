@@ -42,9 +42,11 @@ def frontpage(request):
     for submission in submissions.order_by('test_set', '-score'):
         data[str(submission.test_set)].append(submission)
 
-    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(
-        request
-    )
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
 
     context = {
         'data': data.items(),
@@ -118,9 +120,11 @@ def signup(request):
 def submit(request):
     """Renders OCELoT submission page."""
 
-    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(
-        request
-    )
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
 
     if request.method == 'POST':
         form = SubmissionForm(request.POST, request.FILES)
@@ -163,9 +167,11 @@ def submit(request):
 def welcome(request):
     """Renders OCELoT welcome (registration confirmation) page."""
 
-    ocelot_team_name, ocelot_team_email, ocelot_team_token = _get_team_data(
-        request
-    )
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
 
     context = {
         'ocelot_team_name': ocelot_team_name,
