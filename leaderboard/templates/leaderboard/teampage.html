@@ -74,8 +74,8 @@
 
       <div class="container">
     
-        {% if data %}
         <h2>{{ocelot_team_name}} submissions</h2>
+        {% if data %}
         {% for testset, submissions in data %}
         <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
         <div class="table-responsive">
@@ -105,6 +105,10 @@
           </table>
         </div>
         {% endfor %}
+        {% else %}
+        <div>
+            <p>You have not yet created any submissions.</p>
+        </div>
         {% endif %}
         <hr>
     
