@@ -206,7 +206,13 @@ def teampage(request):
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True, submitted_by__token=ocelot_team_token,
     )
-    for submission in submissions.order_by('test_set', '-score'):
+    ordering = (
+        'test_set__name',
+        'test_set__source_language__code',
+        'test_set__target_language__code',
+        '-score',
+    )
+    for submission in submissions.order_by(*ordering):
         data[str(submission.test_set)].append(submission)
 
     context = {
