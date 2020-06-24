@@ -160,6 +160,7 @@ def submit(request):
                 return HttpResponseRedirect('/')
 
             new_submission = form.save(commit=False)
+            new_submission.name = form.cleaned_data['sgml_file'].name
             new_submission.submitted_by = current_team
             new_submission.save()
 
