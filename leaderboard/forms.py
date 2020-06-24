@@ -19,7 +19,9 @@ class SigninForm(forms.Form):
     name = forms.CharField(max_length=MAX_NAME_LENGTH)
     email = forms.EmailField()
     token = forms.CharField(
-        max_length=MAX_TOKEN_LENGTH, validators=[validate_token]
+        max_length=MAX_TOKEN_LENGTH,
+        validators=[validate_token],
+        widget=forms.PasswordInput(),
     )
 
 
