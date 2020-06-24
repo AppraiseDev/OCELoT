@@ -66,9 +66,11 @@ class TestSetAdmin(admin.ModelAdmin):
         'target_language',
         'src_sgml_file',
         'ref_sgml_file',
+        'is_active',
     ]
 
     list_display = ['__str__', 'source_language', 'target_language']
+    list_filter = ['is_active']
 
     ordering = ('-name', 'source_language', 'target_language')
 

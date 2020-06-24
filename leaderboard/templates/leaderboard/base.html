@@ -41,6 +41,19 @@
   <body>
     {% block navbar %}{% endblock %}
 
+    {% if messages %}
+    <div class="container">
+      {% for message in messages %}
+      <div style="margin-top: 20px;" class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% block main %}{% endblock %}
 
     <footer class="container">

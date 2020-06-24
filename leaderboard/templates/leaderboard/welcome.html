@@ -16,10 +16,20 @@
           </li>
           <li class="nav-item">
             {% if ocelot_team_token %}
-            <a class="nav-link" href="{% url 'submit-view' %}">Submit</a>
+            <a class="nav-link" href="{% url 'teampage-view' %}">Team</a>
             {% else %}
-            <a class="nav-link disabled" href="#">Submit</a>
+            <a class="nav-link" href="{% url 'signup-view' %}">Registration</a>
             {% endif %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'submit-view' %}">Submission</a>
+            {% else %}
+            <a class="nav-link disabled" href="#">Submission</a>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'updates-view' %}">Updates</a>
           </li>
           <li class="nav-item">
             {% if ocelot_team_token %}
@@ -39,9 +49,9 @@
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <div class="container">
-          <h1 class="display-3">Welcome to OCELoT!</h1>
+          <h1 class="display-4">Welcome to OCELoT!</h1>
           <p>
-            From June 22nd to June 29th, OCELoT will be used to collect submissions to the <a href="http://statmt.org/wmt20/translation-task.html">Shared Task: Machine Translation of News</a> which is part of the <a href="http://statmt.org/wmt20/">EMNLP 2020 Fifth Conference on Machine Translation (WMT20)</a>, replacing the previously used matrix which had grown stale over time. You can read more about this year's shared task and changes compared to previous years in the <a href="#">competition updates</a> section. We're looking forward to your participation in WMT20!
+            From June 22nd to June 29th, OCELoT will be used to collect submissions to the <a href="http://statmt.org/wmt20/translation-task.html">Shared Task: Machine Translation of News</a> which is part of the <a href="http://statmt.org/wmt20/">EMNLP 2020 Fifth Conference on Machine Translation (WMT20)</a>, replacing the previously used matrix which had grown stale over time. You can read more about this year's shared task and changes compared to previous years in the <a href="{% url 'updates-view' %}">competition updates</a> section. We're looking forward to your participation in WMT20!
           </p>
         </div>
       </div>
@@ -51,13 +61,13 @@
           <p>
             <a class="btn btn-danger btn-sm" role="button" href="{% static "wmt20-test-src.tgz" %}">Download test sets</a>
             {% if ocelot_team_token %}
-            <a class="btn btn-warning btn-sm disabled" role="button" href="#">Already registered</a>
-            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %">Create submission</a>
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
             {% else %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
             <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
             {% endif %}
-            <a class="btn btn-primary btn-sm disabled" role="button" href="#">Competition updates</a>
+            <a class="btn btn-primary btn-sm" role="button" href="{% url 'updates-view' %}">Competition updates</a>
           </p>
         </form>
       </div>

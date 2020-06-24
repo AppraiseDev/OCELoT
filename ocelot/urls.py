@@ -22,6 +22,8 @@ from leaderboard.views import signin
 from leaderboard.views import signout
 from leaderboard.views import signup
 from leaderboard.views import submit
+from leaderboard.views import teampage
+from leaderboard.views import updates
 from leaderboard.views import welcome
 from ocelot.settings import DEBUG
 from ocelot.settings import STATIC_ROOT
@@ -35,6 +37,8 @@ urlpatterns = [
     path('sign-out', signout, name='signout-view'),
     path('signup', signup, name='signup-view'),
     path('submit', submit, name='submit-view'),
+    path('teampage', teampage, name='teampage-view'),
+    path('updates', updates, name='updates-view'),
     path('welcome', welcome, name='welcome-view'),
 ]
 

@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from collections import defaultdict
 
+from django.contrib import messages
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -63,6 +64,8 @@ def signin(request):
 
     # Already signed in?
     if request.session.get('ocelot_team_token'):
+        _msg = 'You are already signed in.'
+        messages.info(request, _msg)
         return HttpResponseRedirect(reverse('frontpage-view'))
 
     if request.method == 'POST':
@@ -78,6 +81,9 @@ def signin(request):
                 request.session['ocelot_team_token'] = form.cleaned_data[
                     'token'
                 ]
+
+            _msg = 'You have successfully signed in.'
+            messages.success(request, _msg)
             return HttpResponseRedirect(reverse('frontpage-view'))
 
     else:
@@ -90,15 +96,15 @@ def signin(request):
 def signout(request):
     """Clears current OCELoT session."""
     del request.session['ocelot_team_token']
+    messages.success(request, 'You have successfully signed out.')
     return HttpResponseRedirect(reverse('frontpage-view'))
 
 
 def signup(request):
     """Renders OCELoT team signup page."""
 
-    print(request.session.get('ocelot_team_token'))
-
     if request.session.get('ocelot_team_token'):
+        messages.info(request, 'You are already signed up.')
         return HttpResponseRedirect(reverse('frontpage-view'))
 
     if request.method == 'POST':
@@ -107,7 +113,7 @@ def signup(request):
         if form.is_valid():
             new_team = form.save()
             request.session['ocelot_team_token'] = new_team.token
-            print(new_team.token)
+            messages.success(request, 'You have successfully signed up.')
             return HttpResponseRedirect(reverse('welcome-view'))
 
     else:
@@ -126,6 +132,11 @@ def submit(request):
         ocelot_team_token,
     ) = _get_team_data(request)
 
+    if not ocelot_team_token:
+        _msg = 'You need to be signed in to access this page.'
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
     if request.method == 'POST':
         form = SubmissionForm(request.POST, request.FILES)
 
@@ -142,15 +153,21 @@ def submit(request):
             print(submissions_for_team_and_test_set)
 
             if submissions_for_team_and_test_set >= MAX_SUBMISSION_LIMIT:
-                # Bad submission, need message to user
+                _msg = 'You have reach the submission limit for {0}.'.format(
+                    form.cleaned_data['test_set']
+                )
+                messages.warning(request, _msg)
                 return HttpResponseRedirect('/')
 
             new_submission = form.save(commit=False)
             new_submission.submitted_by = current_team
             new_submission.save()
 
-            # Success, redirect to user submissions page
-            return HttpResponseRedirect('/')
+            _msg = 'You have successfully submitted {0}'.format(
+                new_submission.sgml_file.name
+            )
+            messages.success(request, _msg)
+            return HttpResponseRedirect(reverse('teampage-view'))
 
     else:
         form = SubmissionForm()
@@ -164,6 +181,54 @@ def submit(request):
     return render(request, 'leaderboard/submission.html', context=context)
 
 
+def teampage(request):
+    """Renders OCELoT team page."""
+
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
+    if not ocelot_team_token:
+        _msg = 'You need to be signed in to access this page.'
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
+    data = defaultdict(list)
+    submissions = Submission.objects.filter(  # pylint: disable=no-member
+        test_set__is_active=True, submitted_by__token=ocelot_team_token,
+    )
+    for submission in submissions.order_by('test_set', '-score'):
+        data[str(submission.test_set)].append(submission)
+
+    context = {
+        'data': data.items(),
+        'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'leaderboard/teampage.html', context=context)
+
+
+def updates(request):
+    """Renders OCELoT updates page."""
+
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
+    context = {
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'leaderboard/updates.html', context=context)
+
+
 def welcome(request):
     """Renders OCELoT welcome (registration confirmation) page."""
 
@@ -172,6 +237,11 @@ def welcome(request):
         ocelot_team_email,
         ocelot_team_token,
     ) = _get_team_data(request)
+
+    if not ocelot_team_token:
+        _msg = 'You need to be signed in to access this page.'
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
 
     context = {
         'ocelot_team_name': ocelot_team_name,
