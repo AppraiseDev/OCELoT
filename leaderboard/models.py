@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
 from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
+from sacrebleu.sacrebleu import corpus_chrf  # type: ignore
 from sacrebleu.sacrebleu import process_to_text  # type: ignore
 from sacrebleu.sacrebleu import TOKENIZERS
 
@@ -303,6 +304,10 @@ class Submission(models.Model):
         blank=True, db_index=True, help_text='SacreBLEU score', null=True
     )
 
+    score_chrf = models.FloatField(
+        blank=True, db_index=True, help_text='chrF score', null=True
+    )
+
     sgml_file = models.FileField(
         upload_to=_get_submission_upload_path,
         help_text='SGML file containing submission output',
@@ -400,9 +405,6 @@ class Submission(models.Model):
         )
         ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
 
-        hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
-        ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
-
         tokenize = '13a'
         target_language_code = (
             self.test_set.target_language.code  # pylint: disable=no-member
@@ -417,25 +419,47 @@ class Submission(models.Model):
         elif target_language_code == 'zh':
             tokenize = 'zh'
 
+        _msg = 'language: {0}, tokenize: {1}'.format(
+            target_language_code, tokenize
+        )
+        print(_msg)
+
         try:
-            _msg = 'language: {0}, tokenize: {1}'.format(
-                target_language_code, tokenize
-            )
-            print(_msg)
+            hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
+            ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
+
             bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
             self.score = bleu.score
 
+            hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
+            ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
+
+            chrf = corpus_chrf(hyp_stream, ref_stream)
+            self.score_chrf = chrf.score
+
         except EOFError:
+            # Don't set score to None, as that would trigger infinite loop
             self.score = -1
+            self.score_chrf = None
 
         finally:
             self.save()
 
     def _score(self):
-        """Returns human-readable score."""
+        """Returns human-readable SacreBLEU score."""
         try:
             if self.score:
                 return round(self.score, 1)
+            return '---'
+
+        except TypeError:
+            return '---'
+
+    def _chrf(self):
+        """Returns human-readable chrF score."""
+        try:
+            if self.score_chrf:
+                return round(self.score_chrf, 2)
             return '---'
 
         except TypeError:
@@ -473,9 +497,7 @@ class Submission(models.Model):
         using=DEFAULT_DB_ALIAS,
         update_fields=None,
     ):
-        # def save(self, *args, **kwargs):
         """Compute sacreBLEU score on save()."""
-        # super().save(*args, **kwargs)
         super().save(force_insert, force_update, using, update_fields)
         if not self.score and self.id:
             self._compute_score()

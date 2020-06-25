@@ -26,6 +26,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'is_primary',
         'is_public',
         'score',
+        'score_chrf',
     ]
 
     list_display = [
@@ -34,6 +35,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         '_source_language',
         '_target_language',
         '_score',
+        '_chrf',
     ]
 
     list_filter = [

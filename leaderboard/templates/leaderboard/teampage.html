@@ -85,6 +85,7 @@
                 <th>#</th>
                 <th>Name</th>
                 <th>SacreBLEU score</th>
+                <th>chrF score</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -95,6 +96,11 @@
                 <td>{{submission.sgml_file.name}}</td>
                 {% if submission.score %}
                 <td>{{submission.score|stringformat:".1f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
+                {% if submission.score_chrf %}
+                <td>{{submission.score_chrf|stringformat:".2f"}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}

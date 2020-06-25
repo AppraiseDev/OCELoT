@@ -88,6 +88,7 @@
                 <th>#</th>
                 <th>Name</th>
                 <th>SacreBLEU score</th>
+                <th>chrF score</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -105,13 +106,18 @@
                 {% else %}
                 <td>---</td>
                 {% endif %}
+                {% if submission.score_chrf %}
+                <td>{{submission.score_chrf|stringformat:".2f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
                 <td>{{submission.date_created}}</td>
               </tr>
               {% endfor %}
               {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}
               <tr>
                 <td>...</td>
-                <td colspan="3"><em>showing top-{{MAX_SUBMISSION_DISPLAY_COUNT}} only, total number of submissions:
+                <td colspan="4"><em>showing top-{{MAX_SUBMISSION_DISPLAY_COUNT}} only, total number of submissions:
                     {{submissions|length}}</em></td>
               </tr>
               {% endif %}
