@@ -404,19 +404,22 @@ class Submission(models.Model):
         ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
 
         tokenize = '13a'
-        src_language_code = (
+        target_language_code = (
             self.test_set.target_language.code  # pylint: disable=no-member
         )
-        if src_language_code == 'ja':
+        if target_language_code == 'ja':
             # We use char-based tokenizer as MeCab was slow/unstable
             tokenize = 'char-based'
 
-        elif src_language_code == 'zh':
+        elif target_language_code == 'km':
+            tokenize = 'char-based'
+
+        elif target_language_code == 'zh':
             tokenize = 'zh'
 
         try:
             _msg = 'language: {0}, tokenize: {1}'.format(
-                src_language_code, tokenize
+                target_language_code, tokenize
             )
             print(_msg)
             bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
