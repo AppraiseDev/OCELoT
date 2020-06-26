@@ -38,7 +38,8 @@ def frontpage(request):
 
     data = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
-        test_set__is_active=True
+        test_set__is_active=True,
+        score__gte=0,  # Ignore invalid submissions
     )
     ordering = (
         'test_set__name',
@@ -158,11 +159,12 @@ def submit(request):
             submissions_for_team_and_test_set = Submission.objects.filter(  # pylint: disable=no-member
                 submitted_by=current_team,
                 test_set=form.cleaned_data['test_set'],
+                score__gte=0,  # Ignore invalid submissions for limit check
             ).count()
             print(submissions_for_team_and_test_set)
 
             if submissions_for_team_and_test_set >= MAX_SUBMISSION_LIMIT:
-                _msg = 'You have reach the submission limit for {0}.'.format(
+                _msg = 'You have reached the submission limit for {0}.'.format(
                     form.cleaned_data['test_set']
                 )
                 messages.warning(request, _msg)
@@ -207,7 +209,9 @@ def teampage(request):
 
     data = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
-        test_set__is_active=True, submitted_by__token=ocelot_team_token,
+        test_set__is_active=True,
+        score__gte=0,  # Ignore invalid submissions
+        submitted_by__token=ocelot_team_token,
     )
     ordering = (
         'test_set__name',
