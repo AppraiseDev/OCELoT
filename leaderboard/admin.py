@@ -59,8 +59,10 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set',
         'sgml_file',
         'submitted_by',
+        'is_flagged',
         'is_primary',
         'is_public',
+        'is_removed',
         'score',
         'score_chrf',
     ]
@@ -79,6 +81,10 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set__source_language',
         'test_set__target_language',
         'submitted_by',
+        'is_flagged',
+        'is_primary',
+        'is_public',
+        'is_removed',
     ]
 
     ordering = (
@@ -102,8 +108,19 @@ class TeamAdmin(admin.ModelAdmin):
         'is_verified',
     ]
 
-    list_display = ['__str__', 'email', 'token', '_submissions']
-    list_filter = ['is_active', 'is_flagged', 'is_removed', 'is_verified']
+    list_display = [
+        '__str__',
+        'email',
+        'token',
+        '_submissions',
+    ]
+
+    list_filter = [
+        'is_active',
+        'is_flagged',
+        'is_removed',
+        'is_verified',
+    ]
 
     search_fields = ['name', 'email', 'token']
 
@@ -122,8 +139,15 @@ class TestSetAdmin(admin.ModelAdmin):
         'is_active',
     ]
 
-    list_display = ['__str__', 'source_language', 'target_language']
-    list_filter = ['is_active']
+    list_display = [
+        '__str__',
+        'source_language',
+        'target_language',
+    ]
+
+    list_filter = [
+        'is_active',
+    ]
 
     ordering = ('-name', 'source_language', 'target_language')
 

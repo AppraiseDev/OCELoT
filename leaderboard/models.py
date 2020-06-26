@@ -332,6 +332,10 @@ class Submission(models.Model):
         help_text='Creation date of this submission',
     )
 
+    is_flagged = models.BooleanField(
+        blank=False, db_index=True, default=False, help_text='Is flagged?',
+    )
+
     is_primary = models.BooleanField(
         blank=False,
         db_index=True,
@@ -344,6 +348,10 @@ class Submission(models.Model):
         db_index=True,
         default=False,
         help_text='Is publicly visible?',
+    )
+
+    is_removed = models.BooleanField(
+        blank=False, db_index=True, default=False, help_text='Is removed?',
     )
 
     name = models.CharField(
