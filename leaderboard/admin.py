@@ -102,7 +102,7 @@ class TeamAdmin(admin.ModelAdmin):
         'is_verified',
     ]
 
-    list_display = ['__str__', 'email', 'token']
+    list_display = ['__str__', 'email', 'token', '_submissions']
     list_filter = ['is_active', 'is_flagged', 'is_removed', 'is_verified']
 
     search_fields = ['name', 'email', 'token']

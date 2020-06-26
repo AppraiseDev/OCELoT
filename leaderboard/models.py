@@ -278,6 +278,9 @@ class Team(models.Model):
     def __str__(self):
         return '{0} ({1})'.format(self.name, self.email)
 
+    def _submissions(self):
+        return Submission.objects.filter(submitted_by=self).count()
+
     def _compute_token(self):
         token = uuid4().hex[:MAX_TOKEN_LENGTH]
         self.token = token
