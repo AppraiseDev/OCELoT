@@ -2,9 +2,11 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import re
+import xml
 from pathlib import Path
 from uuid import uuid4
 
+import xmlschema
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
@@ -21,6 +23,61 @@ TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
 MAX_TOKEN_LENGTH = 10
+
+SGML_XSD_SCHEMA = """<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="srcset" type="TestSetType"/>
+
+  <xs:complexType name="ParagraphType">
+    <xs:sequence>
+      <xs:element name="seg" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="id" type="xs:string"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DocumentType">
+    <xs:sequence>
+      <xs:element name="p" type="ParagraphType" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="docid" type="xs:string"/>
+    <xs:attribute name="sysid" type="xs:string"/>
+    <xs:attribute name="genre" type="xs:string"/>
+    <xs:attribute name="origlang" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="TestSetType">
+    <xs:sequence>
+      <xs:element name="doc" type="DocumentType" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="setid" type="xs:string"/>
+    <xs:attribute name="srclang" type="xs:string"/>
+  </xs:complexType>
+
+</xs:schema>
+"""
+
+
+def validate_sgml_schema(sgml_file):
+    """Validates SGML file based on XSD schema."""
+    schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
+
+    try:
+        schema.validate(sgml_file)
+
+    # pylint: disable-msg=bad-continuation
+    except (
+        xmlschema.XMLSchemaValidationError,
+        xml.etree.ElementTree.ParseError,
+    ) as error:
+        _msg = 'SGML file invalid: {0}'.format(error)
+        raise ValidationError(_msg)
 
 
 def validate_team_name(value):
@@ -312,6 +369,7 @@ class Submission(models.Model):
         upload_to=_get_submission_upload_path,
         help_text='SGML file containing submission output',
         null=True,
+        validators=[validate_sgml_schema],
     )
 
     test_set = models.ForeignKey(TestSet, on_delete=models.PROTECT)
