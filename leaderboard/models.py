@@ -229,14 +229,28 @@ class Team(models.Model):
         blank=False,
         db_index=True,
         default=False,
-        help_text='Is active team?',
+        help_text='Is active?',
+    )
+
+    is_flagged = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is flagged?',
+    )
+
+    is_removed = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is removed?',
     )
 
     is_verified = models.BooleanField(
         blank=False,
         db_index=True,
         default=False,
-        help_text='Is verified team?',
+        help_text='Is verified?',
     )
 
     name = models.CharField(

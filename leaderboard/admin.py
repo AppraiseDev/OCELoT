@@ -95,7 +95,7 @@ class TeamAdmin(admin.ModelAdmin):
     fields = ['name', 'email', 'token', 'is_active', 'is_verified']
 
     list_display = ['__str__', 'email', 'token']
-    list_filter = ['is_active', 'is_verified']
+    list_filter = ['is_active', 'is_flagged', 'is_removed', 'is_verified']
 
     search_fields = ['name', 'email', 'token']
 
