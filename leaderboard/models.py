@@ -26,7 +26,7 @@ MAX_TOKEN_LENGTH = 10
 
 SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="srcset" type="TestSetType"/>
+  <xs:element name="tstset" type="TestSetType"/>
 
   <xs:complexType name="ParagraphType">
     <xs:sequence>
@@ -58,6 +58,7 @@ SGML_XSD_SCHEMA = """<?xml version="1.0"?>
     </xs:sequence>
     <xs:attribute name="setid" type="xs:string"/>
     <xs:attribute name="srclang" type="xs:string"/>
+    <xs:attribute name="trglang" type="xs:string"/>
   </xs:complexType>
 
 </xs:schema>
