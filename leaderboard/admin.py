@@ -1,8 +1,8 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
-from io import BytesIO
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from zipfile import ZIP_DEFLATED
 from zipfile import ZipFile
 
@@ -20,22 +20,22 @@ def download_sgml_files(modeladmin, request, queryset):
     del modeladmin  # unused
     del request  # unused
 
-    with BytesIO() as tmp_file:
-        with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
-            for submission in queryset:
-                zip_file.writestr(
-                    Path(submission.sgml_file.name).name,
-                    submission.sgml_file.open('rb').read(),
-                )
-        tmp_file.seek(0)
-        zip_bytes = BytesIO(tmp_file.read())
-        response = FileResponse(
-            zip_bytes,
-            as_attachment=True,
-            content_type='application/x-zip-compressed',
-            filename='submissions.zip',
-        )
-        return response
+    tmp_file = NamedTemporaryFile(delete=False)
+    with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
+        for submission in queryset:
+            zip_file.writestr(
+                Path(submission.sgml_file.name).name,
+                submission.sgml_file.open('rb').read(),
+            )
+
+    tmp_file.seek(0)
+    response = FileResponse(
+        open(tmp_file.name, 'rb'),
+        as_attachment=True,
+        content_type='application/x-zip-compressed',
+        filename='submissions.zip',
+    )
+    return response
 
 
 download_sgml_files.short_description = (  # type: ignore
