@@ -1,12 +1,46 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from io import BytesIO
+from pathlib import Path
+from zipfile import ZIP_DEFLATED
+from zipfile import ZipFile
+
 from django.contrib import admin
+from django.http import FileResponse
 
 from leaderboard.models import Language
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
+
+
+def download_sgml_files(modeladmin, request, queryset):
+    """Creates zip file with all SGML files for queryset."""
+    del modeladmin  # unused
+    del request  # unused
+
+    with BytesIO() as tmp_file:
+        with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
+            for submission in queryset:
+                zip_file.writestr(
+                    Path(submission.sgml_file.name).name,
+                    submission.sgml_file.open('rb').read(),
+                )
+        tmp_file.seek(0)
+        zip_bytes = BytesIO(tmp_file.read())
+        response = FileResponse(
+            zip_bytes,
+            as_attachment=True,
+            content_type='application/x-zip-compressed',
+            filename='submissions.zip',
+        )
+        return response
+
+
+download_sgml_files.short_description = (  # type: ignore
+    "Download SGML files for selected submissions"
+)
 
 
 class LanguageAdmin(admin.ModelAdmin):
@@ -17,6 +51,8 @@ class LanguageAdmin(admin.ModelAdmin):
 
 class SubmissionAdmin(admin.ModelAdmin):
     """Model admin for Submission objects."""
+
+    actions = [download_sgml_files]
 
     fields = [
         'name',
