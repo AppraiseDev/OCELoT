@@ -226,24 +226,15 @@ class Team(models.Model):
     """Models a team."""
 
     is_active = models.BooleanField(
-        blank=False,
-        db_index=True,
-        default=False,
-        help_text='Is active?',
+        blank=False, db_index=True, default=False, help_text='Is active?',
     )
 
     is_flagged = models.BooleanField(
-        blank=False,
-        db_index=True,
-        default=False,
-        help_text='Is flagged?',
+        blank=False, db_index=True, default=False, help_text='Is flagged?',
     )
 
     is_removed = models.BooleanField(
-        blank=False,
-        db_index=True,
-        default=False,
-        help_text='Is removed?',
+        blank=False, db_index=True, default=False, help_text='Is removed?',
     )
 
     is_verified = models.BooleanField(

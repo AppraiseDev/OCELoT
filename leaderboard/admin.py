@@ -92,7 +92,15 @@ class SubmissionAdmin(admin.ModelAdmin):
 class TeamAdmin(admin.ModelAdmin):
     """Model admin for Team objects."""
 
-    fields = ['name', 'email', 'token', 'is_active', 'is_verified']
+    fields = [
+        'name',
+        'email',
+        'token',
+        'is_active',
+        'is_flagged',
+        'is_removed',
+        'is_verified',
+    ]
 
     list_display = ['__str__', 'email', 'token']
     list_filter = ['is_active', 'is_flagged', 'is_removed', 'is_verified']
