@@ -79,7 +79,7 @@
         <div id="deadlineContainer" style="display: none;">
           <h2>Deadline</h2>
           <p>
-            Submission deadline for WMT20 is in <strong id="deadline"></strong>. If you have not submitted yet, you should do so soon.
+            Submission for WMT20 <span id="deadline"></span>.
           </p>
         </div>
     
@@ -162,24 +162,26 @@
     $deltaMinutes = Math.floor($currentDelta % (60 * 60 * 1000) / (60 * 1000));
     $deltaSeconds = Math.floor($currentDelta % (60 * 1000)/ 1000);
 
-    if ($deltaHours < 10)
-    {
+    if ($deltaHours < 10) {
       $deltaHours = '0' + $deltaHours;
     }
 
-    if ($deltaMinutes < 10)
-    {
+    if ($deltaMinutes < 10) {
       $deltaMinutes = '0' + $deltaMinutes;
     }
 
-    if ($deltaSeconds < 10)
-    {
+    if ($deltaSeconds < 10) {
       $deltaSeconds = '0' + $deltaSeconds;
     }
 
     $timeToGo = $deltaHours + 'h' + $deltaMinutes + 'm' + $deltaSeconds + 's';
 
-    $("#deadline").text($timeToGo);
+    if ($currentDelta >= 0) {
+      $("#deadline").html(' <strong>closes in ' + $timeToGo + '</strong>.  If you have not submitted yet, you should do so soon');
+    }
+    else {
+      $("#deadline").text(' <strong>has closed</strong>.');
+    }
     $("#deadlineContainer").show();
   }
 
