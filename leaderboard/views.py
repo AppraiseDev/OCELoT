@@ -13,6 +13,7 @@ from leaderboard.forms import SubmissionForm
 from leaderboard.forms import TeamForm
 from leaderboard.models import Submission
 from leaderboard.models import Team
+from leaderboard.models import TestSet
 
 
 MAX_SUBMISSION_DISPLAY_COUNT = 10
@@ -36,22 +37,31 @@ def _get_team_data(request):
 def frontpage(request):
     """Renders OCELoT frontpage."""
 
+    test_sets = TestSet.objects.filter(  # pylint: disable=no-member
+        is_active=True
+    )
+
     data = OrderedDict()
-    submissions = Submission.objects.filter(  # pylint: disable=no-member
-        test_set__is_active=True,
-        score__gte=0,  # Ignore invalid submissions
-    )
-    ordering = (
-        'test_set__name',
-        'test_set__source_language__code',
-        'test_set__target_language__code',
-        '-score',
-    )
-    for submission in submissions.order_by(*ordering):
-        key = str(submission.test_set)
-        if not key in data.keys():
-            data[key] = []
-        data[key].append(submission)
+    for test_set in test_sets:
+        submissions = (
+            Submission.objects.filter(  # pylint: disable=no-member
+                test_set=test_set,
+                score__gte=0,  # Ignore invalid submissions
+            )
+            .order_by('-score',)
+            .values_list(
+                'id',
+                'score',
+                'score_chrf',
+                'date_created',
+                'submitted_by__token',
+            )[:MAX_SUBMISSION_DISPLAY_COUNT]
+        )
+        for submission in submissions:
+            key = str(test_set)
+            if not key in data.keys():
+                data[key] = []
+            data[key].append(submission)
 
     (
         ocelot_team_name,

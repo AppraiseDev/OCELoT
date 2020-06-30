@@ -102,22 +102,22 @@
               {% for submission in submissions|slice:MAX_SUBMISSION_DISPLAY_COUNT %}
               <tr>
                 <td>{{forloop.counter}}</td>
-                {% if submission.submitted_by.token == ocelot_team_token %}
-                <td><strong>{{submission.get_name}}</strong></td>
+                {% if submission.4 == ocelot_team_token %}
+                <td><strong>Anonymous submission #{{submission.0}}</strong></td>
                 {% else %}
-                <td>{{submission.get_name}}</td>
+                <td>Anonymous submission #{{submission.0}}</td>
                 {% endif %}
-                {% if submission.score %}
-                <td>{{submission.score|stringformat:".1f"}}</td>
-                {% else %}
-                <td>---</td>
-                {% endif %}
-                {% if submission.score_chrf %}
-                <td>{{submission.score_chrf|stringformat:".3f"}}</td>
+                {% if submission.1 %}
+                <td>{{submission.1|stringformat:".1f"}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}
-                <td>{{submission.date_created}}</td>
+                {% if submission.2 %}
+                <td>{{submission.2|stringformat:".3f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
+                <td>{{submission.3}}</td>
               </tr>
               {% endfor %}
               {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}
