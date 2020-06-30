@@ -76,6 +76,12 @@
       </div>
 
       <div class="container">
+        <div id="deadlineContainer" style="display: none;">
+          <h2>Deadline</h2>
+          <p>
+            Submission for WMT20 <span id="deadline"></span>.
+          </p>
+        </div>
     
         {% if data %}
         <h2>Leaderboard</h2>
@@ -141,4 +147,47 @@
 
 {% block footer %}
 #blacklivesmatter #pride #andjusticeforall #capitolhillseattle
+{% endblock %}
+
+{% block script %}
+<script>
+  function updateDeadline()
+  {
+    const $deadline = Date.parse('{{ deadline }}');
+
+    $currentTime = new Date();
+    $currentDelta = new Date($deadline - $currentTime);
+
+    $deltaHours = Math.floor($currentDelta / (3600 * 1000));
+    $deltaMinutes = Math.floor($currentDelta % (60 * 60 * 1000) / (60 * 1000));
+    $deltaSeconds = Math.floor($currentDelta % (60 * 1000)/ 1000);
+
+    if ($deltaHours < 10) {
+      $deltaHours = '0' + $deltaHours;
+    }
+
+    if ($deltaMinutes < 10) {
+      $deltaMinutes = '0' + $deltaMinutes;
+    }
+
+    if ($deltaSeconds < 10) {
+      $deltaSeconds = '0' + $deltaSeconds;
+    }
+
+    $timeToGo = $deltaHours + 'h' + $deltaMinutes + 'm' + $deltaSeconds + 's';
+
+    if ($currentDelta >= 0) {
+      $("#deadline").html(' <strong>closes in ' + $timeToGo + '</strong>.  If you have not submitted yet, you should do so soon');
+    }
+    else {
+      $("#deadline").html(' <strong>has closed</strong>');
+      clearInterval();
+    }
+    $("#deadlineContainer").show();
+  }
+
+  $(document).ready(function(){
+    setInterval(updateDeadline, 1000);
+  });
+</script>
 {% endblock %}

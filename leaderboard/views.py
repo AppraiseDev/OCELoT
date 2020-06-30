@@ -61,6 +61,7 @@ def frontpage(request):
 
     context = {
         'data': data.items(),
+        'deadline': '6/30/2020 12:00:00 UTC',
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
