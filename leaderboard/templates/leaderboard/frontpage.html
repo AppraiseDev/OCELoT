@@ -153,7 +153,7 @@
 <script>
   function updateDeadline()
   {
-    const $deadline = new Date(Date.UTC(2020, 5, 30, 12, 0));
+    const $deadline = Date.parse('{{ deadline }}');
 
     $currentTime = new Date();
     $currentDelta = new Date($deadline - $currentTime);
@@ -180,7 +180,8 @@
       $("#deadline").html(' <strong>closes in ' + $timeToGo + '</strong>.  If you have not submitted yet, you should do so soon');
     }
     else {
-      $("#deadline").html(' <strong>has closed</strong>.');
+      $("#deadline").html(' <strong>has closed</strong>');
+      clearInterval();
     }
     $("#deadlineContainer").show();
   }
