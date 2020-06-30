@@ -38,8 +38,8 @@ def frontpage(request):
     """Renders OCELoT frontpage."""
 
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        is_active=True
-    )
+        is_active=True,
+    ).order_by('name', 'source_language', 'target_language',)
 
     data = OrderedDict()
     for test_set in test_sets:
