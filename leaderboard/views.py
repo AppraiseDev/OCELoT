@@ -39,7 +39,7 @@ def frontpage(request):
 
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
         is_active=True,
-    ).order_by('name', 'source_language', 'target_language',)
+    ).order_by('name', 'source_language__code', 'target_language__code',)
 
     data = OrderedDict()
     for test_set in test_sets:
