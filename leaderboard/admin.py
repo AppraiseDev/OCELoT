@@ -80,7 +80,6 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set',
         'test_set__source_language',
         'test_set__target_language',
-        'submitted_by',
         'is_flagged',
         'is_primary',
         'is_public',

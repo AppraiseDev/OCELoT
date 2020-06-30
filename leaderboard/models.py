@@ -534,7 +534,7 @@ class Submission(models.Model):
         """Returns human-readable chrF score."""
         try:
             if self.score_chrf:
-                return round(self.score_chrf, 2)
+                return round(self.score_chrf, 3)
             return '---'
 
         except TypeError:
