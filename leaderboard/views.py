@@ -2,11 +2,13 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from collections import OrderedDict
+from datetime import datetime
 
 from django.contrib import messages
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 
 from leaderboard.forms import SigninForm
 from leaderboard.forms import SubmissionForm
@@ -155,6 +157,13 @@ def submit(request):
 
     if not ocelot_team_token:
         _msg = 'You need to be signed in to access this page.'
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
+    deadline = datetime(2020, 6, 30, 12, 0, 0, tzinfo=timezone.utc)
+    current = timezone.now()
+    if current >= deadline:
+        _msg = 'WMT20 submission has closed.'
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
