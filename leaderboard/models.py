@@ -332,6 +332,13 @@ class Submission(models.Model):
         help_text='Creation date of this submission',
     )
 
+    is_constrained = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is constrained sumission?',
+    )
+
     is_flagged = models.BooleanField(
         blank=False, db_index=True, default=False, help_text='Is flagged?',
     )
