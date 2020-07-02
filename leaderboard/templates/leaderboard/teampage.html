@@ -81,24 +81,26 @@
             {% csrf_token %}
             {{ publication_name_form.as_p }}
             <h3>Primary submissions</h3>
-            {% for testset, primary, submissions in data %}
             <table>
-              <td>{{ testset }}</td>
-              <td>
-                <select id="id_primary" name="primary">
-                  {% for submission in submissions %}
-                  <option value="{{ submission.id }}"{% if submission.is_primary %}selected="selected"{% endif %}>Submission #{{ submission.id }}</option>
-                  {% endfor %}
-                </select>
-              </td>
-              <td>
-                <select id="id_constrained" name="constrained">
-                  <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
-                  <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
-                </select>
-              </td>
+              {% for testset, primary, submissions in data %}
+              <tr>
+                <td>{{ testset }}</td>
+                <td>
+                  <select id="id_primary" name="primary">
+                    {% for submission in submissions %}
+                    <option value="{{ submission.id }}"{% if submission.is_primary %}selected="selected"{% endif %}>Submission #{{ submission.id }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <select id="id_constrained" name="constrained">
+                    <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                  </select>
+                </td>
+              </tr>
+              {% endfor %}
             </table>
-            {% endfor %}
             <input type="submit" value="Submit">
           </form>
         </div>
