@@ -73,44 +73,63 @@
       </div>
 
       <div class="container">
+        <form action="{% url 'teampage-view' %}" method="post">
+          {% csrf_token %}
+          {{ publication_name_form.as_p }}
+          <input type="submit" value="Submit">
+        </form>
     
         <h2>{{ocelot_team_name}} submissions</h2>
         {% if data %}
-        {% for testset, submissions in data %}
-        <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
-        <div class="table-responsive">
-          <table class="table table-striped table-sm">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>SacreBLEU score</th>
-                <th>chrF score</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for submission in submissions %}
-              <tr>
-                <td>{{forloop.counter}}</td>
-                <td>{{submission.sgml_file.name}}</td>
-                {% if submission.score %}
-                <td>{{submission.score|stringformat:".1f"}}</td>
-                {% else %}
-                <td>---</td>
-                {% endif %}
-                {% if submission.score_chrf %}
-                <td>{{submission.score_chrf|stringformat:".3f"}}</td>
-                {% else %}
-                <td>---</td>
-                {% endif %}
-                <td>{{submission.date_created}}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% endfor %}
+        <form action="{% url 'teampage-view' %}" method="post">
+          {% csrf_token %}
+
+          {% for testset, submissions in data %}
+          <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
+          <div class="table-responsive">
+            <table class="table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Primary?</th>
+                  <th>Constrained?</th>
+                  <th>Name</th>
+                  <th>SacreBLEU score</th>
+                  <th>chrF score</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for submission in submissions %}
+                <tr>
+                  <td>{{forloop.counter}}</td>
+                  <td>
+                    <input type="radio" id="primary_{{ submission.test_set.id }}" />
+                  </td>
+                  <td>
+                    <input type="checkbox" id="constrained_{{ submission.id }}"{% if submission.is_constrained %}checked{% endif %} />
+                  </td>
+                  <td>{{submission.sgml_file.name}}</td>
+                  {% if submission.score %}
+                  <td>{{submission.score|stringformat:".1f"}}</td>
+                  {% else %}
+                  <td>---</td>
+                  {% endif %}
+                  {% if submission.score_chrf %}
+                  <td>{{submission.score_chrf|stringformat:".3f"}}</td>
+                  {% else %}
+                  <td>---</td>
+                  {% endif %}
+                  <td>{{submission.date_created}}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endfor %}
+
+          <input type="submit" value="Submit">
+        </form>
         {% else %}
         <div>
             <p>You have not yet created any submissions.</p>

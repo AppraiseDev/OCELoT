@@ -10,6 +10,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 
+from leaderboard.forms import PublicationNameForm
 from leaderboard.forms import SigninForm
 from leaderboard.forms import SubmissionForm
 from leaderboard.forms import TeamForm
@@ -227,6 +228,12 @@ def teampage(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
+    if request.method == 'POST':
+        publication_name_form = PublicationNameForm(request.POST)
+
+    else:
+        publication_name_form = PublicationNameForm()
+
     data = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True,
@@ -251,6 +258,7 @@ def teampage(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'publication_name_form': publication_name_form,
     }
     return render(request, 'leaderboard/teampage.html', context=context)
 

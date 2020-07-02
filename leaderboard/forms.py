@@ -7,7 +7,19 @@ from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
 from leaderboard.models import Submission
 from leaderboard.models import Team
+from leaderboard.models import validate_team_name
 from leaderboard.models import validate_token
+
+
+class PublicationNameForm(forms.Form):
+    """Form used for teampage view.
+
+    Based on forms.Form as we don't want to create a new Team.
+    """
+
+    publication_name = forms.CharField(
+        max_length=MAX_NAME_LENGTH, validators=[validate_team_name],
+    )
 
 
 class SigninForm(forms.Form):

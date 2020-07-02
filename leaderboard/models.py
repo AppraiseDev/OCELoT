@@ -262,6 +262,19 @@ class Team(models.Model):
         help_text='Team email',
     )
 
+    publication_name = models.CharField(
+        blank=True,
+        db_index=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text=(
+            'Team publication name (max {0} characters)'.format(
+                32
+            )  # see validation
+        ),
+        unique=True,
+        validators=[validate_team_name],
+    )
+
     token = models.CharField(
         blank=True,
         db_index=True,
@@ -279,7 +292,9 @@ class Team(models.Model):
         return '{0} ({1})'.format(self.name, self.email)
 
     def _submissions(self):
-        return Submission.objects.filter(submitted_by=self).count()
+        return Submission.objects.filter(  # pylint: disable=no-member
+            submitted_by=self
+        ).count()
 
     def _compute_token(self):
         token = uuid4().hex[:MAX_TOKEN_LENGTH]
