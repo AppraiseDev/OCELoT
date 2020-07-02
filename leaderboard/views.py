@@ -246,7 +246,8 @@ def teampage(request):
                 current_team.save()
 
         primary_ids_and_constrainedness = zip(
-            request.POST['primary'], request.POST['constrained']
+            request.POST.getlist('primary'),
+            request.POST.getlist('constrained'),
         )
         for primary_id, constrained in primary_ids_and_constrainedness:
             submission = Submission.objects.get(  # pylint: disable=no-member
