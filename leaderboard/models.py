@@ -599,6 +599,20 @@ class Submission(models.Model):
         if not self.score and self.id:
             self._compute_score()
 
+    def set_primary(self):
+        """Make this the primary submission for user/test set."""
+        self.is_primary = True
+        self.save()
+
+        other_submissions = Submission.objects.filter(
+            submitted_by=self.submitted_by, test_set=self.test_set,
+        )
+        for other_submission in other_submissions:
+            if other_submission.id != self.id:
+                other_submission.is_constrained = False
+                other_submission.is_primary = False
+                other_submission.save()
+
     @property
     def get_name(self):
         """Make __str__() accessible in admin listings."""

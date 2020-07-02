@@ -73,68 +73,80 @@
       </div>
 
       <div class="container">
-        <form action="{% url 'teampage-view' %}" method="post">
-          {% csrf_token %}
-          {{ publication_name_form.as_p }}
-          <input type="submit" value="Submit">
-        </form>
-    
-        <h2>{{ocelot_team_name}} submissions</h2>
-        {% if data %}
-        <form action="{% url 'teampage-view' %}" method="post">
-          {% csrf_token %}
-
-          {% for testset, submissions in data %}
-          <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
-          <div class="table-responsive">
-            <table class="table table-striped table-sm">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Primary?</th>
-                  <th>Constrained?</th>
-                  <th>Name</th>
-                  <th>SacreBLEU score</th>
-                  <th>chrF score</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for submission in submissions %}
-                <tr>
-                  <td>{{forloop.counter}}</td>
-                  <td>
-                    <input type="radio" id="primary_{{ submission.test_set.id }}" />
-                  </td>
-                  <td>
-                    <input type="checkbox" id="constrained_{{ submission.id }}"{% if submission.is_constrained %}checked{% endif %} />
-                  </td>
-                  <td>{{submission.sgml_file.name}}</td>
-                  {% if submission.score %}
-                  <td>{{submission.score|stringformat:".1f"}}</td>
-                  {% else %}
-                  <td>---</td>
-                  {% endif %}
-                  {% if submission.score_chrf %}
-                  <td>{{submission.score_chrf|stringformat:".3f"}}</td>
-                  {% else %}
-                  <td>---</td>
-                  {% endif %}
-                  <td>{{submission.date_created}}</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-          {% endfor %}
-
-          <input type="submit" value="Submit">
-        </form>
-        {% else %}
         <div>
-            <p>You have not yet created any submissions.</p>
+          <h2>Final submissions</h2>
+          <h3>Publication name</h3>
+          <p>Please think about how you want your team to be named in the WMT20 overview paper. This should identify your affiliation so <code>ACME</code> is better than <code>johndoe</code>. If you do not set this, your team name <code>{{ ocelot_team_name }}</code> will be used as default.</p>
+          <form action="{% url 'teampage-view' %}" method="post">
+            {% csrf_token %}
+            {{ publication_name_form.as_p }}
+            <h3>Primary submissions</h3>
+            {% for testset, primary, submissions in data %}
+            <table>
+              <td>{{ testset }}</td>
+              <td>
+                <select id="id_primary" name="primary">
+                  {% for submission in submissions %}
+                  <option value="{{ submission.id }}"{% if submission.is_primary %}selected="selected"{% endif %}>Submission #{{ submission.id }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>
+                <select id="id_constrained" name="constrained">
+                  <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                  <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                </select>
+              </td>
+            </table>
+            {% endfor %}
+            <input type="submit" value="Submit">
+          </form>
         </div>
-        {% endif %}
+
+        <div>
+          <h2>{{ocelot_team_name}} submissions</h2>
+          {% if data %}
+            {% for testset, primary, submissions in data %}
+            <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
+            <div class="table-responsive">
+              <table class="table table-striped table-sm">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>SacreBLEU score</th>
+                    <th>chrF score</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for submission in submissions %}
+                  <tr>
+                    <td>#{{submission.id}}</td>
+                    <td>{{submission.sgml_file.name}}{% if submission.is_primary %} <span class="badge badge-primary">Primary</span>{% endif %}{% if submission.is_constrained %} <span class="badge badge-info">Constrained</span>{% endif %}</td>
+                    {% if submission.score %}
+                    <td>{{submission.score|stringformat:".1f"}}</td>
+                    {% else %}
+                    <td>---</td>
+                    {% endif %}
+                    {% if submission.score_chrf %}
+                    <td>{{submission.score_chrf|stringformat:".3f"}}</td>
+                    {% else %}
+                    <td>---</td>
+                    {% endif %}
+                    <td>{{submission.date_created}}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div>
+              <p>You have not yet created any submissions.</p>
+          </div>
+          {% endif %}
+        </div>
         <hr>
     
       </div> <!-- /container -->

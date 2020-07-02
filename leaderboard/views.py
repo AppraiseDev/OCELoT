@@ -228,13 +228,40 @@ def teampage(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
+    current_team = Team.objects.get(  # pylint: disable=no-member
+        name=ocelot_team_name,
+        email=ocelot_team_email,
+        token=ocelot_team_token,
+    )
+
     if request.method == 'POST':
         publication_name_form = PublicationNameForm(request.POST)
 
+        if publication_name_form.is_valid():
+            publication_name = publication_name_form.cleaned_data[
+                'publication_name'
+            ]
+            if publication_name != current_team.publication_name:
+                current_team.publication_name = publication_name
+                current_team.save()
+
+        primary_ids_and_constrainedness = zip(
+            request.POST['primary'], request.POST['constrained']
+        )
+        for primary_id, constrained in primary_ids_and_constrainedness:
+            submission = Submission.objects.get(  # pylint: disable=no-member
+                id=int(primary_id)
+            )
+            if submission.submitted_by.token == ocelot_team_token:
+                submission.is_constrained = bool(int(constrained))
+                submission.set_primary()  # This implicitly calls save()
+
     else:
-        publication_name_form = PublicationNameForm()
+        context = {'publication_name': current_team.publication_name}
+        publication_name_form = PublicationNameForm(context)
 
     data = OrderedDict()
+    primary = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
         test_set__is_active=True,
         score__gte=0,  # Ignore invalid submissions
@@ -247,13 +274,23 @@ def teampage(request):
         '-score',
     )
     for submission in submissions.order_by(*ordering):
-        key = str(submission.test_set)
+        key = submission.test_set
         if not key in data.keys():
             data[key] = []
         data[key].append(submission)
 
+        if not key in primary.keys():
+            primary[key] = None
+
+        if submission.is_primary:
+            primary[key] = submission
+
+    data_triples = []
+    for key in data.keys():
+        data_triples.append((key, primary[key], data[key]))
+
     context = {
-        'data': data.items(),
+        'data': data_triples,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
