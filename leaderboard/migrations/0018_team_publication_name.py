@@ -21,7 +21,6 @@ class Migration(migrations.Migration):
                 db_index=True,
                 help_text='Team publication name (max 32 characters)',
                 max_length=200,
-                unique=True,
                 validators=[leaderboard.models.validate_team_name],
             ),
         ),

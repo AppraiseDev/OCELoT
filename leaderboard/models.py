@@ -271,7 +271,6 @@ class Team(models.Model):
                 32
             )  # see validation
         ),
-        unique=True,
         validators=[validate_team_name],
     )
 
