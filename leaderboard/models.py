@@ -295,6 +295,11 @@ class Team(models.Model):
             submitted_by=self
         ).count()
 
+    def _primary_submissions(self):
+        return Submission.objects.filter(  # pylint: disable=no-member
+            submitted_by=self, is_primary=True,
+        ).count()
+
     def _compute_token(self):
         token = uuid4().hex[:MAX_TOKEN_LENGTH]
         self.token = token

@@ -114,6 +114,7 @@ class TeamAdmin(admin.ModelAdmin):
         'email',
         'token',
         '_submissions',
+        '_primary_submissions',
     ]
 
     list_filter = [
