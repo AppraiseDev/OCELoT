@@ -27,7 +27,7 @@ MAX_TOKEN_LENGTH = 10
 SGML_FILE = 'SGML'
 TEXT_FILE = 'TEXT'
 
-TESTSET_CHOICES = (
+FILE_FORMAT_CHOICES = (
     (SGML_FILE, 'SGML format'),
     (TEXT_FILE, 'Text format'),
 )
@@ -73,12 +73,15 @@ SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 """
 
 
-def validate_sgml_schema(sgml_file):
+def validate_sgml_schema(hyp_file):
     """Validates SGML file based on XSD schema."""
+    if hyp_file.name.endswith('.txt'):
+        return  # Skip validation for text format files.
+
     schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
 
     try:
-        schema.validate(sgml_file)
+        schema.validate(hyp_file)
 
     # pylint: disable-msg=bad-continuation
     except (
@@ -167,7 +170,7 @@ class TestSet(models.Model):
     )
 
     file_format = models.CharField(
-        choices=TESTSET_CHOICES, default=SGML_FILE, max_length=4,
+        choices=FILE_FORMAT_CHOICES, default=SGML_FILE, max_length=4,
     )
 
     src_file = models.FileField(
@@ -435,9 +438,13 @@ class Submission(models.Model):
         blank=True, db_index=True, help_text='chrF score', null=True
     )
 
-    sgml_file = models.FileField(
+    file_format = models.CharField(
+        choices=FILE_FORMAT_CHOICES, default=SGML_FILE, max_length=4,
+    )
+
+    hyp_file = models.FileField(
         upload_to=_get_submission_upload_path,
-        help_text='SGML file containing submission output',
+        help_text='SGML or text file containing submission output',
         null=True,
         validators=[validate_sgml_schema],
     )
@@ -508,30 +515,45 @@ class Submission(models.Model):
     def _compute_score(self):
         """Computes sacreBLEU score for current submission."""
 
-        hyp_path = self.sgml_file.name
-        hyp_filtered_path = hyp_path.replace('.sgm', '.filtered.sgm')
-        if not Path(hyp_filtered_path).exists():
-            # Get docids from ref SGML path -- these are non "testsuite-"
-            ref_docids = Submission._get_docids_from_path(
-                self.test_set.ref_sgml_file.name  # pylint: disable=no-member
+        hyp_path = self.hyp_file.name
+
+        if self.file_format == SGML_FILE:
+            if self.test_set.file_format == SGML_FILE:  # pylint: disable=no-member
+                hyp_filtered_path = hyp_path.replace(
+                    '.sgm', '.filtered.sgm'
+                )
+                if not Path(hyp_filtered_path).exists():
+                    # Get docids from ref SGML path -- these are non "testsuite-"
+                    ref_docids = Submission._get_docids_from_path(
+                        self.test_set.ref_file.name  # pylint: disable=no-member
+                    )
+
+                    # Filter hyp SGML in matching order, skipping testsuite-* docs
+                    hyp_filtered_path = Submission._filter_sgml_by_docids(
+                        self.hyp_file.name,
+                        ref_docids,  # pylint: disable=no-member
+                    )
+
+            else:
+                hyp_filtered_path = hyp_path
+
+            # Create text version of (possibly filtered) hyp SGML
+            hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
+            if not Path(hyp_text_path).exists():
+                process_to_text(hyp_filtered_path, hyp_text_path)
+
+        elif self.file_format == TEXT_FILE:
+            hyp_text_path = hyp_path
+
+        if self.test_set.file_format == SGML_FILE:  # pylint: disable=no-member
+            # By design, the reference only contains valid docids
+            ref_sgml_path = (
+                self.test_set.ref_file.name  # pylint: disable=no-member
             )
+            ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
 
-            # Filter hyp SGML in matching order, skipping testsuite-* docs
-            hyp_filtered_path = Submission._filter_sgml_by_docids(
-                self.sgml_file.name,
-                ref_docids,  # pylint: disable=no-member
-            )
-
-        # Create text version of filtered hyp SGML
-        hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
-        if not Path(hyp_text_path).exists():
-            process_to_text(hyp_filtered_path, hyp_text_path)
-
-        # By design, the reference only contains valid docids
-        ref_sgml_path = (
-            self.test_set.ref_sgml_file.name  # pylint: disable=no-member
-        )
-        ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
+        elif self.test_set.file_format == TEXT_FILE:  # pylint: disable=no-member
+            ref_text_path = self.test_set.ref_file.name  # pylint: disable=no-member
 
         tokenize = '13a'
         target_language_code = (
@@ -603,15 +625,17 @@ class Submission(models.Model):
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML file."""
-        sgml_name = str(self.sgml_file.name)
-        if not sgml_name.endswith('.sgm'):
-            _msg = 'Invalid SGML file named {0}'.format(sgml_name)
-            raise ValidationError(_msg)
+        hyp_name = str(self.hyp_file.name)
 
-        #        sgml_path = Path('submissions') / sgml_name
-        #        if sgml_path.exists():
-        #            _msg = 'Duplicate SGML file named {0}'.format(sgml_path)
-        #            raise ValidationError(_msg)
+        if self.file_format == SGML_FILE:
+            if not hyp_name.endswith('.sgm'):
+                _msg = 'Invalid SGML file named {0}'.format(hyp_name)
+                raise ValidationError(_msg)
+
+        elif self.file_format == TEXT_FILE:
+            if not hyp_name.endswith('.txt'):
+                _msg = 'Invalid text file named {0}'.format(hyp_name)
+                raise ValidationError(_msg)
 
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique

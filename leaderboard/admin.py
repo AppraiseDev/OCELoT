@@ -15,8 +15,8 @@ from leaderboard.models import Team
 from leaderboard.models import TestSet
 
 
-def download_sgml_files(modeladmin, request, queryset):
-    """Creates zip file with all SGML files for queryset."""
+def download_submission_files(modeladmin, request, queryset):
+    """Creates zip file with all SGML or text files for queryset."""
     del modeladmin  # unused
     del request  # unused
 
@@ -24,8 +24,8 @@ def download_sgml_files(modeladmin, request, queryset):
     with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
         for submission in queryset:
             zip_file.writestr(
-                Path(submission.sgml_file.name).name,
-                submission.sgml_file.open('rb').read(),
+                Path(submission.hyp_file.name).name,
+                submission.hyp_file.open('rb').read(),
             )
 
     tmp_file.seek(0)
@@ -38,8 +38,8 @@ def download_sgml_files(modeladmin, request, queryset):
     return response
 
 
-download_sgml_files.short_description = (  # type: ignore
-    "Download SGML files for selected submissions"
+download_submission_files.short_description = (  # type: ignore
+    "Download SGML or text files for selected submissions"
 )
 
 
@@ -52,12 +52,13 @@ class LanguageAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     """Model admin for Submission objects."""
 
-    actions = [download_sgml_files]
+    actions = [download_submission_files]
 
     fields = [
         'name',
         'test_set',
-        'sgml_file',
+        'file_format',
+        'hyp_file',
         'submitted_by',
         'is_constrained',
         'is_flagged',

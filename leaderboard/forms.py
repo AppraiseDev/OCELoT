@@ -42,7 +42,7 @@ class SubmissionForm(forms.ModelForm):
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
-        fields = ['test_set', 'sgml_file']
+        fields = ['test_set', 'file_format', 'hyp_file']
 
 
 class TeamForm(forms.ModelForm):
