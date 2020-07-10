@@ -446,7 +446,7 @@ class Submission(models.Model):
     )
 
     file_format = models.CharField(
-        choices=FILE_FORMAT_CHOICES, default=SGML_FILE, max_length=4,
+        choices=FILE_FORMAT_CHOICES, default=TEXT_FILE, max_length=4,
     )
 
     hyp_file = models.FileField(
