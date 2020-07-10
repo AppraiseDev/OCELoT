@@ -264,7 +264,6 @@ def teampage(request):
     data = OrderedDict()
     primary = OrderedDict()
     submissions = Submission.objects.filter(  # pylint: disable=no-member
-        test_set__is_active=True,
         score__gte=0,  # Ignore invalid submissions
         submitted_by__token=ocelot_team_token,
     )
