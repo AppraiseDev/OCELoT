@@ -74,7 +74,7 @@ def frontpage(request):
 
     context = {
         'data': data.items(),
-        'deadline': '6/30/2020 12:00:00 UTC',
+        'deadline': '7/18/2020 12:00:00 UTC',
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
@@ -161,7 +161,7 @@ def submit(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    deadline = datetime(2020, 6, 30, 12, 0, 0, tzinfo=timezone.utc)
+    deadline = datetime(2020, 7, 18, 12, 0, 0, tzinfo=timezone.utc)
     current = timezone.now()
     if current >= deadline:
         _msg = 'WMT20 submission has closed.'
@@ -192,12 +192,13 @@ def submit(request):
                 return HttpResponseRedirect('/')
 
             new_submission = form.save(commit=False)
-            new_submission.name = form.cleaned_data['sgml_file'].name
+            new_submission.name = form.cleaned_data['hyp_file'].name
+            new_submission.file_format = form.cleaned_data['file_format']
             new_submission.submitted_by = current_team
             new_submission.save()
 
             _msg = 'You have successfully submitted {0}'.format(
-                new_submission.sgml_file.name
+                new_submission.hyp_file.name
             )
             messages.success(request, _msg)
             return HttpResponseRedirect(reverse('teampage-view'))

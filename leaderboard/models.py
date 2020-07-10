@@ -360,12 +360,19 @@ def _get_submission_upload_path(instance, filename):
     if submissions_for_team.exists():
         submissions_count = submissions_for_team.count()
 
-    new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.sgm'.format(
+    if instance.file_format == SGML_FILE:
+        file_extension = 'sgm'
+
+    elif instance.file_format == TEXT_FILE:
+        file_extension = 'txt'
+
+    new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.{5}'.format(
         instance.test_set.name,
         instance.test_set.source_language.code,
         instance.test_set.target_language.code,
         instance.submitted_by.name,
         submissions_count + 1,
+        file_extension,
     )
     new_filename.replace(' ', '_').lower()
 
@@ -517,21 +524,21 @@ class Submission(models.Model):
 
         hyp_path = self.hyp_file.name
 
+        # pylint: disable=bad-continuation,no-member
         if self.file_format == SGML_FILE:
-            if self.test_set.file_format == SGML_FILE:  # pylint: disable=no-member
+            if self.test_set.file_format == SGML_FILE:
                 hyp_filtered_path = hyp_path.replace(
                     '.sgm', '.filtered.sgm'
                 )
                 if not Path(hyp_filtered_path).exists():
                     # Get docids from ref SGML path -- these are non "testsuite-"
                     ref_docids = Submission._get_docids_from_path(
-                        self.test_set.ref_file.name  # pylint: disable=no-member
+                        self.test_set.ref_file.name
                     )
 
                     # Filter hyp SGML in matching order, skipping testsuite-* docs
                     hyp_filtered_path = Submission._filter_sgml_by_docids(
-                        self.hyp_file.name,
-                        ref_docids,  # pylint: disable=no-member
+                        self.hyp_file.name, ref_docids,
                     )
 
             else:
@@ -545,15 +552,14 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        if self.test_set.file_format == SGML_FILE:  # pylint: disable=no-member
+        # pylint: disable=bad-continuation,no-member
+        if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
-            ref_sgml_path = (
-                self.test_set.ref_file.name  # pylint: disable=no-member
-            )
+            ref_sgml_path = self.test_set.ref_file.name
             ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
 
-        elif self.test_set.file_format == TEXT_FILE:  # pylint: disable=no-member
-            ref_text_path = self.test_set.ref_file.name  # pylint: disable=no-member
+        elif self.test_set.file_format == TEXT_FILE:
+            ref_text_path = self.test_set.ref_file.name
 
         tokenize = '13a'
         target_language_code = (
@@ -624,7 +630,7 @@ class Submission(models.Model):
         return self.test_set.target_language  # pylint: disable=no-member
 
     def full_clean(self, exclude=None, validate_unique=True):
-        """Validates submission SGML file."""
+        """Validates submission SGML or text file."""
         hyp_name = str(self.hyp_file.name)
 
         if self.file_format == SGML_FILE:
