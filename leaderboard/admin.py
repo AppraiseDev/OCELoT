@@ -136,8 +136,9 @@ class TestSetAdmin(admin.ModelAdmin):
         'name',
         'source_language',
         'target_language',
-        'src_sgml_file',
-        'ref_sgml_file',
+        'file_format',
+        'src_file',
+        'ref_file',
         'is_active',
     ]
 
@@ -149,6 +150,7 @@ class TestSetAdmin(admin.ModelAdmin):
 
     list_filter = [
         'is_active',
+        'file_format',
     ]
 
     ordering = ('-name', 'source_language', 'target_language')

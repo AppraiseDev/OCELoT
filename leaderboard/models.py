@@ -24,6 +24,14 @@ MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
 MAX_TOKEN_LENGTH = 10
 
+SGML_FILE = 'SGML'
+TEXT_FILE = 'TEXT'
+
+TESTSET_CHOICES = (
+    (SGML_FILE, 'SGML format'),
+    (TEXT_FILE, 'Text format'),
+)
+
 SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:element name="tstset" type="TestSetType"/>
@@ -158,15 +166,21 @@ class TestSet(models.Model):
         null=True,
     )
 
-    ref_sgml_file = models.FileField(
+    file_format = models.CharField(
+        choices=TESTSET_CHOICES, default=SGML_FILE, max_length=4,
+    )
+
+    src_file = models.FileField(
+        blank=True,
         upload_to='testsets',
-        help_text='SGML file containing test set reference text',
+        help_text='SGML or text file containing test set source',
         null=True,
     )
 
-    src_sgml_file = models.FileField(
+    ref_file = models.FileField(
+        blank=True,
         upload_to='testsets',
-        help_text='SGML file containing test set source text',
+        help_text='SGML or text file containing test set reference',
         null=True,
     )
 
@@ -175,8 +189,8 @@ class TestSet(models.Model):
             self.name,
             self.source_language.code,  # pylint: disable=no-member
             self.target_language.code,  # pylint: disable=no-member
-            self.ref_sgml_file.name,
-            self.ref_sgml_file.name,
+            self.src_file.name,
+            self.ref_file.name,
         )
 
     def __str__(self):
@@ -188,7 +202,10 @@ class TestSet(models.Model):
 
     def _create_text_files(self):
         """Creates test set text files."""
-        for sgml_file in (self.ref_sgml_file, self.src_sgml_file):
+        if self.file_format == TEXT_FILE:
+            return
+
+        for sgml_file in (self.ref_file, self.src_file):
             sgml_path = str(sgml_file.name)
 
             text_path = sgml_path.replace('.sgm', '.txt')
@@ -197,12 +214,22 @@ class TestSet(models.Model):
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set SGML files."""
-        for sgml_file in (self.ref_sgml_file, self.src_sgml_file):
-            sgml_path = str(sgml_file.name)
+        for current_file in (self.ref_file, self.src_file):
+            current_path = str(current_file.name)
 
-            if not sgml_path.endswith('.sgm'):
-                _msg = 'Invalid SGML file name {0}'.format(sgml_path)
-                raise ValidationError(_msg)
+            if self.file_format == SGML_FILE:
+                if not current_path.endswith('.sgm'):
+                    _msg = 'Invalid SGML file name {0}'.format(
+                        current_path
+                    )
+                    raise ValidationError(_msg)
+
+            elif self.file_format == TEXT_FILE:
+                if not current_path.endswith('.txt'):
+                    _msg = 'Invalid text file name {0}'.format(
+                        current_path
+                    )
+                    raise ValidationError(_msg)
 
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique
