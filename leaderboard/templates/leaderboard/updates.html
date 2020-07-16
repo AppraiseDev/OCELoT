@@ -62,7 +62,7 @@
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="href="http://data.statmt.org/wmt20/robustness/blind.test.release.zip"">Download test sets</a>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
@@ -80,7 +80,7 @@
         <h2>Competition updates</h2>
         <p>
           <ul>
-            <li><em>7/10/2020:</em> submission is now open for the WMT20 robustness task, enjoy!</li>
+            <li><em>7/16/2020:</em> submission is (finally) now open for the WMT20 robustness task, enjoy!</li>
             <li><em>7/09/2020:</em> finalising list of primary submissions for the news task. Also preparing for submissions to the <a href="http://statmt.org/wmt20/robustness.html">robustness task</a>, to run from July 10&mdash;17.</li>
             <li><em>6/25/2020:</em> changed SacreBLEU computation for Khmer (<code>'char-based'</code> tokeniser) target language. Also added chrF computation to give you more data points for your primary submission selection. Submissions remain ordered by decreasing SacreBLEU score.</li>
             <li><em>6/24/2020:</em> changed SacreBLEU computation for Chinese (<code>'zh'</code> tokeniser) and Japanese (<code>'char-based'</code> tokeniser) target languages. Score <code>-1.0</code> used for any submissions with invalid SGML files. If your system shows as <code>-1.0</code>, please check your SGML file and avoid any <code><, >, &</code> or other HTML entities within your <code>&lt;seg/&gt;</code> segments.</li>
