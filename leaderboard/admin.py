@@ -23,8 +23,24 @@ def download_submission_files(modeladmin, request, queryset):
     tmp_file = NamedTemporaryFile(delete=False)
     with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
         for submission in queryset:
+            publication_name = submission.submitted_by.publication_name
+            if not submission.submitted_by.publication_name:
+                publication_name = submission.name
+
+            file_extension = submission.hyp_file.name.split('.')[-1]
+
+            new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.{5}'.format(
+                submission.test_set.name,
+                submission.test_set.source_language.code,
+                submission.test_set.target_language.code,
+                publication_name,
+                submission.id,
+                file_extension,
+            )
+            new_filename.replace(' ', '_').lower()
+
             zip_file.writestr(
-                Path(submission.hyp_file.name).name,
+                Path(new_filename).name,
                 submission.hyp_file.open('rb').read(),
             )
 
