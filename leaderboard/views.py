@@ -74,7 +74,7 @@ def frontpage(request):
 
     context = {
         'data': data.items(),
-        'deadline': '7/18/2020 12:00:00 UTC',
+        'deadline': '7/21/2020 12:00:00 UTC',
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
@@ -161,7 +161,7 @@ def submit(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    deadline = datetime(2020, 7, 18, 12, 0, 0, tzinfo=timezone.utc)
+    deadline = datetime(2020, 7, 21, 12, 0, 0, tzinfo=timezone.utc)
     current = timezone.now()
     if current >= deadline:
         _msg = 'WMT20 submission has closed.'
