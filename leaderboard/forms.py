@@ -19,7 +19,8 @@ class PublicationNameForm(forms.Form):
     """
 
     publication_name = forms.CharField(
-        max_length=MAX_NAME_LENGTH, validators=[validate_team_name],
+        max_length=MAX_NAME_LENGTH,
+        validators=[validate_team_name],
     )
 
 

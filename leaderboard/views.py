@@ -42,7 +42,11 @@ def frontpage(request):
 
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
         is_active=True,
-    ).order_by('name', 'source_language__code', 'target_language__code',)
+    ).order_by(
+        'name',
+        'source_language__code',
+        'target_language__code',
+    )
 
     data = OrderedDict()
     for test_set in test_sets:
@@ -51,7 +55,9 @@ def frontpage(request):
                 test_set=test_set,
                 score__gte=0,  # Ignore invalid submissions
             )
-            .order_by('-score',)
+            .order_by(
+                '-score',
+            )
             .values_list(
                 'id',
                 'score',
@@ -251,8 +257,10 @@ def teampage(request):
             request.POST.getlist('constrained'),
         )
         for primary_id, constrained in primary_ids_and_constrainedness:
-            submission = Submission.objects.get(  # pylint: disable=no-member
-                id=int(primary_id)
+            submission = (
+                Submission.objects.get(  # pylint: disable=no-member
+                    id=int(primary_id)
+                )
             )
             if submission.submitted_by.token == ocelot_team_token:
                 submission.is_constrained = bool(int(constrained))

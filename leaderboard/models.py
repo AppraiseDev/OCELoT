@@ -170,7 +170,9 @@ class TestSet(models.Model):
     )
 
     file_format = models.CharField(
-        choices=FILE_FORMAT_CHOICES, default=SGML_FILE, max_length=4,
+        choices=FILE_FORMAT_CHOICES,
+        default=SGML_FILE,
+        max_length=4,
     )
 
     src_file = models.FileField(
@@ -256,15 +258,24 @@ class Team(models.Model):
     """Models a team."""
 
     is_active = models.BooleanField(
-        blank=False, db_index=True, default=False, help_text='Is active?',
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is active?',
     )
 
     is_flagged = models.BooleanField(
-        blank=False, db_index=True, default=False, help_text='Is flagged?',
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is flagged?',
     )
 
     is_removed = models.BooleanField(
-        blank=False, db_index=True, default=False, help_text='Is removed?',
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is removed?',
     )
 
     is_verified = models.BooleanField(
@@ -327,7 +338,8 @@ class Team(models.Model):
 
     def _primary_submissions(self):
         return Submission.objects.filter(  # pylint: disable=no-member
-            submitted_by=self, is_primary=True,
+            submitted_by=self,
+            is_primary=True,
         ).count()
 
     def _compute_token(self):
@@ -354,8 +366,11 @@ def _get_submission_upload_path(instance, filename):
     del filename  # not used
 
     submissions_count = 0
-    submissions_for_team = Submission.objects.filter(  # pylint: disable=no-member
-        submitted_by=instance.submitted_by.id, test_set=instance.test_set
+    submissions_for_team = (
+        Submission.objects.filter(  # pylint: disable=no-member
+            submitted_by=instance.submitted_by.id,
+            test_set=instance.test_set,
+        )
     )
     if submissions_for_team.exists():
         submissions_count = submissions_for_team.count()
@@ -396,7 +411,10 @@ class Submission(models.Model):
     )
 
     is_flagged = models.BooleanField(
-        blank=False, db_index=True, default=False, help_text='Is flagged?',
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is flagged?',
     )
 
     is_primary = models.BooleanField(
@@ -414,7 +432,10 @@ class Submission(models.Model):
     )
 
     is_removed = models.BooleanField(
-        blank=False, db_index=True, default=False, help_text='Is removed?',
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is removed?',
     )
 
     name = models.CharField(
@@ -446,7 +467,9 @@ class Submission(models.Model):
     )
 
     file_format = models.CharField(
-        choices=FILE_FORMAT_CHOICES, default=TEXT_FILE, max_length=4,
+        choices=FILE_FORMAT_CHOICES,
+        default=TEXT_FILE,
+        max_length=4,
     )
 
     hyp_file = models.FileField(
@@ -538,7 +561,8 @@ class Submission(models.Model):
 
                     # Filter hyp SGML in matching order, skipping testsuite-* docs
                     hyp_filtered_path = Submission._filter_sgml_by_docids(
-                        self.hyp_file.name, ref_docids,
+                        self.hyp_file.name,
+                        ref_docids,
                     )
 
             else:
@@ -666,7 +690,8 @@ class Submission(models.Model):
         self.save()
 
         other_submissions = Submission.objects.filter(
-            submitted_by=self.submitted_by, test_set=self.test_set,
+            submitted_by=self.submitted_by,
+            test_set=self.test_set,
         )
         for other_submission in other_submissions:
             if other_submission.id != self.id:
