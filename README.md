@@ -6,7 +6,7 @@ OCELoT stands for **O**pen, **Co**mpetitive **E**valuation **L**eaderboard **o**
 
 ## Build Status
 
-[![Build Status](https://dev.azure.com/cfedermann/Project%20OCELoT/_apis/build/status/cfedermann.OCELoT?branchName=master)](https://dev.azure.com/cfedermann/Project%20OCELoT/_build/latest?definitionId=1&branchName=master)
+![PythonCodeValidator](https://github.com/AppraiseDev/OCELoT/workflows/PythonCodeValidator/badge.svg)
 
 ## License
 

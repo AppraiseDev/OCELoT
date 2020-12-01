@@ -1,0 +1,115 @@
+{% extends "leaderboard/base.html" %}
+{% load static %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="{% url 'frontpage-view' %}">Project OCELoT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'frontpage-view' %}">Home</a>
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'teampage-view' %}">Team</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'signup-view' %}">Registration</a>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'submit-view' %}">Submission</a>
+            {% else %}
+            <a class="nav-link disabled" href="#">Submission</a>
+            {% endif %}
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'updates-view' %}">Updates <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'signout-view' %}">Sign out</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'signin-view' %}">Sign in</a>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </nav>
+{% endblock %}
+
+{% block main %}
+    <main role="main">
+    
+      <!-- Main jumbotron for a primary marketing message or call to action -->
+      <div class="jumbotron">
+        <div class="container">
+          <h1 class="display-4">Welcome to OCELoT!</h1>
+          <p>
+            From June 22nd to June 29th, OCELoT will be used to collect submissions to the <a href="http://statmt.org/wmt20/translation-task.html">Shared Task: Machine Translation of News</a> which is part of the <a href="http://statmt.org/wmt20/">EMNLP 2020 Fifth Conference on Machine Translation (WMT20)</a>, replacing the previously used matrix which had grown stale over time. You can read more about this year's shared task and changes compared to previous years in the <a href="{% url 'updates-view' %}">competition updates</a> section. We're looking forward to your participation in WMT20!
+          </p>
+          <p style="text-indent: 2em;">
+            From July 10th to July 17th, OCELoT will collect submissions to the <a href="http://statmt.org/wmt20/robustness.html">Shared Task: Machine Translation Robustness</a>.
+          </p>
+        </div>
+      </div>
+
+      <div class="container">
+        <form>
+          <p>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
+            {% if ocelot_team_token %}
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
+            {% else %}
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
+            <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
+            {% endif %}
+            <a style="font-weight: bold;" class="btn btn-primary btn-sm" role="button" href="{% url 'updates-view' %}">Competition updates</a>
+          </p>
+        </form>
+      </div>
+
+      <div class="container">
+
+        <h2>Competition updates</h2>
+        <p>
+          <ul>
+            <li><em>7/17/2020:</em> deadline for the WMT20 robustness task has been extended until July 20th, anywhere on Earth.</li>
+            <li><em>7/16/2020:</em> submission is (finally) now open for the WMT20 robustness task, enjoy!</li>
+            <li><em>7/09/2020:</em> finalising list of primary submissions for the news task. Also preparing for submissions to the <a href="http://statmt.org/wmt20/robustness.html">robustness task</a>, to run from July 10&mdash;17.</li>
+            <li><em>6/25/2020:</em> changed SacreBLEU computation for Khmer (<code>'char-based'</code> tokeniser) target language. Also added chrF computation to give you more data points for your primary submission selection. Submissions remain ordered by decreasing SacreBLEU score.</li>
+            <li><em>6/24/2020:</em> changed SacreBLEU computation for Chinese (<code>'zh'</code> tokeniser) and Japanese (<code>'char-based'</code> tokeniser) target languages. Score <code>-1.0</code> used for any submissions with invalid SGML files. If your system shows as <code>-1.0</code>, please check your SGML file and avoid any <code><, >, &</code> or other HTML entities within your <code>&lt;seg/&gt;</code> segments.</li>
+            <li><em>6/23/2020:</em> submission is now open and competition updates have been added to the OCELoT website. 48 teams have signed up so far.</li>
+            <li><em>6/22/2020:</em> team registration is online and newstest2020 test set source data has been released.</li>
+          </ul>
+        </p>
+
+        <h2>Competition rules</h2>
+        <p>
+          The following rules apply to this year's shared task:
+          <ul>
+            <li>We only accept submissions from verified teams &mdash; you will <strong>have to contact us</strong> to verify your team account;</li>
+            <li>Each team may upload <strong>up to {{ MAX_SUBMISSION_LIMIT }} submissions per language pair</strong>, without any time contraints between such uploads;</li>
+            <li>Each team may choose <strong>exactly one primary submission</strong> to be included in the human evaluation campaign;</li>
+            <li>If you fail to designate your primary submission, your <strong>highest-scoring submission will be the default</strong>;</li>
+            <li>We request that you do not create multiple teams to game these submission rules &mdash; we trust and thank you!</li>
+          </ul>
+        </p>
+
+    
+        <hr>
+    
+      </div> <!-- /container -->
+    
+    </main>
+{% endblock %}
+
+{% block footer %}
+#blacklivesmatter #pride #andjusticeforall #capitolhillseattle
+{% endblock %}

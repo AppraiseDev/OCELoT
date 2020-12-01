@@ -3,3 +3,5 @@ db.sqlite3
 .mypy_cache
 *.log
 ocelot/local_settings.py
+submissions
+testsets
