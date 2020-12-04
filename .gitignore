@@ -1,7 +1,16 @@
-db.sqlite3
+# Environment
+*~
+.swo
+.swp
+
+# Python
 *.pyc
-.mypy_cache
 *.log
+.mypy_cache
+venv
+
+# OCELoT
+db.sqlite3
 ocelot/local_settings.py
 submissions
 testsets
