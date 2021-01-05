@@ -120,6 +120,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'ocelot.context_processors.project_version',
             ]
         },
     }
@@ -164,3 +165,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# Project version
+# See point 4 from https://packaging.python.org/guides/single-sourcing-package-version/
+
+with open(os.path.join(BASE_DIR, 'VERSION')) as version_file:
+    VERSION = version_file.read().strip()
