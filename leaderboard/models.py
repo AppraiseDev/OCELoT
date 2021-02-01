@@ -125,7 +125,7 @@ class Language(models.Model):
         db_index=True,
         max_length=MAX_NAME_LENGTH,
         help_text=(
-            'Test set name (max {0} characters)'.format(MAX_NAME_LENGTH)
+            'Language name (max {0} characters)'.format(MAX_NAME_LENGTH)
         ),
     )
 
