@@ -14,3 +14,4 @@ db.sqlite3
 ocelot/local_settings.py
 submissions
 testsets
+static
