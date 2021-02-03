@@ -22,6 +22,7 @@ TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
+MAX_DESCRIPTION_LENGTH = 2000
 MAX_TOKEN_LENGTH = 10
 
 SGML_FILE = 'SGML'
@@ -703,3 +704,52 @@ class Submission(models.Model):
     def get_name(self):
         """Make __str__() accessible in admin listings."""
         return str(self)
+
+
+class Competition(models.Model):
+    """Models a competition."""
+
+    name = models.CharField(
+        blank=False,
+        db_index=True,
+        help_text=(
+            'Competition name (max {0} characters)'.format(MAX_NAME_LENGTH)
+        ),
+        max_length=MAX_NAME_LENGTH,
+        unique=True,
+    )
+
+    description = models.TextField(
+        blank=False,
+        help_text=(
+            'Competition description (max {0} characters)'.format(
+                MAX_DESCRIPTION_LENGTH
+            )
+        ),
+        max_length=MAX_DESCRIPTION_LENGTH,
+    )
+
+    # Date and time when the competition ends. An empty value means no deadline.
+    deadline = models.DateTimeField(
+        blank=True,
+        help_text=(
+            'Competition deadline (max {0} characters)'.format(  # TODO: add (format: xyz)
+                MAX_DESCRIPTION_LENGTH
+            )
+        ),
+    )
+
+    test_sets = models.ManyToManyField(
+        TestSet,
+        blank=True,
+        related_name='%(app_label)s_%(class)ss',
+        related_query_name='%(app_label)s_%(class)s',
+    )
+
+    def __repr__(self):
+        return 'Competition(name={0}, deadline={1})'.format(
+            self.name, self.deadline
+        )
+
+    def __str__(self):
+        return '{0} ({1})'.format(self.name, self.deadline)

@@ -14,6 +14,7 @@ from leaderboard.forms import PublicationNameForm
 from leaderboard.forms import SigninForm
 from leaderboard.forms import SubmissionForm
 from leaderboard.forms import TeamForm
+from leaderboard.models import Competition
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
@@ -35,6 +36,69 @@ def _get_team_data(request):
         ocelot_team_name = the_team.name
         ocelot_team_email = the_team.email
     return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
+
+
+def competition(request, competition_name=None):
+    """Renders OCELoT competition."""
+
+    # Try to find a competition by its name
+    competition = None
+    if competition_name:
+        competitions = Competition.objects.filter(name=competition_name).order_by(
+            '-deadline'
+        )
+        if competitions.exists():
+            competition = competitions[0]
+
+    # Collect all test sets for the competition
+    data = OrderedDict()
+    if competition is not None:
+        test_sets = TestSet.objects.filter(  # pylint: disable=no-member
+            leaderboard_competition=competition.id,
+        ).order_by('name')
+
+        for test_set in test_sets:
+            submissions = (
+                Submission.objects.filter(  # pylint: disable=no-member
+                    test_set=test_set,
+                    score__gte=0,  # Ignore invalid submissions
+                )
+                .order_by(
+                    '-score',
+                )
+                .values_list(
+                    'id',
+                    'score',
+                    'score_chrf',
+                    'date_created',
+                    'submitted_by__token',
+                )[:MAX_SUBMISSION_DISPLAY_COUNT]
+            )
+            for submission in submissions:
+                key = str(test_set)
+                if not key in data.keys():
+                    data[key] = []
+                data[key].append(submission)
+
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
+    context = {
+        'data': data.items(),
+        'competition_deadline': competition.deadline.strftime(  # TODO: handle timezone properly
+            "%Y-%m-%d %H:%M:%S"
+        ),
+        'competition_name': competition.name,
+        'competition_description': competition.description,
+        'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'leaderboard/competition.html', context=context)
 
 
 def frontpage(request):
@@ -80,7 +144,7 @@ def frontpage(request):
 
     context = {
         'data': data.items(),
-        'deadline': '7/21/2020 12:00:00 UTC',
+        'deadline': '7/21/2021 12:00:00 UTC',
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
@@ -167,7 +231,7 @@ def submit(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    deadline = datetime(2020, 7, 21, 12, 0, 0, tzinfo=timezone.utc)
+    deadline = datetime(2021, 7, 21, 12, 0, 0, tzinfo=timezone.utc)
     current = timezone.now()
     if current >= deadline:
         _msg = 'WMT20 submission has closed.'

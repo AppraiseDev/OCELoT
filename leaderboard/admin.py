@@ -9,6 +9,7 @@ from zipfile import ZipFile
 from django.contrib import admin
 from django.http import FileResponse
 
+from leaderboard.models import Competition 
 from leaderboard.models import Language
 from leaderboard.models import Submission
 from leaderboard.models import Team
@@ -173,7 +174,25 @@ class TestSetAdmin(admin.ModelAdmin):
     ordering = ('-name', 'source_language', 'target_language')
 
 
+class CompetitionAdmin(admin.ModelAdmin):
+    """Model admin for Competition objects."""
+
+    fields = [
+        'name',
+        'description',
+        'deadline',
+        'test_sets',
+    ]
+
+    list_display = [
+        '__str__',
+    ]
+
+    ordering = ('-name',)
+
+
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(TestSet, TestSetAdmin)
+admin.site.register(Competition, CompetitionAdmin)

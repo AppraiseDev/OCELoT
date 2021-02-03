@@ -46,18 +46,11 @@
 {% block main %}
     <main role="main">
 
-      <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
         <div class="container">
-          <h1 class="display-4">Welcome to OCELoT!</h1>
+          <h1 class="display-4">{{competition_name}} hosted at OCELoT</h1>
           <p>
-            OCELoT stands for <strong>O</strong>pen, <strong>C</strong>ompetitive <strong>E</strong>valuation <strong>L</strong>eaderboard <strong>o</strong>f <strong>T</strong>ranslations. This project started as part of the <a href="http://statmt.org/mtma19/">Fifth Machine Translation Marathon in the Americas</a>, hosted at UMD, College Park, MD, from May 28&ndash;June 1, 2019. Project OCELoT aims to create an open platform for competitive evaluation of machine translation output, based on both automatic metrics and human evalation. Code is available from <a href="https://github.com/cfedermann/OCELoT/">GitHub</a> and shared under an <a href="https://github.com/cfedermann/OCELoT/blob/master/LICENSE">open license</a>.
-          </p>
-          <p style="text-indent: 2em;">
-            From June 22nd to June 29th, OCELoT will be used to collect submissions to the <a href="http://statmt.org/wmt20/translation-task.html">Shared Task: Machine Translation of News</a> which is part of the <a href="http://statmt.org/wmt20/">EMNLP 2020 Fifth Conference on Machine Translation (WMT20)</a>, replacing the previously used matrix which had grown stale over time. You can read more about this year's shared task and changes compared to previous years in the <a href="{% url 'updates-view' %}">competition updates</a> section. We're looking forward to your participation in WMT20!
-          </p>
-          <p style="text-indent: 2em;">
-            From July 10th to July 17th, OCELoT will collect submissions to the <a href="http://statmt.org/wmt20/robustness.html">Shared Task: Machine Translation Robustness</a>.
+            {{competition_description}}
           </p>
         </div>
       </div>
@@ -82,12 +75,12 @@
         <div id="deadlineContainer" style="display: none;">
           <h2>Deadline</h2>
           <p>
-            Submission for WMT20 <span id="deadline"></span>.
+            Submission for {{competition_name}} <span id="deadline"></span>.
           </p>
         </div>
 
         {% if data %}
-        <h2>Leaderboard</h2>
+        <h2>Leaderboard of {{competition_name}}</h2>
         {% for testset, submissions in data %}
         <h3>{{testset}}</h3>
         <div class="table-responsive">
@@ -156,7 +149,7 @@
 <script>
   function updateDeadline()
   {
-    const $deadline = Date.parse('{{ deadline }}');
+    const $deadline = Date.parse('{{ competition_deadline }}');
 
     $currentTime = new Date();
     $currentDelta = new Date($deadline - $currentTime);
