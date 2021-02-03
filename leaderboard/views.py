@@ -39,17 +39,11 @@ def _get_team_data(request):
     return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
 
 
-def competition(request, competition_name=None):
+def competition(request, competition_id=None):
     """Renders OCELoT competition."""
 
-    # Try to find a competition by its name
-    competition = None
-    if competition_name:
-        competitions = Competition.objects.filter(
-            name=competition_name
-        ).order_by('-deadline')
-        if competitions.exists():
-            competition = competitions[0]
+    # Find the competition by ID or None
+    competition = Competition.objects.filter(id=competition_id).first()
 
     # Collect all test sets for the competition
     data = OrderedDict()

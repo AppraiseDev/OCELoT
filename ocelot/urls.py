@@ -17,7 +17,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from leaderboard.views import competition 
+from leaderboard.views import competition
 from leaderboard.views import frontpage
 from leaderboard.views import signin
 from leaderboard.views import signout
@@ -34,7 +34,7 @@ from ocelot.settings import STATIC_URL
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', frontpage, name='frontpage-view'),
-    path('competition/<competition_name>', competition, name='competition-view'),
+    path('competition/<competition_id>', competition, name='competition-view'),
     path('sign-in', signin, name='signin-view'),
     path('sign-out', signout, name='signout-view'),
     path('signup', signup, name='signup-view'),
