@@ -6,6 +6,7 @@ from datetime import datetime
 
 from django.contrib import messages
 from django.db.models import Count
+from django.http import Http404
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -42,38 +43,42 @@ def _get_team_data(request):
 def competition(request, competition_id=None):
     """Renders OCELoT competition."""
 
-    # Find the competition by ID or None
-    competition = Competition.objects.filter(id=competition_id).first()
+    # Get the competition by its ID or render 404
+    try:
+        competition = Competition.objects.get(id=competition_id)
+    except Competition.DoesNotExist:
+        raise Http404(
+            'Campaign with ID {0} does not exists'.format(competition_id)
+        )
 
     # Collect all test sets for the competition
     data = OrderedDict()
-    if competition is not None:
-        test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-            leaderboard_competition=competition.id,
-        ).order_by('name')
+    test_sets = TestSet.objects.filter(  # pylint: disable=no-member
+        leaderboard_competition=competition.id,
+    ).order_by('name')
 
-        for test_set in test_sets:
-            submissions = (
-                Submission.objects.filter(  # pylint: disable=no-member
-                    test_set=test_set,
-                    score__gte=0,  # Ignore invalid submissions
-                )
-                .order_by(
-                    '-score',
-                )
-                .values_list(
-                    'id',
-                    'score',
-                    'score_chrf',
-                    'date_created',
-                    'submitted_by__token',
-                )[:MAX_SUBMISSION_DISPLAY_COUNT]
+    for test_set in test_sets:
+        submissions = (
+            Submission.objects.filter(  # pylint: disable=no-member
+                test_set=test_set,
+                score__gte=0,  # Ignore invalid submissions
             )
-            for submission in submissions:
-                key = str(test_set)
-                if not key in data.keys():
-                    data[key] = []
-                data[key].append(submission)
+            .order_by(
+                '-score',
+            )
+            .values_list(
+                'id',
+                'score',
+                'score_chrf',
+                'date_created',
+                'submitted_by__token',
+            )[:MAX_SUBMISSION_DISPLAY_COUNT]
+        )
+        for submission in submissions:
+            key = str(test_set)
+            if not key in data.keys():
+                data[key] = []
+            data[key].append(submission)
 
     (
         ocelot_team_name,
