@@ -1,9 +1,9 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from datetime import datetime
 from json import loads
 from pathlib import Path
-from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -37,14 +37,18 @@ class CompetitionTests(TestCase):
             deadline=datetime(2021, 1, 2, 12, 30, tzinfo=timezone.utc),
         )
 
-    def test_competition_page_renders_correctly_if_competition_exists(self):
+    def test_competition_page_renders_correctly_if_competition_exists(
+        self,
+    ):
         """Checks that competition/<existing-id> renders correctly."""
         comp = Competition.objects.all().first()
         response = self.client.get('/competition/{0}'.format(comp.id))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Competition no. 1')
 
-    def test_competition_page_renders_404_if_competition_does_not_exist(self):
+    def test_competition_page_renders_404_if_competition_does_not_exist(
+        self,
+    ):
         """Checks that competition/<non-existing-id> renders 404."""
         response = self.client.get('/competition/1234')
         self.assertEqual(response.status_code, 404)

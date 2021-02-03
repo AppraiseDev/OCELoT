@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from django.contrib import admin
 from django.http import FileResponse
 
-from leaderboard.models import Competition 
+from leaderboard.models import Competition
 from leaderboard.models import Language
 from leaderboard.models import Submission
 from leaderboard.models import Team

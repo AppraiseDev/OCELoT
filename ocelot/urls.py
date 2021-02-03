@@ -34,7 +34,11 @@ from ocelot.settings import STATIC_URL
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', frontpage, name='frontpage-view'),
-    path('competition/<competition_id>', competition, name='competition-view'),
+    path(
+        'competition/<competition_id>',
+        competition,
+        name='competition-view',
+    ),
     path('sign-in', signin, name='signin-view'),
     path('sign-out', signout, name='signout-view'),
     path('signup', signup, name='signup-view'),

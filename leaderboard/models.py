@@ -83,7 +83,6 @@ def validate_sgml_schema(hyp_file):
 
     try:
         schema.validate(hyp_file)
-
     # pylint: disable-msg=bad-continuation
     except (
         xmlschema.XMLSchemaValidationError,

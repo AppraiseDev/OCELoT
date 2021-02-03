@@ -45,8 +45,10 @@ def competition(request, competition_id=None):
 
     # Get the competition by its ID or render 404
     try:
-        competition = Competition.objects.get(id=competition_id)
-    except Competition.DoesNotExist:
+        comp = Competition.objects.get(  # pylint: disable=no-member
+            id=competition_id
+        )
+    except Competition.DoesNotExist:  # pylint: disable=no-member
         raise Http404(
             'Campaign with ID {0} does not exists'.format(competition_id)
         )
@@ -54,7 +56,7 @@ def competition(request, competition_id=None):
     # Collect all test sets for the competition
     data = OrderedDict()
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        leaderboard_competition=competition.id,
+        leaderboard_competition=comp.id,
     ).order_by('name')
 
     for test_set in test_sets:
@@ -88,11 +90,11 @@ def competition(request, competition_id=None):
 
     context = {
         'data': data.items(),
-        'competition_deadline': competition.deadline.strftime(  # TODO: handle timezone properly
+        'competition_deadline': comp.deadline.strftime(  # TODO: handle timezone properly
             "%Y-%m-%d %H:%M:%S"
         ),
-        'competition_name': competition.name,
-        'competition_description': competition.description,
+        'competition_name': comp.name,
+        'competition_description': comp.description,
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
@@ -105,7 +107,7 @@ def frontpage(request):
     """Renders OCELoT frontpage with a list of competitions."""
 
     competitions = (
-        Competition.objects.all()
+        Competition.objects.all()  # pylint: disable=no-member
         .order_by(
             '-deadline',
         )
