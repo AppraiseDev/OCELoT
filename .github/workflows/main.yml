@@ -1,4 +1,4 @@
-name: "PythonCodeValidator"
+name: "OCELoT"
 
 on: [push, pull_request]
 
