@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import datetime
 
 from django.contrib import messages
+from django.db.models import Count
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -44,9 +45,9 @@ def competition(request, competition_name=None):
     # Try to find a competition by its name
     competition = None
     if competition_name:
-        competitions = Competition.objects.filter(name=competition_name).order_by(
-            '-deadline'
-        )
+        competitions = Competition.objects.filter(
+            name=competition_name
+        ).order_by('-deadline')
         if competitions.exists():
             competition = competitions[0]
 
@@ -102,39 +103,28 @@ def competition(request, competition_name=None):
 
 
 def frontpage(request):
-    """Renders OCELoT frontpage."""
+    """Renders OCELoT frontpage with a list of competitions."""
 
-    test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        is_active=True,
-    ).order_by(
-        'name',
-        'source_language__code',
-        'target_language__code',
-    )
-
-    data = OrderedDict()
-    for test_set in test_sets:
-        submissions = (
-            Submission.objects.filter(  # pylint: disable=no-member
-                test_set=test_set,
-                score__gte=0,  # Ignore invalid submissions
-            )
-            .order_by(
-                '-score',
-            )
-            .values_list(
-                'id',
-                'score',
-                'score_chrf',
-                'date_created',
-                'submitted_by__token',
-            )[:MAX_SUBMISSION_DISPLAY_COUNT]
+    competitions = (
+        Competition.objects.all()
+        .order_by(
+            '-deadline',
         )
-        for submission in submissions:
-            key = str(test_set)
-            if not key in data.keys():
-                data[key] = []
-            data[key].append(submission)
+        .annotate(
+            # Number of test sets assigned to a competition
+            num_test_sets=Count('test_sets', distinct=True),
+            # The total number of submissions from all assigned test sets
+            num_submissions=Count('test_sets__submission'),
+        )
+        .values_list(
+            'id',
+            'name',
+            'num_test_sets',
+            'num_submissions',
+            'description',
+            'deadline',
+        )
+    )
 
     (
         ocelot_team_name,
@@ -143,8 +133,7 @@ def frontpage(request):
     ) = _get_team_data(request)
 
     context = {
-        'data': data.items(),
-        'deadline': '7/21/2021 12:00:00 UTC',
+        'competitions': competitions,
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,

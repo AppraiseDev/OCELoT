@@ -79,8 +79,8 @@
           </p>
         </div>
 
-        {% if data %}
         <h2>Leaderboard of {{competition_name}}</h2>
+        {% if data %}
         {% for testset, submissions in data %}
         <h3>{{testset}}</h3>
         <div class="table-responsive">
@@ -130,8 +130,9 @@
         {% endfor %}
         {% else %}
         {% if False %}
-        <h2>Leaderboard</h2>
         <p>Submissions will become available by 6/22/2020 at 11:59 pm, PDT.</p>
+        {% else %}
+        <p>No submissions yet.</p>
         {% endif %}
         {% endif %}
         <hr>

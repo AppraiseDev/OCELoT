@@ -79,67 +79,41 @@
       </div>
 
       <div class="container">
-        <div id="deadlineContainer" style="display: none;">
-          <h2>Deadline</h2>
-          <p>
-            Submission for WMT20 <span id="deadline"></span>.
-          </p>
-        </div>
+        <h2>Competitions</h2>
 
-        {% if data %}
-        <h2>Leaderboard</h2>
-        {% for testset, submissions in data %}
-        <h3>{{testset}}</h3>
+        {% if competitions %}
         <div class="table-responsive">
           <table class="table table-striped table-sm">
             <thead>
               <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>SacreBLEU score</th>
-                <th>chrF score</th>
-                <th>Date</th>
+                <th>Competition</th>
+                <th>Test sets</th>
+                <th>Submissions</th>
+                <th>Deadline</th>
               </tr>
             </thead>
             <tbody>
-              {% for submission in submissions|slice:MAX_SUBMISSION_DISPLAY_COUNT %}
+              {% for competition in competitions %}
               <tr>
                 <td>{{forloop.counter}}</td>
-                {% if submission.4 == ocelot_team_token %}
-                <td><strong>Anonymous submission #{{submission.0}}</strong></td>
-                {% else %}
-                <td>Anonymous submission #{{submission.0}}</td>
-                {% endif %}
-                {% if submission.1 %}
-                <td>{{submission.1|stringformat:".1f"}}</td>
-                {% else %}
-                <td>---</td>
-                {% endif %}
-                {% if submission.2 %}
-                <td>{{submission.2|stringformat:".3f"}}</td>
+                <td>
+                  <a href="{% url 'competition-view' competition_name=competition.1 %}">{{competition.1}}</a>
+                </td>
+                <td>{{competition.2}}</td>
+                <td>{{competition.3}}</td>
+                {% if competition.5 %}
+                <td>{{competition.5}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}
-                <td>{{submission.3}}</td>
               </tr>
               {% endfor %}
-              {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}
-              <tr>
-                <td>...</td>
-                <td colspan="4"><em>showing top-{{MAX_SUBMISSION_DISPLAY_COUNT}} only, total number of submissions:
-                    {{submissions|length}}</em></td>
-              </tr>
-              {% endif %}
             </tbody>
-            <caption>Systems in <strong>bold face</strong> are your submissions. We only display the top-{{MAX_SUBMISSION_DISPLAY_COUNT}} submissions per language pair. SGML validation errors denoted by -1.0 score.</caption>
           </table>
         </div>
-        {% endfor %}
         {% else %}
-        {% if False %}
-        <h2>Leaderboard</h2>
-        <p>Submissions will become available by 6/22/2020 at 11:59 pm, PDT.</p>
-        {% endif %}
+        <p>No competition has been created yet.</p>
         {% endif %}
         <hr>
 
