@@ -40,12 +40,12 @@ def _get_team_data(request):
     return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
 
 
-def competition(request, competition_id=None):
-    """Renders OCELoT competition."""
+def leaderboardpage(request, competition_id=None):
+    """Renders leaderboard for a competition."""
 
     # Get the competition by its ID or render 404
     try:
-        comp = Competition.objects.get(  # pylint: disable=no-member
+        competition = Competition.objects.get(  # pylint: disable=no-member
             id=competition_id
         )
     except Competition.DoesNotExist:  # pylint: disable=no-member
@@ -56,7 +56,7 @@ def competition(request, competition_id=None):
     # Collect all test sets for the competition
     data = OrderedDict()
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        leaderboard_competition=comp.id,
+        leaderboard_competition=competition.id,
     ).order_by('name')
 
     for test_set in test_sets:
@@ -90,11 +90,11 @@ def competition(request, competition_id=None):
 
     context = {
         'data': data.items(),
-        'competition_deadline': comp.deadline.strftime(  # TODO: handle timezone properly
+        'competition_deadline': competition.deadline.strftime(  # TODO: handle timezone properly
             "%Y-%m-%d %H:%M:%S"
         ),
-        'competition_name': comp.name,
-        'competition_description': comp.description,
+        'competition_name': competition.name,
+        'competition_description': competition.description,
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,

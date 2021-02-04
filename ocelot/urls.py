@@ -17,8 +17,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from leaderboard.views import competition
 from leaderboard.views import frontpage
+from leaderboard.views import leaderboardpage
 from leaderboard.views import signin
 from leaderboard.views import signout
 from leaderboard.views import signup
@@ -35,9 +35,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', frontpage, name='frontpage-view'),
     path(
-        'competition/<competition_id>',
-        competition,
-        name='competition-view',
+        'leaderboard/<competition_id>',
+        leaderboardpage,
+        name='leaderboard-view',
     ),
     path('sign-in', signin, name='signin-view'),
     path('sign-out', signout, name='signout-view'),

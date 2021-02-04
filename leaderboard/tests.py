@@ -16,15 +16,6 @@ from leaderboard.models import TestSet
 class LeaderboardTests(TestCase):
     """Tests leaderboard app."""
 
-    def test_frontpage_renders_correctly(self):
-        """Checks that frontpage renders correctly."""
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, 200)
-
-
-class CompetitionTests(TestCase):
-    """Tests Competition model."""
-
     def setUp(self):
         Competition.objects.create(
             name='Competition no. 1',
@@ -37,24 +28,25 @@ class CompetitionTests(TestCase):
             deadline=datetime(2021, 1, 2, 12, 30, tzinfo=timezone.utc),
         )
 
-    def test_competition_page_renders_correctly_if_competition_exists(
-        self,
-    ):
-        """Checks that competition/<existing-id> renders correctly."""
-        comp = Competition.objects.all().first()
-        response = self.client.get('/competition/{0}'.format(comp.id))
+    def test_frontpage_renders_correctly(self):
+        """Checks that frontpage renders correctly."""
+        response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Competition no. 1')
-
-    def test_competition_page_renders_404_if_competition_does_not_exist(
-        self,
-    ):
-        """Checks that competition/<non-existing-id> renders 404."""
-        response = self.client.get('/competition/1234')
-        self.assertEqual(response.status_code, 404)
 
     def test_frontpage_knows_about_competitions(self):
         """Checks that frontpage retrieve list of competitions."""
         response = self.client.get('/')
         self.assertContains(response, 'Competition no. 1')
         self.assertContains(response, 'Competition no. 2')
+
+    def test_leaderboard_renders_correctly_if_competition_exists(self):
+        """Checks that leaderboard/<existing-id> renders correctly."""
+        comp = Competition.objects.all().first()
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Competition no. 1')
+
+    def test_leaderboard_renders_404_if_competition_does_not_exist(self):
+        """Checks that leaderboard/<non-existing-id> renders 404."""
+        response = self.client.get('/leaderboard/1234')
+        self.assertEqual(response.status_code, 404)
