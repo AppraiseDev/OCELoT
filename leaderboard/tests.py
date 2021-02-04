@@ -191,3 +191,26 @@ class LeaderboardTests(TestCase):
         """Checks that leaderboard/<non-existing-id> renders 404."""
         response = self.client.get('/leaderboard/1234')
         self.assertEqual(response.status_code, 404)
+
+    def test_leaderboard_shows_competition_description(self):
+        """Checks that leaderboard contains description of the competition."""
+        comp = Competition.objects.get(name='Competition A')
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, comp.description)
+
+    def test_leaderboard_without_submissions(self):
+        """Checks that leaderboard without submissions shows no submissions."""
+        comp = Competition.objects.get(name='Competition B')
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertNotContains(response, 'Anonymous submission #')
+        self.assertContains(response, 'No submissions')
+
+    def test_leaderboard_with_submissions(self):
+        """Checks that leaderboard with submissions shows submissions."""
+        comp = Competition.objects.get(name='Competition A')
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        # Get all submissions to this campaign
+        subs = Submission.objects.filter(test_set__leaderboard_competition=comp.id)
+        for sub in subs:
+            self.assertContains(response, str(sub))
+        self.assertNotContains(response, 'No submissions')
