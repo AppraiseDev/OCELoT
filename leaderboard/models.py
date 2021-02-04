@@ -206,7 +206,10 @@ class TestSet(models.Model):
         )
 
     def _create_text_files(self):
-        """Creates test set text files."""
+        """
+        Creates test set text files from SGML files.
+        If files are already in text format, do nothing.
+        """
         if self.file_format == TEXT_FILE:
             return
 
