@@ -21,6 +21,89 @@ from leaderboard.models import TEXT_FILE
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
 
 
+class SubmissionTests(TestCase):
+    """Tests Submission model."""
+
+    def setUp(self):
+        Language.objects.create(code='en', name='English')
+        Language.objects.create(code='de', name='German')
+
+        self.testset = TestSet.objects.create(
+            name='TestSetA',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='de'),
+            file_format=SGML_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
+            ),
+        )
+
+        self.team = Team.objects.create(
+            is_active=True,
+            name='Team A',
+            email='team-a@email.com',
+        )
+
+    def test_scores_are_computed_for_a_submission(self):
+        """Checks that scores are computed for a submission."""
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        Submission.objects.create(
+            name=_file,
+            original_name=_file,
+            test_set=self.testset,
+            submitted_by=self.team,
+            file_format=TEXT_FILE,
+            hyp_file=os.path.join(TESTDATA_DIR, _file),
+        )
+
+        sub = Submission.objects.get(name=_file)
+        self.assertEqual(round(sub.score, 3), 42.431)
+        self.assertEqual(round(sub.score_chrf, 3), 0.664)
+
+
+class TestSetTests(TestCase):
+    """Tests TestSet model."""
+
+    def test_create_test_set_with_sgml_files(self):
+        """Checks that a test set can be created from SGML files."""
+        TestSet.objects.create(
+            name='TestSetA',
+            file_format=SGML_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
+            ),
+        )
+
+        ts = TestSet.objects.get(name='TestSetA')
+        self.assertEqual(ts.name, 'TestSetA')
+        self.assertTrue(ts.src_file.name.endswith('.sgm'))
+        self.assertTrue(ts.ref_file.name.endswith('.sgm'))
+
+    def test_create_test_set_with_text_files(self):
+        """Checks that a test set can be created from text files."""
+        TestSet.objects.create(
+            name='TestSetB',
+            file_format=SGML_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-src.en.txt'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-ref.de.txt'
+            ),
+        )
+
+        ts = TestSet.objects.get(name='TestSetB')
+        self.assertEqual(ts.name, 'TestSetB')
+        self.assertTrue(ts.src_file.name.endswith('.txt'))
+        self.assertTrue(ts.ref_file.name.endswith('.txt'))
+
+
 class LeaderboardTests(TestCase):
     """Tests leaderboard app."""
 
@@ -54,7 +137,6 @@ class LeaderboardTests(TestCase):
             is_active=True,
             name='Team A',
             email='team-a@email.com',
-            token='a111111111',
         )
 
         _file1 = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
@@ -71,7 +153,6 @@ class LeaderboardTests(TestCase):
             is_active=True,
             name='Team B',
             email='team-b@email.com',
-            token='b111111111',
         )
 
         _file2 = 'newstest2019.msft-WMT19-sentence-level.6785.en-de.txt'
