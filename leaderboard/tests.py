@@ -1,14 +1,11 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
-from datetime import datetime
 import os
+from datetime import datetime
 
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
-
-from ocelot.settings import BASE_DIR
 
 from leaderboard.models import Competition
 from leaderboard.models import Language
@@ -17,6 +14,7 @@ from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
+from ocelot.settings import BASE_DIR
 
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
 
@@ -80,10 +78,10 @@ class TestSetTests(TestCase):
             ),
         )
 
-        ts = TestSet.objects.get(name='TestSetA')
-        self.assertEqual(ts.name, 'TestSetA')
-        self.assertTrue(ts.src_file.name.endswith('.sgm'))
-        self.assertTrue(ts.ref_file.name.endswith('.sgm'))
+        tst = TestSet.objects.get(name='TestSetA')
+        self.assertEqual(tst.name, 'TestSetA')
+        self.assertTrue(tst.src_file.name.endswith('.sgm'))
+        self.assertTrue(tst.ref_file.name.endswith('.sgm'))
 
     def test_create_test_set_with_text_files(self):
         """Checks that a test set can be created from text files."""
@@ -98,10 +96,10 @@ class TestSetTests(TestCase):
             ),
         )
 
-        ts = TestSet.objects.get(name='TestSetB')
-        self.assertEqual(ts.name, 'TestSetB')
-        self.assertTrue(ts.src_file.name.endswith('.txt'))
-        self.assertTrue(ts.ref_file.name.endswith('.txt'))
+        tst = TestSet.objects.get(name='TestSetB')
+        self.assertEqual(tst.name, 'TestSetB')
+        self.assertTrue(tst.src_file.name.endswith('.txt'))
+        self.assertTrue(tst.ref_file.name.endswith('.txt'))
 
 
 class LeaderboardTests(TestCase):
@@ -112,13 +110,13 @@ class LeaderboardTests(TestCase):
         l_de = Language.objects.create(code='de', name='German')
 
         _next_year = datetime.now().year + 1
-        c1 = Competition.objects.create(
+        comp_a = Competition.objects.create(
             name='Competition A',
             description='Description of the competition A',
             deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
         )
 
-        ts1 = TestSet.objects.create(
+        test_a = TestSet.objects.create(
             is_active=True,
             name='TestSet A',
             source_language=l_en,
@@ -131,9 +129,9 @@ class LeaderboardTests(TestCase):
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
             ),
         )
-        c1.test_sets.add(ts1)
+        comp_a.test_sets.add(test_a)
 
-        t1 = Team.objects.create(
+        team_a = Team.objects.create(
             is_active=True,
             name='Team A',
             email='team-a@email.com',
@@ -143,13 +141,13 @@ class LeaderboardTests(TestCase):
         Submission.objects.create(
             name=_file1,
             original_name=_file1,
-            test_set=ts1,
-            submitted_by=t1,
+            test_set=test_a,
+            submitted_by=team_a,
             file_format=TEXT_FILE,
             hyp_file=os.path.join(TESTDATA_DIR, _file1),
         )
 
-        t2 = Team.objects.create(
+        team_b = Team.objects.create(
             is_active=True,
             name='Team B',
             email='team-b@email.com',
@@ -159,8 +157,8 @@ class LeaderboardTests(TestCase):
         Submission.objects.create(
             name=_file2,
             original_name=_file2,
-            test_set=ts1,
-            submitted_by=t2,
+            test_set=test_a,
+            submitted_by=team_b,
             file_format=TEXT_FILE,
             hyp_file=os.path.join(TESTDATA_DIR, _file2),
         )
