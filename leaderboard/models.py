@@ -111,6 +111,13 @@ def validate_token(value):
 class Competition(models.Model):
     """Models a competition."""
 
+    is_active = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is active competition?',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -135,7 +142,7 @@ class Competition(models.Model):
     deadline = models.DateTimeField(
         blank=True,
         help_text=(
-            'Competition deadline (max {0} characters)'.format(  # TODO: add (format: xyz)
+            'Competition deadline (max {0} characters)'.format(
                 MAX_DESCRIPTION_LENGTH
             )
         ),

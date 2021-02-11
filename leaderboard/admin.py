@@ -190,6 +190,10 @@ class CompetitionAdmin(admin.ModelAdmin):
         '__str__',
     ]
 
+    list_filter = [
+        'is_active',
+    ]
+
     ordering = ('-name',)
 
 
