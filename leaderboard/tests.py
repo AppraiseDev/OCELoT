@@ -26,6 +26,14 @@ class SubmissionTests(TestCase):
         Language.objects.create(code='en', name='English')
         Language.objects.create(code='de', name='German')
 
+        _next_year = datetime.now().year + 1
+        self.competition = Competition.objects.create(
+            is_active=True,
+            name='CompetitionA',
+            description='Description of the competition A',
+            deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
+        )
+
         self.testset = TestSet.objects.create(
             is_active=True,
             name='TestSetA',
@@ -38,6 +46,7 @@ class SubmissionTests(TestCase):
             ref_file=os.path.join(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
             ),
+            competition=self.competition,
         )
 
         self.team = Team.objects.create(
@@ -45,6 +54,12 @@ class SubmissionTests(TestCase):
             name='Team A',
             email='team-a@email.com',
         )
+
+    def _set_ocelot_team_token(self):
+        """Set the team token to be able to render the submission form."""
+        session = self.client.session
+        session['ocelot_team_token'] = self.team.token
+        session.save()
 
     def test_scores_are_computed_for_a_submission(self):
         """Checks that scores are computed for a submission."""
@@ -62,12 +77,35 @@ class SubmissionTests(TestCase):
         self.assertEqual(round(sub.score, 3), 42.431)
         self.assertEqual(round(sub.score_chrf, 3), 0.664)
 
+    def test_submissions_to_inactive_testsets_are_not_possible(self):
+        """Checks that submissions cannot be made to inactive test sets."""
+        self._set_ocelot_team_token()
+
+        tst = TestSet.objects.get(name='TestSetA')
+        tst.is_active = False
+        tst.save()
+
+        response = self.client.get('/submit')
+        self.assertNotContains(response, tst.name)
+
+    def test_submissions_to_inactive_campaigns_are_not_possible(self):
+        """Checks that submissions cannot be made to inactive competitions."""
+        self._set_ocelot_team_token()
+
+        com = Competition.objects.get(name='CompetitionA')
+        com.is_active = False
+        com.save()
+
+        response = self.client.get('/submit')
+        self.assertNotContains(response, com.name)
+
 
 class TestSetTests(TestCase):
     """Tests TestSet model."""
 
     def test_create_test_set_with_sgml_files(self):
         """Checks that a test set can be created from SGML files."""
+
         TestSet.objects.create(
             name='TestSetA',
             file_format=SGML_FILE,

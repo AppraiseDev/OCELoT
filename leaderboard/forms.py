@@ -44,7 +44,12 @@ class SubmissionForm(forms.ModelForm):
 
     test_set = forms.ModelChoiceField(
         queryset=TestSet.objects.filter(  # pylint: disable=no-member
-            is_active=True
+            # Prevent submissions to inactive test sets and test sets from
+            # inactive competitions by not displaying them as options in
+            # the submission form. Note that this is an imperfect solution,
+            # and a better one might be disallowing this in the view.
+            is_active=True,
+            competition__is_active=True,
         )
     )
 

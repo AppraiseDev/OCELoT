@@ -247,6 +247,7 @@ def submit(request):
             )
             print(current_team)
 
+            # TODO: rename to number_of_xxx or similar
             submissions_for_team_and_test_set = Submission.objects.filter(  # pylint: disable=no-member
                 submitted_by=current_team,
                 test_set=form.cleaned_data['test_set'],
