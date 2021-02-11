@@ -56,7 +56,7 @@ def leaderboardpage(request, competition_id=None):
     # Collect all test sets for the competition
     data = OrderedDict()
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        leaderboard_competition=competition.id,
+        competition=competition
     ).order_by('name')
 
     for test_set in test_sets:

@@ -128,8 +128,8 @@ class LeaderboardTests(TestCase):
             ref_file=os.path.join(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
             ),
+            competition=comp_a,
         )
-        comp_a.test_sets.add(test_a)
 
         team_a = Team.objects.create(
             is_active=True,
@@ -210,7 +210,7 @@ class LeaderboardTests(TestCase):
         comp = Competition.objects.get(name='Competition A')
         response = self.client.get('/leaderboard/{0}'.format(comp.id))
         # Get all submissions to this campaign
-        subs = Submission.objects.filter(test_set__leaderboard_competition=comp.id)
+        subs = Submission.objects.filter(test_set__competition=comp)
         for sub in subs:
             self.assertContains(response, str(sub))
         self.assertNotContains(response, 'No submissions')

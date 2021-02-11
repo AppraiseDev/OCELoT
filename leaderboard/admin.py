@@ -157,6 +157,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'file_format',
         'src_file',
         'ref_file',
+        'competition',
         'is_active',
     ]
 
@@ -164,11 +165,13 @@ class TestSetAdmin(admin.ModelAdmin):
         '__str__',
         'source_language',
         'target_language',
+        'competition',
     ]
 
     list_filter = [
         'is_active',
         'file_format',
+        'competition',
     ]
 
     ordering = ('-name', 'source_language', 'target_language')
@@ -181,7 +184,6 @@ class CompetitionAdmin(admin.ModelAdmin):
         'name',
         'description',
         'deadline',
-        'test_sets',
     ]
 
     list_display = [
