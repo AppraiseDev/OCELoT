@@ -245,7 +245,6 @@ def submit(request):
             current_team = Team.objects.get(  # pylint: disable=no-member
                 token=ocelot_team_token
             )
-            print(current_team)
 
             # TODO: rename to number_of_xxx or similar
             submissions_for_team_and_test_set = Submission.objects.filter(  # pylint: disable=no-member
@@ -253,7 +252,6 @@ def submit(request):
                 test_set=form.cleaned_data['test_set'],
                 score__gte=0,  # Ignore invalid submissions for limit check
             ).count()
-            print(submissions_for_team_and_test_set)
 
             if submissions_for_team_and_test_set >= MAX_SUBMISSION_LIMIT:
                 _msg = 'You have reached the submission limit for {0}.'.format(

@@ -660,10 +660,10 @@ class Submission(models.Model):
         elif target_language_code == 'zh':
             tokenize = 'zh'
 
-        _msg = 'language: {0}, tokenize: {1}'.format(
-            target_language_code, tokenize
-        )
-        print(_msg)
+        # _msg = 'language: {0}, tokenize: {1}'.format(
+        # target_language_code, tokenize
+        # )
+        # print(_msg)
 
         try:
             hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
