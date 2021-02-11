@@ -27,6 +27,7 @@ class SubmissionTests(TestCase):
         Language.objects.create(code='de', name='German')
 
         self.testset = TestSet.objects.create(
+            is_active=True,
             name='TestSetA',
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='de'),
@@ -202,6 +203,14 @@ class LeaderboardTests(TestCase):
         """Checks that leaderboard/<non-existing-id> renders 404."""
         response = self.client.get('/leaderboard/1234')
         self.assertEqual(response.status_code, 404)
+
+    def test_leaderboard_is_not_shown_for_inactive_competition(self):
+        """Checks that leaderboard/<inactive-competition-id> redirects to the frontpage."""
+        comp = Competition.objects.get(name='Competition A')
+        comp.is_active = False
+        comp.save()
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertEqual(response.status_code, 302)
 
     def test_leaderboard_shows_competition_description(self):
         """Checks that leaderboard contains description of the competition."""

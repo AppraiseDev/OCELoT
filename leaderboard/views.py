@@ -53,6 +53,14 @@ def leaderboardpage(request, competition_id=None):
             'Campaign with ID {0} does not exists'.format(competition_id)
         )
 
+    # Do not show the leaderboard if the competition is currenlty inactive
+    if not competition.is_active:
+        _msg = 'Competition {0} is currently inactive.'.format(
+            competition.name
+        )
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
     # Collect all test sets for the competition
     data = OrderedDict()
     test_sets = TestSet.objects.filter(  # pylint: disable=no-member
