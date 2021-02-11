@@ -1,7 +1,7 @@
 # Environment
 *~
-.swo
-.swp
+*.swo
+*.swp
 
 # Python
 *.pyc
@@ -10,7 +10,7 @@
 venv
 
 # OCELoT
-db.sqlite3
+db.sqlite3*
 ocelot/local_settings.py
 submissions
 testsets
