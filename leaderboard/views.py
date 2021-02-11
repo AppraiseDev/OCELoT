@@ -107,7 +107,9 @@ def frontpage(request):
     """Renders OCELoT frontpage with a list of competitions."""
 
     competitions = (
-        Competition.objects.all()  # pylint: disable=no-member
+        Competition.objects.filter(  # pylint: disable=no-member
+            is_active=True,
+        )
         .order_by(
             '-deadline',
         )

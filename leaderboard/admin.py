@@ -184,6 +184,7 @@ class CompetitionAdmin(admin.ModelAdmin):
         'name',
         'description',
         'deadline',
+        'is_active',
     ]
 
     list_display = [

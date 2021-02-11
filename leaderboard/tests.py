@@ -111,6 +111,7 @@ class LeaderboardTests(TestCase):
 
         _next_year = datetime.now().year + 1
         comp_a = Competition.objects.create(
+            is_active=True,
             name='Competition A',
             description='Description of the competition A',
             deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
@@ -164,6 +165,7 @@ class LeaderboardTests(TestCase):
         )
 
         Competition.objects.create(
+            is_active=True,
             name='Competition B',
             description='Description of the competition B',
             deadline=datetime(_next_year, 1, 12, tzinfo=timezone.utc),
@@ -178,6 +180,15 @@ class LeaderboardTests(TestCase):
         """Checks that frontpage retrieve list of competitions."""
         response = self.client.get('/')
         self.assertContains(response, 'Competition A')
+        self.assertContains(response, 'Competition B')
+
+    def test_frontpage_does_not_show_inactive_competitions(self):
+        """Checks that frontpage retrieve list of competitions."""
+        comp = Competition.objects.get(name='Competition A')
+        comp.is_active = False
+        comp.save()
+        response = self.client.get('/')
+        self.assertNotContains(response, 'Competition A')
         self.assertContains(response, 'Competition B')
 
     def test_leaderboard_renders_correctly_if_competition_exists(self):
