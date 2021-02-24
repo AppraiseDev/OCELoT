@@ -1,0 +1,7 @@
+-r requirements.txt
+black
+mypy
+pylint
+pylint-django
+reorder-python-imports
+safety
