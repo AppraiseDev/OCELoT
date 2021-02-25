@@ -101,12 +101,29 @@ class SubmissionTests(TestCase):
         self.assertNotContains(response, comp.test_sets.first().name)
 
     def test_campaigns_past_deadline_are_not_shown(self):
-        """Checks that test sets from campaigns past the deadline are not shown in the submission form."""
+        """
+        Checks that test sets from campaigns past the deadline are not shown in
+        the submission form.
+        """
         self._set_ocelot_team_token()
 
         comp = Competition.objects.get(name='CompetitionA')
         # Timestamp with an hour back
         comp.deadline = datetime.now(tz=timezone.utc) - timedelta(hours=1)
+        comp.save()
+
+        response = self.client.get('/submit')
+        self.assertNotContains(response, comp.test_sets.first().name)
+
+    def test_campaigns_that_has_not_started_are_not_shown(self):
+        """
+        Checks that test sets from campaigns that has not started yet are not
+        shown in the submission form.
+        """
+        self._set_ocelot_team_token()
+
+        comp = Competition.objects.get(name='CompetitionA')
+        comp.start_time = datetime.now(tz=timezone.utc) + timedelta(hours=1)
         comp.save()
 
         response = self.client.get('/submit')

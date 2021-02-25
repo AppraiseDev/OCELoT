@@ -512,6 +512,7 @@ class Submission(models.Model):
         ),
     )
 
+    # TODO: This field is not used? Fix or remove.
     original_name = models.CharField(
         blank=False,
         editable=False,

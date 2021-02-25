@@ -45,17 +45,38 @@ class SigninForm(forms.Form):
 class SubmissionForm(forms.ModelForm):
     """Form used for submission view."""
 
+    # Prevent submissions to inactive test sets and test sets from inactive
+    # competitions by not showing them as available choices in the submission form.
+    #
+    # Support competitions with no deadline or start time. Note that lazy
+    # querysets should take care of combining OR filters into a single query.
+    #
+    # TODO: Consider showing competition + test set in the select box, not just
+    # the test set name
     test_set = forms.ModelChoiceField(
         queryset=TestSet.objects.filter(  # pylint: disable=no-member
-            # Prevent submissions to inactive test sets and test sets from
-            # inactive competitions by not displaying them as options in
-            # the submission form. Note that this is an imperfect solution,
-            # and a better one might be disallowing this in the view.
             is_active=True,
             competition__is_active=True,
             competition__deadline__gt=datetime.now(tz=timezone.utc),
-            # TODO: consider showing competition + test set in the select box,
-            # not just the test set name
+            competition__start_time__lt=datetime.now(tz=timezone.utc),
+        )
+        | TestSet.objects.filter(  # pylint: disable=no-member
+            is_active=True,
+            competition__is_active=True,
+            competition__deadline__isnull=True,
+            competition__start_time__lt=datetime.now(tz=timezone.utc),
+        )
+        | TestSet.objects.filter(  # pylint: disable=no-member
+            is_active=True,
+            competition__is_active=True,
+            competition__deadline__gt=datetime.now(tz=timezone.utc),
+            competition__start_time__isnull=True,
+        )
+        | TestSet.objects.filter(  # pylint: disable=no-member
+            is_active=True,
+            competition__is_active=True,
+            competition__deadline__isnull=True,
+            competition__start_time__isnull=True,
         )
     )
 
