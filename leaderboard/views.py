@@ -40,6 +40,13 @@ def _get_team_data(request):
     return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
 
 
+def _format_datetime_for_js(stamp):
+    """Formats time stamp for Javascript."""
+    if not stamp:
+        return None
+    return stamp.strftime("%Y-%m-%d %H:%M:%S")  # JS will assume it's UTC
+
+
 def leaderboardpage(request, competition_id=None):
     """Renders leaderboard for a competition."""
 
@@ -60,6 +67,14 @@ def leaderboardpage(request, competition_id=None):
         )
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
+
+    # Competition context
+    comp_info = {
+        'name': competition.name,
+        'description': competition.description,
+        'start_time': _format_datetime_for_js(competition.start_time),
+        'deadline': _format_datetime_for_js(competition.deadline),
+    }
 
     # Collect all test sets for the competition
     data = OrderedDict()
@@ -97,12 +112,8 @@ def leaderboardpage(request, competition_id=None):
     ) = _get_team_data(request)
 
     context = {
+        'competition': comp_info,
         'data': data.items(),
-        'competition_deadline': competition.deadline.strftime(  # TODO: handle timezone properly
-            "%Y-%m-%d %H:%M:%S"
-        ),
-        'competition_name': competition.name,
-        'competition_description': competition.description,
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
@@ -219,10 +230,6 @@ def signup(request):
 
 def submit(request):
     """Renders OCELoT submission page."""
-    current_time = (
-        timezone.now()
-    )  # Retrieve the current time as early as possible
-
     (
         ocelot_team_name,
         ocelot_team_email,
@@ -244,18 +251,20 @@ def submit(request):
 
             # Check if the competition deadline has not passed yet.
             # This is a second level of validation, because test sets from
-            # closed competitions are not added to the select box of the
-            # submission form. It covers a case when the user first renders the
-            # form, then the deadline passes (e.g. a long idle time), and after
-            # that the submission is made.
-            # TODO: is this really needed?
+            # unstarted or closed competitions are not added to the select box
+            # of the submission form. It covers a case when the user first
+            # renders the form, then the deadline passes (e.g. a long idle
+            # time), and after that the submission is made.
+            current_time = timezone.now()
             test_set = form.cleaned_data['test_set']
-            competition = test_set.competition
+            comp = test_set.competition
 
-            if current_time >= competition.deadline:
-                _msg = '{0} submission has closed.'.format(
-                    competition.name
-                )
+            if comp.deadline and current_time >= comp.deadline:
+                _msg = '{0} submission has closed.'.format(comp.name)
+                messages.warning(request, _msg)
+                return HttpResponseRedirect('/')
+            if comp.start_time and current_time <= comp.start_time:
+                _msg = '{0} submission has not started.'.format(comp.name)
                 messages.warning(request, _msg)
                 return HttpResponseRedirect('/')
 

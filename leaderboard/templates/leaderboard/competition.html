@@ -48,9 +48,9 @@
 
       <div class="jumbotron">
         <div class="container">
-          <h1 class="display-4">{{competition_name}} hosted at OCELoT</h1>
+          <h1 class="display-4">{{competition.name}} hosted at OCELoT</h1>
           <p>
-            {{competition_description}}
+            {{competition.description}}
           </p>
         </div>
       </div>
@@ -72,14 +72,21 @@
       </div>
 
       <div class="container">
-        <div id="deadlineContainer" style="display: none;">
-          <h2>Deadline</h2>
-          <p>
-            Submission for {{competition_name}} <span id="deadline"></span>.
+        <div id="deadline-container" >
+          <p id="competition-not-started" style="display: none;">
+            Submission for {{competition.name}} has not opened yet.
+            The competition starts <span id="timer-starttime">soon</span>.
+          </p>
+          <p id="competition-deadline" style="display: none;">
+            Submission for {{competition.name}} <span id="timer-deadline">closes soon</span>.
+            If you have not submitted yet, you should do so soon.
+          </p>
+          <p id="competition-closed" style="display: none;">
+            Submission for {{competition.name}} has closed.
           </p>
         </div>
 
-        <h2>Leaderboard of {{competition_name}}</h2>
+        <h2>Leaderboard of {{competition.name}}</h2>
         {% if data %}
         {% for testset, submissions in data %}
         <h3>{{testset}}</h3>
@@ -148,39 +155,52 @@
 
 {% block script %}
 <script>
-  function updateDeadline()
-  {
-    const $deadline = Date.parse('{{ competition_deadline }}');
-
+  function updateDeadline() {
+    const $starttime = Date.parse('{{ competition.start_time }}');
+    const $deadline = Date.parse('{{ competition.deadline }}');
     $currentTime = new Date();
-    $currentDelta = new Date($deadline - $currentTime);
 
+    // If the competition has a start time and there is still time
+    $currentDelta = new Date($starttime - $currentTime);
+    if ($currentDelta >= 0) {
+      $("#competition-container p").hide();
+      $("#timer-starttime").html('in ' + timeToGo($currentDelta));
+      $("#competition-not-started").show();
+      return;
+    }
+
+    // If the competition has no deadline
+    if (isNaN($deadline)) {
+      $("#competition-container").hide();
+      clearInterval();
+      return;
+    }
+
+    // If there is still time until the deadline
+    $currentDelta = new Date($deadline - $currentTime);
+    if ($currentDelta >= 0) {
+      $("#competition-container p").hide();
+      $("#timer-deadline").html('<strong> closes in ' + timeToGo($currentDelta) + '</strong>');
+      $("#competition-deadline").show();
+    }
+    // If the deadline has passed
+    else {
+      $("#competition-container p").hide();
+      $("#competition-closed").show();
+      clearInterval();
+    }
+  }
+
+  function timeToGo($currentDelta) {
     $deltaHours = Math.floor($currentDelta / (3600 * 1000));
     $deltaMinutes = Math.floor($currentDelta % (60 * 60 * 1000) / (60 * 1000));
     $deltaSeconds = Math.floor($currentDelta % (60 * 1000)/ 1000);
 
-    if ($deltaHours < 10) {
-      $deltaHours = '0' + $deltaHours;
-    }
+    if ($deltaHours < 10)   { $deltaHours = '0' + $deltaHours; }
+    if ($deltaMinutes < 10) { $deltaMinutes = '0' + $deltaMinutes; }
+    if ($deltaSeconds < 10) { $deltaSeconds = '0' + $deltaSeconds; }
 
-    if ($deltaMinutes < 10) {
-      $deltaMinutes = '0' + $deltaMinutes;
-    }
-
-    if ($deltaSeconds < 10) {
-      $deltaSeconds = '0' + $deltaSeconds;
-    }
-
-    $timeToGo = $deltaHours + 'h' + $deltaMinutes + 'm' + $deltaSeconds + 's';
-
-    if ($currentDelta >= 0) {
-      $("#deadline").html(' <strong>closes in ' + $timeToGo + '</strong>.  If you have not submitted yet, you should do so soon');
-    }
-    else {
-      $("#deadline").html(' <strong>has closed</strong>');
-      clearInterval();
-    }
-    $("#deadlineContainer").show();
+    return $deltaHours + 'h' + $deltaMinutes + 'm' + $deltaSeconds + 's';
   }
 
   $(document).ready(function(){
