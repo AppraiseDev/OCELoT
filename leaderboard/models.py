@@ -138,23 +138,27 @@ class Competition(models.Model):
         max_length=MAX_DESCRIPTION_LENGTH,
     )
 
-    # Date and time when the competition ends. An empty value means no deadline.
+    # Date and time when the competition starts
+    start_time = models.DateTimeField(
+        blank=True,
+        help_text='Competition start time',
+        null=True,
+    )
+
+    # Date and time when the competition ends
     deadline = models.DateTimeField(
         blank=True,
-        help_text=(
-            'Competition deadline (max {0} characters)'.format(
-                MAX_DESCRIPTION_LENGTH
-            )
-        ),
+        help_text='Competition deadline',
     )
 
     def __repr__(self):
-        return 'Competition(name={0}, deadline={1})'.format(
-            self.name, self.deadline
+        return 'Competition(name={0}, start={1}, deadline={2})'.format(
+            self.name, self.start_time, self.deadline
         )
 
     def __str__(self):
-        return '{0} ({1})'.format(self.name, self.deadline)
+        # TODO: Do not display start time and deadline for open-ended competitions
+        return '{0} ({1}-{2})'.format(self.name, self.start_time, self.deadline)
 
 
 class Language(models.Model):

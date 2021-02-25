@@ -183,6 +183,7 @@ class CompetitionAdmin(admin.ModelAdmin):
     fields = [
         'name',
         'description',
+        'start_time',
         'deadline',
         'is_active',
     ]
