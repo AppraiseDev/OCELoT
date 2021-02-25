@@ -257,8 +257,8 @@ class TestSet(models.Model):
     def __repr__(self):
         return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4})'.format(
             self.name,
-            self.source_language.code,  # pylint: disable=no-member
-            self.target_language.code,  # pylint: disable=no-member
+            self.source_language.code,
+            self.target_language.code,
             self.src_file.name,
             self.ref_file.name,
         )
@@ -266,8 +266,8 @@ class TestSet(models.Model):
     def __str__(self):
         return '{0} test set ({1}-{2})'.format(
             self.name,
-            self.source_language.code,  # pylint: disable=no-member
-            self.target_language.code,  # pylint: disable=no-member
+            self.source_language.code,
+            self.target_language.code,
         )
 
     def _create_text_files(self):
@@ -308,7 +308,7 @@ class TestSet(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: disable=no-member,bad-continuation
+    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,
@@ -400,12 +400,10 @@ class Team(models.Model):
         return '{0} ({1})'.format(self.name, self.email)
 
     def _submissions(self):
-        return Submission.objects.filter(  # pylint: disable=no-member
-            submitted_by=self
-        ).count()
+        return Submission.objects.filter(submitted_by=self).count()
 
     def _primary_submissions(self):
-        return Submission.objects.filter(  # pylint: disable=no-member
+        return Submission.objects.filter(
             submitted_by=self,
             is_primary=True,
         ).count()
@@ -415,7 +413,7 @@ class Team(models.Model):
         self.token = token
         self.save()
 
-    # pylint: disable=no-member,bad-continuation
+    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,
@@ -434,11 +432,9 @@ def _get_submission_upload_path(instance, filename):
     del filename  # not used
 
     submissions_count = 0
-    submissions_for_team = (
-        Submission.objects.filter(  # pylint: disable=no-member
-            submitted_by=instance.submitted_by.id,
-            test_set=instance.test_set,
-        )
+    submissions_for_team = Submission.objects.filter(
+        submitted_by=instance.submitted_by.id,
+        test_set=instance.test_set,
     )
     if submissions_for_team.exists():
         submissions_count = submissions_for_team.count()
@@ -561,7 +557,6 @@ class Submission(models.Model):
 
     def __str__(self):
         _name = self.name if self.is_public else 'Anonymous'
-        # pylint: disable=no-member
         return '{0} submission #{1}'.format(_name, self.id)
 
     @staticmethod
@@ -616,7 +611,7 @@ class Submission(models.Model):
 
         hyp_path = self.hyp_file.name
 
-        # pylint: disable=bad-continuation,no-member
+        # pylint: disable=bad-continuation
         if self.file_format == SGML_FILE:
             if self.test_set.file_format == SGML_FILE:
                 hyp_filtered_path = hyp_path.replace(
@@ -645,7 +640,7 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        # pylint: disable=bad-continuation,no-member
+        # pylint: disable=bad-continuation
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -655,9 +650,7 @@ class Submission(models.Model):
             ref_text_path = self.test_set.ref_file.name
 
         tokenize = '13a'
-        target_language_code = (
-            self.test_set.target_language.code  # pylint: disable=no-member
-        )
+        target_language_code = self.test_set.target_language.code
         if target_language_code == 'ja':
             # We use char-based tokenizer as MeCab was slow/unstable
             tokenize = 'char-based'
@@ -716,11 +709,11 @@ class Submission(models.Model):
 
     def _source_language(self):
         """Returns test set source language."""
-        return self.test_set.source_language  # pylint: disable=no-member
+        return self.test_set.source_language
 
     def _target_language(self):
         """Returns test set target language."""
-        return self.test_set.target_language  # pylint: disable=no-member
+        return self.test_set.target_language
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML or text file."""
@@ -740,7 +733,7 @@ class Submission(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: disable=no-member,bad-continuation
+    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,

@@ -54,25 +54,25 @@ class SubmissionForm(forms.ModelForm):
     # TODO: Consider showing competition + test set in the select box, not just
     # the test set name
     test_set = forms.ModelChoiceField(
-        queryset=TestSet.objects.filter(  # pylint: disable=no-member
+        queryset=TestSet.objects.filter(
             is_active=True,
             competition__is_active=True,
             competition__deadline__gt=datetime.now(tz=timezone.utc),
             competition__start_time__lt=datetime.now(tz=timezone.utc),
         )
-        | TestSet.objects.filter(  # pylint: disable=no-member
+        | TestSet.objects.filter(
             is_active=True,
             competition__is_active=True,
             competition__deadline__isnull=True,
             competition__start_time__lt=datetime.now(tz=timezone.utc),
         )
-        | TestSet.objects.filter(  # pylint: disable=no-member
+        | TestSet.objects.filter(
             is_active=True,
             competition__is_active=True,
             competition__deadline__gt=datetime.now(tz=timezone.utc),
             competition__start_time__isnull=True,
         )
-        | TestSet.objects.filter(  # pylint: disable=no-member
+        | TestSet.objects.filter(
             is_active=True,
             competition__is_active=True,
             competition__deadline__isnull=True,

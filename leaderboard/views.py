@@ -32,9 +32,7 @@ def _get_team_data(request):
     ocelot_team_email = None
     ocelot_team_token = request.session.get('ocelot_team_token')
     if ocelot_team_token:
-        the_team = Team.objects.get(  # pylint: disable=no-member
-            token=ocelot_team_token
-        )
+        the_team = Team.objects.get(token=ocelot_team_token)
         ocelot_team_name = the_team.name
         ocelot_team_email = the_team.email
     return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
@@ -52,10 +50,8 @@ def leaderboardpage(request, competition_id=None):
 
     # Get the competition by its ID or render 404
     try:
-        competition = Competition.objects.get(  # pylint: disable=no-member
-            id=competition_id
-        )
-    except Competition.DoesNotExist:  # pylint: disable=no-member
+        competition = Competition.objects.get(id=competition_id)
+    except Competition.DoesNotExist:
         raise Http404(
             'Campaign with ID {0} does not exists'.format(competition_id)
         )
@@ -78,13 +74,13 @@ def leaderboardpage(request, competition_id=None):
 
     # Collect all test sets for the competition
     data = OrderedDict()
-    test_sets = TestSet.objects.filter(  # pylint: disable=no-member
-        competition=competition
-    ).order_by('name')
+    test_sets = TestSet.objects.filter(competition=competition).order_by(
+        'name'
+    )
 
     for test_set in test_sets:
         submissions = (
-            Submission.objects.filter(  # pylint: disable=no-member
+            Submission.objects.filter(
                 test_set=test_set,
                 score__gte=0,  # Ignore invalid submissions
             )
@@ -126,7 +122,7 @@ def frontpage(request):
     """Renders OCELoT frontpage with a list of competitions."""
 
     competitions = (
-        Competition.objects.filter(  # pylint: disable=no-member
+        Competition.objects.filter(
             is_active=True,
         )
         .order_by(
@@ -177,7 +173,7 @@ def signin(request):
         form = SigninForm(request.POST)
 
         if form.is_valid():
-            the_team = Team.objects.filter(  # pylint: disable=no-member
+            the_team = Team.objects.filter(
                 name=form.cleaned_data['name'],
                 email=form.cleaned_data['email'],
                 token=form.cleaned_data['token'],
@@ -245,9 +241,7 @@ def submit(request):
         form = SubmissionForm(request.POST, request.FILES)
 
         if form.is_valid():
-            current_team = Team.objects.get(  # pylint: disable=no-member
-                token=ocelot_team_token
-            )
+            current_team = Team.objects.get(token=ocelot_team_token)
 
             # Check if the competition deadline has not passed yet.
             # This is a second level of validation, because test sets from
@@ -270,7 +264,7 @@ def submit(request):
 
             # Check if the number of submissions for this team and test set
             # does not exceed the limit
-            number_of_submissions = Submission.objects.filter(  # pylint: disable=no-member
+            number_of_submissions = Submission.objects.filter(
                 submitted_by=current_team,
                 test_set=test_set,
                 score__gte=0,  # Ignore invalid submissions for limit check
@@ -324,7 +318,7 @@ def teampage(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    current_team = Team.objects.get(  # pylint: disable=no-member
+    current_team = Team.objects.get(
         name=ocelot_team_name,
         email=ocelot_team_email,
         token=ocelot_team_token,
@@ -346,11 +340,7 @@ def teampage(request):
             request.POST.getlist('constrained'),
         )
         for primary_id, constrained in primary_ids_and_constrainedness:
-            submission = (
-                Submission.objects.get(  # pylint: disable=no-member
-                    id=int(primary_id)
-                )
-            )
+            submission = Submission.objects.get(id=int(primary_id))
             if submission.submitted_by.token == ocelot_team_token:
                 submission.is_constrained = bool(int(constrained))
                 submission.set_primary()  # This implicitly calls save()
@@ -361,7 +351,7 @@ def teampage(request):
 
     data = OrderedDict()
     primary = OrderedDict()
-    submissions = Submission.objects.filter(  # pylint: disable=no-member
+    submissions = Submission.objects.filter(
         score__gte=0,  # Ignore invalid submissions
         submitted_by__token=ocelot_team_token,
     )
