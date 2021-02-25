@@ -153,8 +153,10 @@ class Competition(models.Model):
     )
 
     def __repr__(self):
-        return 'Competition(name={0}, start_time={1}, deadline={2})'.format(
-            self.name, self.start_time, self.deadline
+        return (
+            'Competition(name={0}, start_time={1}, deadline={2})'.format(
+                self.name, self.start_time, self.deadline
+            )
         )
 
     def __str__(self):

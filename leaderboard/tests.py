@@ -123,7 +123,9 @@ class SubmissionTests(TestCase):
         self._set_ocelot_team_token()
 
         comp = Competition.objects.get(name='CompetitionA')
-        comp.start_time = datetime.now(tz=timezone.utc) + timedelta(hours=1)
+        comp.start_time = datetime.now(tz=timezone.utc) + timedelta(
+            hours=1
+        )
         comp.save()
 
         response = self.client.get('/submit')
