@@ -182,6 +182,20 @@ class TestSetTests(TestCase):
         self.assertTrue(tst.ref_file.name.endswith('.txt'))
 
 
+class CompetitionTests(TestCase):
+    """Tests Competition model."""
+
+    def test_creating_competition_with_no_start_time_and_deadline(self):
+        """Checks a competition with no start time and deadline."""
+        comp = Competition.objects.create(
+            is_active=True,
+            name='CompetitionNoStartTime',
+            description='Description',
+        )
+        self.assertIsNone(comp.start_time)
+        self.assertIsNone(comp.deadline)
+
+
 class LeaderboardTests(TestCase):
     """Tests leaderboard app."""
 

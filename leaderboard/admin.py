@@ -190,6 +190,8 @@ class CompetitionAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
+        'start_time',
+        'deadline',
     ]
 
     list_filter = [
