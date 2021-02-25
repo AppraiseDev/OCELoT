@@ -1,7 +1,10 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from datetime import datetime
+
 from django import forms
+from django.utils import timezone
 
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
@@ -50,6 +53,9 @@ class SubmissionForm(forms.ModelForm):
             # and a better one might be disallowing this in the view.
             is_active=True,
             competition__is_active=True,
+            competition__deadline__gt=datetime.now(tz=timezone.utc),
+            # TODO: consider showing competition + test set in the select box,
+            # not just the test set name
         )
     )
 

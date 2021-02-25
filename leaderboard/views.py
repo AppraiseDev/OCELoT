@@ -219,6 +219,9 @@ def signup(request):
 
 def submit(request):
     """Renders OCELoT submission page."""
+    current_time = (
+        timezone.now()
+    )  # Retrieve the current time as early as possible
 
     (
         ocelot_team_name,
@@ -231,13 +234,6 @@ def submit(request):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    deadline = datetime(2021, 7, 21, 12, 0, 0, tzinfo=timezone.utc)
-    current = timezone.now()
-    if current >= deadline:
-        _msg = 'WMT20 submission has closed.'
-        messages.warning(request, _msg)
-        return HttpResponseRedirect('/')
-
     if request.method == 'POST':
         form = SubmissionForm(request.POST, request.FILES)
 
@@ -246,14 +242,32 @@ def submit(request):
                 token=ocelot_team_token
             )
 
-            # TODO: rename to number_of_xxx or similar
-            submissions_for_team_and_test_set = Submission.objects.filter(  # pylint: disable=no-member
+            # Check if the competition deadline has not passed yet.
+            # This is a second level of validation, because test sets from
+            # closed competitions are not added to the select box of the
+            # submission form. It covers a case when the user first renders the
+            # form, then the deadline passes (e.g. a long idle time), and after
+            # that the submission is made.
+            # TODO: is this really needed?
+            test_set = form.cleaned_data['test_set']
+            competition = test_set.competition
+
+            if current_time >= competition.deadline:
+                _msg = '{0} submission has closed.'.format(
+                    competition.name
+                )
+                messages.warning(request, _msg)
+                return HttpResponseRedirect('/')
+
+            # Check if the number of submissions for this team and test set
+            # does not exceed the limit
+            number_of_submissions = Submission.objects.filter(  # pylint: disable=no-member
                 submitted_by=current_team,
-                test_set=form.cleaned_data['test_set'],
+                test_set=test_set,
                 score__gte=0,  # Ignore invalid submissions for limit check
             ).count()
 
-            if submissions_for_team_and_test_set >= MAX_SUBMISSION_LIMIT:
+            if number_of_submissions >= MAX_SUBMISSION_LIMIT:
                 _msg = 'You have reached the submission limit for {0}.'.format(
                     form.cleaned_data['test_set']
                 )
@@ -271,6 +285,9 @@ def submit(request):
             )
             messages.success(request, _msg)
             return HttpResponseRedirect(reverse('teampage-view'))
+        else:
+            # TODO: add logging message with form.errors
+            pass
 
     else:
         form = SubmissionForm()

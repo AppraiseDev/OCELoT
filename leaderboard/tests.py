@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import os
 from datetime import datetime
+from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import timezone
@@ -77,8 +78,8 @@ class SubmissionTests(TestCase):
         self.assertEqual(round(sub.score, 3), 42.431)
         self.assertEqual(round(sub.score_chrf, 3), 0.664)
 
-    def test_submissions_to_inactive_testsets_are_not_possible(self):
-        """Checks that submissions cannot be made to inactive test sets."""
+    def test_inactive_testsets_are_not_shown(self):
+        """Checks that inactive test sets are not shown in the submission form."""
         self._set_ocelot_team_token()
 
         tst = TestSet.objects.get(name='TestSetA')
@@ -88,16 +89,39 @@ class SubmissionTests(TestCase):
         response = self.client.get('/submit')
         self.assertNotContains(response, tst.name)
 
-    def test_submissions_to_inactive_campaigns_are_not_possible(self):
-        """Checks that submissions cannot be made to inactive competitions."""
+    def test_inactive_campaigns_are_not_shown(self):
+        """Checks that test sets from inactive campaigns are not shown in the submission form."""
         self._set_ocelot_team_token()
 
-        com = Competition.objects.get(name='CompetitionA')
-        com.is_active = False
-        com.save()
+        comp = Competition.objects.get(name='CompetitionA')
+        comp.is_active = False
+        comp.save()
 
         response = self.client.get('/submit')
-        self.assertNotContains(response, com.name)
+        self.assertNotContains(response, comp.test_sets.first().name)
+
+    def test_campaigns_past_deadline_are_not_shown(self):
+        """Checks that test sets from campaigns past the deadline are not shown in the submission form."""
+        self._set_ocelot_team_token()
+
+        comp = Competition.objects.get(name='CompetitionA')
+        # Timestamp with an hour back
+        comp.deadline = datetime.now(tz=timezone.utc) - timedelta(hours=1)
+        comp.save()
+
+        response = self.client.get('/submit')
+        self.assertNotContains(response, comp.test_sets.first().name)
+
+    def test_successfull_submission(self):
+        """Checks that a successfull submission displays message about the success."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        with open(os.path.join(TESTDATA_DIR, _file)) as f:
+            data = {'test_set': '1', 'file_format': 'TEXT', 'hyp_file': f}
+            response = self.client.post('/submit', data, follow=True)
+        self.assertContains(response, 'successfully submitted')
+        self.assertNotContains(response, 'submission has closed')
 
 
 class TestSetTests(TestCase):
