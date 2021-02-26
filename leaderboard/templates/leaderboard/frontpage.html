@@ -90,6 +90,7 @@
                 <th>Competition</th>
                 <th>Test sets</th>
                 <th>Submissions</th>
+                <th>Start time</th>
                 <th>Deadline</th>
               </tr>
             </thead>
@@ -98,12 +99,17 @@
               <tr>
                 <td>{{forloop.counter}}</td>
                 <td>
-                  <a href="{% url 'leaderboard-view' competition_id=competition.0 %}">{{competition.1}}</a>
+                  <a href="{% url 'leaderboard-view' competition_id=competition.id %}">{{competition.name}}</a>
                 </td>
-                <td>{{competition.2}}</td>
-                <td>{{competition.3}}</td>
-                {% if competition.5 %}
-                <td>{{competition.5}}</td>
+                <td>{{competition.num_test_sets}}</td>
+                <td>{{competition.num_submissions}}</td>
+                {% if competition.start_time %}
+                <td>{{competition.start_time}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
+                {% if competition.deadline %}
+                <td>{{competition.deadline}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}

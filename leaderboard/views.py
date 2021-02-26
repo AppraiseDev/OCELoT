@@ -134,12 +134,13 @@ def frontpage(request):
             # The total number of submissions from all assigned test sets
             num_submissions=Count('test_sets__submission'),
         )
-        .values_list(
+        .values(
             'id',
             'name',
             'num_test_sets',
             'num_submissions',
             'description',
+            'start_time',
             'deadline',
         )
     )
