@@ -595,6 +595,42 @@ class Submission(models.Model):
         _name = 'Anonymous' if self.is_anonymous() else self.name
         return '{0} submission #{1}'.format(_name, self.id)
 
+    # TODO: this function is extracted from _compute_score, avoid copying, add comments
+    def get_hyp_text(self):
+        """Returns list of hypothesis segments."""
+
+        hyp_path = self.hyp_file.name
+
+        if self.file_format == SGML_FILE:
+            if self.test_set.file_format == SGML_FILE:
+                hyp_filtered_path = hyp_path.replace(
+                    '.sgm', '.filtered.sgm'
+                )
+                if not Path(hyp_filtered_path).exists():
+                    # Get docids from ref SGML path -- these are non "testsuite-"
+                    ref_docids = Submission._get_docids_from_path(
+                        self.test_set.ref_file.name
+                    )
+
+                    # Filter hyp SGML in matching order, skipping testsuite-* docs
+                    hyp_filtered_path = Submission._filter_sgml_by_docids(
+                        self.hyp_file.name,
+                        ref_docids,
+                    )
+            else:
+                hyp_filtered_path = hyp_path
+
+            # Create text version of (possibly filtered) hyp SGML
+            hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
+            if not Path(hyp_text_path).exists():
+                process_to_text(hyp_filtered_path, hyp_text_path)
+
+        elif self.file_format == TEXT_FILE:
+            hyp_text_path = hyp_path
+
+        hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
+        return hyp_stream
+
     @staticmethod
     def _get_docids_from_path(sgml_path, encoding='utf-8'):
         """Gets list of docids from SGML path."""
