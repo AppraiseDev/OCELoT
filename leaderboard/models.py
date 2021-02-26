@@ -749,6 +749,10 @@ class Submission(models.Model):
         """Returns test set target language."""
         return self.test_set.target_language
 
+    def _team_name(self):
+        """Returns team publication name if set, or the original name otherwise."""
+        return self.submitted_by.publication_name or self.submitted_by.name
+
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML or text file."""
         hyp_name = str(self.hyp_file.name)

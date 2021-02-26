@@ -88,6 +88,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
+        '_team_name',
         'test_set',
         '_source_language',
         '_target_language',
@@ -99,6 +100,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set',
         'test_set__source_language',
         'test_set__target_language',
+        'submitted_by__publication_name',
         'is_flagged',
         'is_primary',
         'is_public',
