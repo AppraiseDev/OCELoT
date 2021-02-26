@@ -3,7 +3,9 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from difflib import SequenceMatcher
 
+from django.contrib import messages
 from django.http import Http404
+from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 
 from leaderboard.models import Submission
@@ -80,8 +82,18 @@ def compare(request, sub_a_id=None, sub_b_id=None):
             )
         )
 
+    # Submissions that are not public cannot be compared
+    if sub_a.is_anonymous() or sub_b.is_anonymous():
+        _msg = (
+            'Submissions #{0} and #{1} cannot be compared.'.format(
+                sub_a_id, sub_b_id
+            )
+            + ' Both submission outputs must be public.'
+        )
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
     # TODO: raise an error if two submissions are from different test sets
-    # TODO: disallow comparison of an anonymous test sets
     # TODO: paginate
 
     text1 = sub_a.get_hyp_text()

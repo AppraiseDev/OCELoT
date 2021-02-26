@@ -77,8 +77,21 @@ class ComparisonTests(TestCase):
         session['ocelot_team_token'] = self.team.token
         session.save()
 
+    def test_non_public_submissions_cannot_be_compared(self):
+        """Checks that compare/a/b/ do not render for submissions that are not public."""
+        self.sub_1.is_public = False
+        self.sub_1.save()
+        self.sub_2.is_public = True
+        self.sub_2.save()
+
+        response = self.client.get(
+            '/compare/{0}/{1}'.format(self.sub_1.id, self.sub_2.id),
+            follow=True,
+        )
+        self.assertContains(response, 'cannot be compared')
+
     def test_comparing_submissions_renders(self):
-        """Checks that a successfull submission displays message about the success."""
+        """Checks that compare/a/b/ renders submission names and diff spans."""
         self.sub_1.is_public = True
         self.sub_1.save()
         self.sub_2.is_public = True
