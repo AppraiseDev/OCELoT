@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from difflib import SequenceMatcher
 
+from django.http import Http404
 from django.shortcuts import render
 
 from leaderboard.models import Submission
@@ -31,6 +32,7 @@ def _annotate_texts_with_span_diffs(text1, text2, char_based=False):
 
     text1 = ''
     text2 = ''
+    # pylint: disable=invalid-name
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag == 'equal':
             text1 += sep + sep.join(toks1[i1:i2])
