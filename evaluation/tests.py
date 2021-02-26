@@ -27,7 +27,7 @@ class ComparisonTests(TestCase):
         Language.objects.create(code='de', name='German')
 
         _next_year = datetime.now().year + 1
-        competition = Competition.objects.create(
+        self.competition = Competition.objects.create(
             is_active=True,
             name='MyCompetition',
             description='Description of the competition',
@@ -46,7 +46,7 @@ class ComparisonTests(TestCase):
             ref_file=os.path.join(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
             ),
-            competition=competition,
+            competition=self.competition,
         )
 
         self.team = Team.objects.create(
@@ -83,12 +83,50 @@ class ComparisonTests(TestCase):
         self.sub_1.save()
         self.sub_2.is_public = True
         self.sub_2.save()
-
         response = self.client.get(
             '/compare/{0}/{1}'.format(self.sub_1.id, self.sub_2.id),
             follow=True,
         )
         self.assertContains(response, 'cannot be compared')
+        self.assertContains(response, 'must be public')
+
+    def test_submissions_from_different_test_sets_cannot_be_compared(self):
+        """Checks that compare/a/b/ do not render for submissions from different test sets."""
+
+        testset = TestSet.objects.create(
+            is_active=True,
+            name='AnotherTestSet',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='de'),
+            file_format=SGML_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
+            ),
+            competition=self.competition,
+        )
+
+        _file = 'newstest2019.msft-WMT19-sentence-level.6785.en-de.txt'
+        sub_3 = Submission.objects.create(
+            name=_file,
+            test_set=testset,
+            submitted_by=self.team,
+            file_format=TEXT_FILE,
+            hyp_file=os.path.join(TESTDATA_DIR, _file),
+            is_public=True,
+        )
+
+        self.sub_1.is_public = True
+        self.sub_1.save()
+
+        response = self.client.get(
+            '/compare/{0}/{1}'.format(self.sub_1.id, sub_3.id),
+            follow=True,
+        )
+        self.assertContains(response, 'cannot be compared')
+        self.assertContains(response, 'the same test set')
 
     def test_comparing_submissions_renders(self):
         """Checks that compare/a/b/ renders submission names and diff spans."""
@@ -96,7 +134,6 @@ class ComparisonTests(TestCase):
         self.sub_1.save()
         self.sub_2.is_public = True
         self.sub_2.save()
-
         response = self.client.get(
             '/compare/{0}/{1}'.format(self.sub_1.id, self.sub_2.id)
         )

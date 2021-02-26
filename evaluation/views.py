@@ -82,6 +82,17 @@ def compare(request, sub_a_id=None, sub_b_id=None):
             )
         )
 
+    # Submissions from different test sets cannot be compared
+    if sub_a.test_set != sub_b.test_set:
+        _msg = (
+            'Submissions #{0} and #{1} cannot be compared,'.format(
+                sub_a_id, sub_b_id
+            )
+            + ' because they do not belong to the same test set.'
+        )
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
     # Submissions that are not public cannot be compared
     if sub_a.is_anonymous() or sub_b.is_anonymous():
         _msg = (
@@ -93,7 +104,6 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    # TODO: raise an error if two submissions are from different test sets
     # TODO: paginate
 
     text1 = sub_a.get_hyp_text()
