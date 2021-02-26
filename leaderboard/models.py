@@ -83,7 +83,6 @@ def validate_sgml_schema(hyp_file):
 
     try:
         schema.validate(hyp_file)
-    # pylint: disable-msg=bad-continuation
     except (
         xmlschema.XMLSchemaValidationError,
         xml.etree.ElementTree.ParseError,
@@ -329,7 +328,6 @@ class TestSet(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,
@@ -434,7 +432,6 @@ class Team(models.Model):
         self.token = token
         self.save()
 
-    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,
@@ -650,7 +647,6 @@ class Submission(models.Model):
 
         hyp_path = self.hyp_file.name
 
-        # pylint: disable=bad-continuation
         if self.file_format == SGML_FILE:
             if self.test_set.file_format == SGML_FILE:
                 hyp_filtered_path = hyp_path.replace(
@@ -679,7 +675,6 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        # pylint: disable=bad-continuation
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -772,7 +767,6 @@ class Submission(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: bad-continuation
     def save(
         self,
         force_insert=False,

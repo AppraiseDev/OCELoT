@@ -220,7 +220,8 @@ class SubmissionTests(TestCase):
         self.assertContains(response, 'Anonymous submission #')
 
     def test_submission_is_public_if_competition_is_public(self):
-        """Checks that submission is publicly visible if the test set or the competition are public."""
+        """Checks that submission is publicly visible if the test set or the
+        competition are set to be publicly visible."""
         self._set_ocelot_team_token()
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
