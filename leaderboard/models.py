@@ -118,6 +118,17 @@ class Competition(models.Model):
         help_text='Is active competition?',
     )
 
+    # True or False overrides the setting from TestSet and Submission.
+    # Set to None to fallback to TestSet.is_public
+    is_public = models.BooleanField(
+        blank=True,
+        db_index=True,
+        default=None,
+        help_text='Are submissions publicly visible? '
+        'Overwrites settings in test sets and submissions unless Unknown',
+        null=True,
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -160,8 +171,7 @@ class Competition(models.Model):
         )
 
     def __str__(self):
-        # TODO: Do not display start time and deadline for open-ended competitions
-        return '{0}'.format(self.name)
+        return self.name
 
 
 class Language(models.Model):
@@ -200,6 +210,17 @@ class TestSet(models.Model):
         db_index=True,
         default=False,
         help_text='Is active test set?',
+    )
+
+    # True or False overrides the setting from Submission.
+    # Set to None to fallback to Submission.is_public
+    is_public = models.BooleanField(
+        blank=True,
+        db_index=True,
+        default=None,
+        help_text='Are submissions publicly visible? '
+        'Overwrite settings from submissions unless Unknown',
+        null=True,
     )
 
     name = models.CharField(
@@ -492,7 +513,8 @@ class Submission(models.Model):
         blank=False,
         db_index=True,
         default=False,
-        help_text='Is publicly visible?',
+        help_text='Is publicly visible? '
+        'Can be overwritten by settings of the test set or competition',
     )
 
     is_removed = models.BooleanField(
@@ -550,13 +572,30 @@ class Submission(models.Model):
         Team, on_delete=models.PROTECT, blank=True, null=True
     )
 
+    def is_anonymous(self):
+        """Checks if the submission is not publicly visible, taking into
+        account settings at test set and competition levels."""
+        # If the submission's test set is a part of a competition and the
+        # competition has public visibility set (i.e. is not Unknown)
+        if (
+            self.test_set.competition
+            and self.test_set.competition.is_public is not None
+        ):
+            return not self.test_set.competition.is_public
+        # If the submission's test set has public visibility set (i.e. is not
+        # Unknown)
+        if self.test_set.is_public is not None:
+            return not self.test_set.is_public
+        # Otherwise, look at the submission public visibility only
+        return not self.is_public
+
     def __repr__(self):
         return 'Submission(name={0}, is_primary={1})'.format(
             self.name, self.is_primary
         )
 
     def __str__(self):
-        _name = self.name if self.is_public else 'Anonymous'
+        _name = 'Anonymous' if self.is_anonymous() else self.name
         return '{0} submission #{1}'.format(_name, self.id)
 
     @staticmethod

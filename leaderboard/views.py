@@ -79,27 +79,27 @@ def leaderboardpage(request, competition_id=None):
     )
 
     for test_set in test_sets:
-        submissions = (
-            Submission.objects.filter(
-                test_set=test_set,
-                score__gte=0,  # Ignore invalid submissions
-            )
-            .order_by(
-                '-score',
-            )
-            .values_list(
-                'id',
-                'score',
-                'score_chrf',
-                'date_created',
-                'submitted_by__token',
-            )[:MAX_SUBMISSION_DISPLAY_COUNT]
-        )
+        submissions = Submission.objects.filter(
+            test_set=test_set,
+            score__gte=0,  # Ignore invalid submissions
+        ).order_by('-score',)[:MAX_SUBMISSION_DISPLAY_COUNT]
+
         for submission in submissions:
             key = str(test_set)
             if not key in data.keys():
                 data[key] = []
-            data[key].append(submission)
+            data[key].append(
+                (
+                    submission.id,
+                    submission.score,
+                    submission.score_chrf,
+                    submission.date_created,
+                    # TODO: Double check if this foreign key reference does not
+                    # generate an extra query. Optimize otherwise.
+                    submission.submitted_by.token,
+                    str(submission),
+                )
+            )
 
     (
         ocelot_team_name,

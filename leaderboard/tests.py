@@ -62,19 +62,23 @@ class SubmissionTests(TestCase):
         session['ocelot_team_token'] = self.team.token
         session.save()
 
-    def test_scores_are_computed_for_a_submission(self):
-        """Checks that scores are computed for a submission."""
-        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
-        Submission.objects.create(
-            name=_file,
-            original_name=_file,
+    def _make_submission(self, filename):
+        """Makes a submission."""
+        return Submission.objects.create(
+            name=filename,
+            original_name=filename,
             test_set=self.testset,
             submitted_by=self.team,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, _file),
+            hyp_file=os.path.join(TESTDATA_DIR, filename),
         )
 
+    def test_scores_are_computed_for_a_submission(self):
+        """Checks that scores are computed for a submission."""
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        self._make_submission(_file)
         sub = Submission.objects.get(name=_file)
+
         self.assertEqual(round(sub.score, 3), 42.431)
         self.assertEqual(round(sub.score_chrf, 3), 0.664)
 
@@ -136,11 +140,108 @@ class SubmissionTests(TestCase):
         self._set_ocelot_team_token()
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
-        with open(os.path.join(TESTDATA_DIR, _file)) as f:
-            data = {'test_set': '1', 'file_format': 'TEXT', 'hyp_file': f}
+        with open(os.path.join(TESTDATA_DIR, _file)) as tst:
+            data = {
+                'test_set': '1',
+                'file_format': 'TEXT',
+                'hyp_file': tst,
+            }
             response = self.client.post('/submit', data, follow=True)
         self.assertContains(response, 'successfully submitted')
         self.assertNotContains(response, 'submission has closed')
+
+    def test_submission_is_anonymous(self):
+        """Checks that a submission is anonymous by default."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        self.assertIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, 'Anonymous submission #')
+
+    def test_submission_can_be_public(self):
+        """Checks that submission can be made publicly visible."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        sub.is_public = True
+        sub.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, _file)
+        self.assertNotContains(response, 'Anonymous submission #')
+
+    def test_submission_is_anonymous_if_testset_is_not_public(self):
+        """Checks that submission is not publicly visible if the test set is not public."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        sub.is_public = True
+        sub.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        tst = sub.test_set
+        tst.is_public = False
+        tst.save()
+        self.assertIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, 'Anonymous submission #')
+
+    def test_submission_is_anonymous_if_competition_is_not_public(self):
+        """Checks that submission is not publicly visible if the competition is not public."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        sub.is_public = True
+        sub.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        tst = sub.test_set
+        tst.is_public = True
+        tst.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        comp.is_public = False
+        comp.save()
+        self.assertIn('Anonymous', str(sub))
+
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, 'Anonymous submission #')
+
+    def test_submission_is_public_if_competition_is_public(self):
+        """Checks that submission is publicly visible if the test set or the competition are public."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        sub.is_public = False
+        sub.save()
+        self.assertIn('Anonymous', str(sub))
+
+        tst = sub.test_set
+        tst.is_public = True
+        tst.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        comp.is_public = True
+        comp.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, _file)
+        self.assertNotContains(response, 'Anonymous submission #')
 
 
 class TestSetTests(TestCase):

@@ -106,9 +106,9 @@
               <tr>
                 <td>{{forloop.counter}}</td>
                 {% if submission.4 == ocelot_team_token %}
-                <td><strong>Anonymous submission #{{submission.0}}</strong></td>
+                <td><strong>{{submission.5}}</strong></td>
                 {% else %}
-                <td>Anonymous submission #{{submission.0}}</td>
+                <td>{{submission.5}}</td>
                 {% endif %}
                 {% if submission.1 %}
                 <td>{{submission.1|stringformat:".1f"}}</td>

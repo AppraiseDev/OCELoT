@@ -159,6 +159,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'ref_file',
         'competition',
         'is_active',
+        'is_public',
     ]
 
     list_display = [
@@ -170,6 +171,7 @@ class TestSetAdmin(admin.ModelAdmin):
 
     list_filter = [
         'is_active',
+        'is_public',
         'file_format',
         'competition',
     ]
@@ -186,6 +188,7 @@ class CompetitionAdmin(admin.ModelAdmin):
         'start_time',
         'deadline',
         'is_active',
+        'is_public',
     ]
 
     list_display = [
@@ -196,6 +199,7 @@ class CompetitionAdmin(admin.ModelAdmin):
 
     list_filter = [
         'is_active',
+        'is_public',
     ]
 
     ordering = ('-name',)
