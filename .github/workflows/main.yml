@@ -21,12 +21,12 @@ jobs:
             pip install --upgrade pip setuptools wheel
             pip install -r requirements-dev.txt
       - name: Run mypy
-        run: find . -name "*.py" | xargs mypy
+        run: find . -name "*.py" -not -path "./venv*" | xargs mypy
       - name: Reformat
         run: |
             black -S -l 75 --check .
-            find . -name "*.py" | xargs pylint --fail-under 9 --rcfile setup.cfg
-            find . -name "*.py" | xargs reorder-python-imports --diff-only
+            find . -name "*.py" -not -path "./venv*" | xargs pylint --fail-under 9 --rcfile setup.cfg
+            find . -name "*.py" -not -path "./venv*" | xargs reorder-python-imports --diff-only
       - name: Check safety
         run: cat requirements.txt | safety check --stdin
 
