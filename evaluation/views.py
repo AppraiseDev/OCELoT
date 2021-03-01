@@ -69,6 +69,41 @@ def _annotate_texts_with_span_diffs(text1, text2, char_based=False):
     return (text1.strip(), text2.strip())
 
 
+def submission(request, sub_id=None):
+    """Shows submission output."""
+
+    try:
+        sub = Submission.objects.get(id=sub_id)
+    except Submission.DoesNotExist:
+        raise Http404('Submission #{0} does not exist'.format(sub_id))
+
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
+    # Submission must be public unless it's yours
+    _is_yours_submission = (
+        ocelot_team_token is not None
+        and sub.submitted_by.token == ocelot_team_token
+    )
+    if sub.is_anonymous() or not _is_yours_submission:
+        _msg = 'Submission #{0} is not public.'.format(sub_id)
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
+    context = {
+        'segments': sub.get_hyp_text(),
+        'submission_id': sub.id,
+        'submission': str(sub),
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'comparison/submission.html', context=context)
+
+
 def compare(request, sub_a_id=None, sub_b_id=None):
     """Renders vertical or horizontal comparison between two submissions."""
 
@@ -77,7 +112,7 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         sub_b = Submission.objects.get(id=sub_b_id)
     except Submission.DoesNotExist:
         raise Http404(
-            'Submission with ID {0} or {1} does not exists'.format(
+            'Submission #{0} or #{1} does not exist'.format(
                 sub_a_id, sub_b_id
             )
         )
@@ -94,6 +129,7 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         return HttpResponseRedirect('/')
 
     # Submissions that are not public cannot be compared
+    # TODO: Do not show unless it is yours submission?
     if sub_a.is_anonymous() or sub_b.is_anonymous():
         _msg = (
             'Submissions #{0} and #{1} cannot be compared.'.format(

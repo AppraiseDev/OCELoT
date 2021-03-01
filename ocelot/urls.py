@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 
 from evaluation.views import compare
+from evaluation.views import submission
 from leaderboard.views import frontpage
 from leaderboard.views import leaderboardpage
 from leaderboard.views import signin
@@ -51,6 +52,7 @@ urlpatterns = [
     path('welcome', welcome, name='welcome-view'),
     # evaluation app
     path('compare/<sub_a_id>/<sub_b_id>', compare, name='compare-view'),
+    path('submission/<sub_id>', submission, name='submission-view'),
 ]
 
 if DEBUG:
