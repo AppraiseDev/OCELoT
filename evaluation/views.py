@@ -93,10 +93,20 @@ def submission(request, sub_id=None):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
+    _subs = Submission.objects.filter(
+        test_set=sub.test_set,
+        score__gte=0,  # Ignore invalid submissions
+    ).exclude(id=sub_id)
+
+    compare_with = [
+        (sub.id, str(sub)) for sub in _subs if not sub.is_anonymous()
+    ]
+
     context = {
         'segments': sub.get_hyp_text(),
         'submission_id': sub.id,
         'submission': str(sub),
+        'compare_with': compare_with,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
