@@ -12,6 +12,7 @@ from django.shortcuts import render
 from leaderboard.models import Submission
 from leaderboard.views import _get_team_data
 
+SEGMENTS_PER_PAGE = 20
 
 def _annotate_texts_with_span_diffs(text1, text2, char_based=False):
     """
@@ -166,13 +167,13 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         data.append(_annotate_texts_with_span_diffs(sent1, sent2))
 
     # Paginate
-    SEGMENTS_PER_PAGE = 20
     paginator = Paginator(data, SEGMENTS_PER_PAGE)
     page_num = request.GET.get('page', 1)
     page_data = paginator.get_page(page_num)
 
     context = {
         'page': page_data,
+        'page_size': SEGMENTS_PER_PAGE,
         'submission_a': str(sub_a),
         'submission_b': str(sub_b),
         'ocelot_team_name': ocelot_team_name,
