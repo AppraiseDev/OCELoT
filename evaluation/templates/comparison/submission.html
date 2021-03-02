@@ -7,19 +7,24 @@
       <div class="container">
         <br/>
         <h3>Submission {{submission}}</h3>
+
         <p class="form-inline">
           {% if compare_with %}
-            <span class="pr-1">Compare it with</span>
+            <span class="pr-1">Compare this submission with</span>
             <select id="compare-select" class="form-control form-control-sm mr-2">
             {% for sub_id, sub_name in compare_with %}
               <option value="{{sub_id}}">{{sub_name}}</option>
             {% endfor %}
             </select>
             <a id="compare-submit"
-               class="btn btn-secondary btn-sm"
+               class="btn btn-primary btn-sm"
                href="{% url 'compare-view' sub_a_id=submission_id sub_b_id=compare_with.0.0 %}">Compare</a>
           {% endif %}
         </p>
+        <p>Displaying up to {{page_size}} segments per page.</p>
+
+        {% include '_paginator.html' %}
+
         <div class="table-responsive">
           <table class="table table-striped table-sm compare">
             <thead>
@@ -30,16 +35,18 @@
               </tr>
             </thead>
             <tbody>
-              {% for segment in segments %}
+              {% for src_segment, hyp_segment in page.object_list %}
               <tr>
-                <td>{{forloop.counter}}</td>
-                <td class="segment"><em>{{segment.0|safe}}</em></td>
-                <td class="segment">{{segment.1|safe}}</td>
+                <td>{{forloop.counter|add:page.start_index|add:"-1" }}</td>
+                <td class="segment"><em>{{src_segment|safe}}</em></td>
+                <td class="segment">{{hyp_segment|safe}}</td>
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+
+        {% include '_paginator.html' %}
         <hr>
       </div> <!-- /container -->
 

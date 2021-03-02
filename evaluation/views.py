@@ -12,7 +12,8 @@ from django.shortcuts import render
 from leaderboard.models import Submission
 from leaderboard.views import _get_team_data
 
-SEGMENTS_PER_PAGE = 20
+SEGMENTS_PER_PAGE = 100
+
 
 def _annotate_texts_with_span_diffs(text1, text2, char_based=False):
     """
@@ -104,8 +105,15 @@ def submission(request, sub_id=None):
         if not sub.is_anonymous() or sub.is_yours(ocelot_team_token)
     ]
 
+    # Paginate
+    data = list(zip(sub.get_src_text(), sub.get_hyp_text()))
+    paginator = Paginator(data, SEGMENTS_PER_PAGE)
+    page_num = request.GET.get('page', 1)
+    page_data = paginator.get_page(page_num)
+
     context = {
-        'segments': zip(sub.get_src_text(), sub.get_hyp_text()),
+        'page': page_data,
+        'page_size': SEGMENTS_PER_PAGE,
         'submission_id': sub.id,
         'submission': str(sub),
         'compare_with': compare_with,
