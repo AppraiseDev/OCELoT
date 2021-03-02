@@ -84,11 +84,7 @@ def submission(request, sub_id=None):
     ) = _get_team_data(request)
 
     # Submission must be public unless it's yours
-    _is_yours_submission = (
-        ocelot_team_token is not None
-        and sub.submitted_by.token == ocelot_team_token
-    )
-    if sub.is_anonymous() or not _is_yours_submission:
+    if sub.is_anonymous() and not sub.is_yours(ocelot_team_token):
         _msg = 'Submission #{0} is not public.'.format(sub_id)
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
@@ -99,7 +95,9 @@ def submission(request, sub_id=None):
     ).exclude(id=sub_id)
 
     compare_with = [
-        (sub.id, str(sub)) for sub in _subs if not sub.is_anonymous()
+        (sub.id, str(sub))
+        for sub in _subs
+        if not sub.is_anonymous() or sub.is_yours(ocelot_team_token)
     ]
 
     context = {
@@ -138,9 +136,16 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
     # Submissions that are not public cannot be compared
-    # TODO: Do not show unless it is yours submission?
-    if sub_a.is_anonymous() or sub_b.is_anonymous():
+    if (
+        sub_a.is_anonymous() and not sub_a.is_yours(ocelot_team_token)
+    ) or (sub_b.is_anonymous() and not sub_b.is_yours(ocelot_team_token)):
         _msg = (
             'Submissions #{0} and #{1} cannot be compared.'.format(
                 sub_a_id, sub_b_id
@@ -157,12 +162,6 @@ def compare(request, sub_a_id=None, sub_b_id=None):
     data = []
     for sent1, sent2 in zip(text1, text2):
         data.append(_annotate_texts_with_span_diffs(sent1, sent2))
-
-    (
-        ocelot_team_name,
-        ocelot_team_email,
-        ocelot_team_token,
-    ) = _get_team_data(request)
 
     context = {
         'data': data,

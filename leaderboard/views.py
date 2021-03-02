@@ -104,7 +104,6 @@ def leaderboardpage(request, competition_id=None):
                     submission.is_anonymous(),
                 )
             )
-
     (
         ocelot_team_name,
         ocelot_team_email,
@@ -378,7 +377,7 @@ def teampage(request):
         if submission.is_primary:
             primary[key] = submission
 
-    data_triples = []   # (test set, primary submission, all submissions)
+    data_triples = []  # (test set, primary submission, all submissions)
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
 

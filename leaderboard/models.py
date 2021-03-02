@@ -631,6 +631,13 @@ class Submission(models.Model):
         hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
         return hyp_stream
 
+    def is_yours(self, ocelot_team_token):
+        """Checks if the submission is from the specific team."""
+        return (
+            ocelot_team_token is not None
+            and self.submitted_by.token == ocelot_team_token
+        )
+
     @staticmethod
     def _get_docids_from_path(sgml_path, encoding='utf-8'):
         """Gets list of docids from SGML path."""
