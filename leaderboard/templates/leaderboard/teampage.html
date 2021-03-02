@@ -25,8 +25,8 @@
       <div class="container">
         <div>
           <h2>Final submissions</h2>
-          <h3>Publication name</h3>
-          <p>
+          <h4>Publication name</h4>
+          <p class="form-text">
             Please think about how you want your team to be named in the WMT20
             overview paper. This should identify your affiliation so
             <code>ACME</code> is better than <code>johndoe</code>. If you do
@@ -37,20 +37,27 @@
           <form action="{% url 'teampage-view' %}" method="post">
             {% csrf_token %}
             {{ publication_name_form.as_p }}
-            <h3>Primary submissions</h3>
-            <table>
+
+            <h4>Primary submissions</h4>
+            <p class="form-text">
+              Please choose your primary submission for each test set and
+              specify whether it comes from a constrained or unconstrained
+              system.
+            </p>
+
+            <table class="form-group">
               {% for testset, primary, submissions in data %}
               <tr>
-                <td>{{ testset }}</td>
+                <td class="pr-3">{{ testset }}</td>
                 <td>
-                  <select id="id_primary" name="primary">
+                  <select class="form-control" id="id_primary" name="primary">
                     {% for submission in submissions %}
                     <option value="{{ submission.id }}"{% if submission.is_primary %}selected="selected"{% endif %}>Submission #{{ submission.id }}</option>
                     {% endfor %}
                   </select>
                 </td>
                 <td>
-                  <select id="id_constrained" name="constrained">
+                  <select class="form-control" id="id_constrained" name="constrained">
                     <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
                     <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
                   </select>
@@ -58,9 +65,11 @@
               </tr>
               {% endfor %}
             </table>
-            <input type="submit" value="Submit">
+            <input class="btn btn-secondary" type="submit" value="Submit">
           </form>
         </div>
+
+        <br/>
 
         <div>
           <h2>{{ocelot_team_name}} submissions</h2>

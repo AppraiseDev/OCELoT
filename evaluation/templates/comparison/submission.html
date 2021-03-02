@@ -7,10 +7,10 @@
       <div class="container">
         <br/>
         <h3>Submission {{submission}}</h3>
-        <p>
+        <p class="form-inline">
           {% if compare_with %}
-          Compare it with
-            <select id="compare-select">
+            <span class="pr-1">Compare it with</span>
+            <select id="compare-select" class="form-control form-control-sm mr-2">
             {% for sub_id, sub_name in compare_with %}
               <option value="{{sub_id}}">{{sub_name}}</option>
             {% endfor %}
