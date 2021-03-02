@@ -89,6 +89,7 @@ def submission(request, sub_id=None):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
+    # A list of submissions which the current submission can be compared with
     _subs = Submission.objects.filter(
         test_set=sub.test_set,
         score__gte=0,  # Ignore invalid submissions
@@ -102,7 +103,7 @@ def submission(request, sub_id=None):
     ]
 
     context = {
-        'segments': sub.get_hyp_text(),
+        'segments': zip(sub.get_src_text(), sub.get_hyp_text()),
         'submission_id': sub.id,
         'submission': str(sub),
         'compare_with': compare_with,

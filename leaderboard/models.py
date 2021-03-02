@@ -631,6 +631,34 @@ class Submission(models.Model):
         hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
         return hyp_stream
 
+    # TODO: this function is extracted from _compute_score, avoid copying, add comments
+    def get_ref_text(self):
+        """Returns list of reference segments."""
+        if self.test_set.file_format == SGML_FILE:
+            # By design, the reference only contains valid docids
+            ref_sgml_path = self.test_set.ref_file.name
+            ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
+
+        elif self.test_set.file_format == TEXT_FILE:
+            ref_text_path = self.test_set.ref_file.name
+
+        ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
+        return ref_stream
+
+    # TODO: this function is extracted from _compute_score, avoid copying, add comments
+    def get_src_text(self):
+        """Returns list of source segments."""
+        if self.test_set.file_format == SGML_FILE:
+            # By design, the reference only contains valid docids
+            src_sgml_path = self.test_set.src_file.name
+            src_text_path = src_sgml_path.replace('.sgm', '.txt')
+
+        elif self.test_set.file_format == TEXT_FILE:
+            src_text_path = self.test_set.src_file.name
+
+        src_stream = (r for r in open(src_text_path, encoding='utf-8'))
+        return src_stream
+
     def is_yours(self, ocelot_team_token):
         """Checks if the submission is from the specific team."""
         return (

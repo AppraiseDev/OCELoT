@@ -67,14 +67,16 @@
             <thead>
               <tr>
                 <th>Line</th>
-                <th>{{submission}}</th>
+                <th>Source</th>
+                <th>Translation</th>
               </tr>
             </thead>
             <tbody>
               {% for segment in segments %}
               <tr>
                 <td>{{forloop.counter}}</td>
-                <td class="segment">{{segment|safe}}</td>
+                <td class="segment"><em>{{segment.0|safe}}</em></td>
+                <td class="segment">{{segment.1|safe}}</td>
               </tr>
               {% endfor %}
             </tbody>
