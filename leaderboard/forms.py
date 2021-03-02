@@ -16,14 +16,12 @@ from leaderboard.models import validate_token
 
 
 class PublicationNameForm(forms.Form):
-    """Form used for teampage view.
-
-    Based on forms.Form as we don't want to create a new Team.
-    """
+    """Form used for teampage view.  """
 
     publication_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
         validators=[validate_team_name],
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
     )
 
 
@@ -33,12 +31,20 @@ class SigninForm(forms.Form):
     Based on forms.Form as we don't want to create a new Team.
     """
 
-    name = forms.CharField(max_length=MAX_NAME_LENGTH)
-    email = forms.EmailField()
+    name = forms.CharField(
+        label='Team name',
+        max_length=MAX_NAME_LENGTH,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+    email = forms.EmailField(
+        label='E-mail',
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+    )
     token = forms.CharField(
+        label='Token',
         max_length=MAX_TOKEN_LENGTH,
         validators=[validate_token],
-        widget=forms.PasswordInput(),
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
     )
 
 
@@ -91,3 +97,7 @@ class TeamForm(forms.ModelForm):
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Team
         fields = ['name', 'email']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.TextInput(attrs={'class': 'form-control'}),
+        }
