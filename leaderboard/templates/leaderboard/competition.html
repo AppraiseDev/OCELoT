@@ -105,32 +105,32 @@
               {% for submission in submissions|slice:MAX_SUBMISSION_DISPLAY_COUNT %}
               <tr>
                 <td>{{forloop.counter}}</td>
-                {% if submission.4 == ocelot_team_token %}
+                {% if submission.team_token == ocelot_team_token %}
                 <td>
-                  <a href="{% url 'submission-view' sub_id=submission.0 %}">
-                    <strong>{{submission.5}}</strong>
+                  <a href="{% url 'submission-view' sub_id=submission.id %}">
+                    <strong>{{submission.name}}</strong>
                   </a>
                 </td>
                 {% else %}
                 <td>
-                  {% if submission.6 %}
-                  {{submission.5}}
+                  {% if submission.is_anonymous %}
+                    {{submission.name}}
                   {% else %}
-                  <a href="{% url 'submission-view' sub_id=submission.0 %}">{{submission.5}}</a>
+                  <a href="{% url 'submission-view' sub_id=submission.id %}">{{submission.name}}</a>
                   {% endif %}
                 </td>
                 {% endif %}
-                {% if submission.1 %}
-                <td>{{submission.1|stringformat:".1f"}}</td>
+                {% if submission.score_bleu %}
+                <td>{{submission.score_bleu|stringformat:".1f"}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}
-                {% if submission.2 %}
-                <td>{{submission.2|stringformat:".3f"}}</td>
+                {% if submission.score_chrf %}
+                <td>{{submission.score_chrf|stringformat:".3f"}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}
-                <td>{{submission.3}}</td>
+                <td>{{submission.date_created}}</td>
               </tr>
               {% endfor %}
               {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}

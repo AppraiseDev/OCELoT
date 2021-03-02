@@ -89,20 +89,18 @@ def leaderboardpage(request, competition_id=None):
             if not key in data.keys():
                 data[key] = []
 
-            # TODO: Make it a dict instead of a tuple, which will improve
-            # readability in the template.
             data[key].append(
-                (
-                    submission.id,
-                    submission.score,
-                    submission.score_chrf,
-                    submission.date_created,
+                {
+                    "id": submission.id,
+                    "name": str(submission),
+                    "score_bleu": submission.score,
+                    "score_chrf": submission.score_chrf,
+                    "date_created": submission.date_created,
                     # TODO: Double check if this foreign key reference does not
                     # generate an extra query. Optimize otherwise.
-                    submission.submitted_by.token,
-                    str(submission),
-                    submission.is_anonymous(),
-                )
+                    "team_token": submission.submitted_by.token,
+                    "is_anonymous": submission.is_anonymous(),
+                }
             )
     (
         ocelot_team_name,
