@@ -88,6 +88,9 @@ def leaderboardpage(request, competition_id=None):
             key = str(test_set)
             if not key in data.keys():
                 data[key] = []
+
+            # TODO: Make it a dict instead of a tuple, which will improve
+            # readability in the template.
             data[key].append(
                 (
                     submission.id,
@@ -98,6 +101,7 @@ def leaderboardpage(request, competition_id=None):
                     # generate an extra query. Optimize otherwise.
                     submission.submitted_by.token,
                     str(submission),
+                    submission.is_anonymous(),
                 )
             )
 

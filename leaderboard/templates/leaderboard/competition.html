@@ -106,9 +106,19 @@
               <tr>
                 <td>{{forloop.counter}}</td>
                 {% if submission.4 == ocelot_team_token %}
-                <td><strong>{{submission.5}}</strong></td>
+                <td>
+                  <a href="{% url 'submission-view' sub_id=submission.0 %}">
+                    <strong>{{submission.5}}</strong>
+                  </a>
+                </td>
                 {% else %}
-                <td>{{submission.5}}</td>
+                <td>
+                  {% if submission.6 %}
+                  {{submission.5}}
+                  {% else %}
+                  <a href="{% url 'submission-view' sub_id=submission.0 %}">{{submission.5}}</a>
+                  {% endif %}
+                </td>
                 {% endif %}
                 {% if submission.1 %}
                 <td>{{submission.1|stringformat:".1f"}}</td>
