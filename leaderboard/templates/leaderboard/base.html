@@ -37,7 +37,47 @@
     </style>
   </head>
   <body>
-    {% block navbar %}{% endblock %}
+    {% block navbar %}
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="{% url 'frontpage-view' %}">Project OCELoT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            {% block navbar-frontpage %}<a class="nav-link" href="{% url 'frontpage-view' %}">Home</a>{% endblock %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            {% block navbar-teampage %}<a class="nav-link" href="{% url 'teampage-view' %}">Team</a>{% endblock %}
+            {% else %}
+            {% block navbar-signup %}<a class="nav-link" href="{% url 'signup-view' %}">Registration</a>{% endblock %}
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            {% block navbar-submit %}<a class="nav-link" href="{% url 'submit-view' %}">Submission</a>{% endblock %}
+            {% else %}
+            <a class="nav-link disabled" href="#">Submission</a>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+              {% block navbar-updates %}<a class="nav-link" href="{% url 'updates-view' %}">Updates</a>{% endblock %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'signout-view' %}">Sign out</a>
+            {% else %}
+            {% block navbar-signin %}<a class="nav-link" href="{% url 'signin-view' %}">Sign in</a>{% endblock %}
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </nav>
+    {% endblock %}
 
     {% if messages %}
     <div class="container">
