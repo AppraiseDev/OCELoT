@@ -595,9 +595,17 @@ class Submission(models.Model):
         _name = 'Anonymous' if self.is_anonymous() else self.name
         return '{0} submission #{1}'.format(_name, self.id)
 
-    # TODO: this function is extracted from _compute_score, avoid copying, add comments
-    def get_hyp_text(self):
-        """Returns list of hypothesis segments."""
+    def get_hyp_text(self, path_only=False):
+        """Returns a list of hypothesis segments.
+
+        Args:
+            path_only (bool): Return a path to the hypothesis file instead of
+                a list of hypothesis segments
+
+        Returns:
+            list/str: A list of segments unless path_only and a file path
+                otherwise
+        """
 
         hyp_path = self.hyp_file.name
 
@@ -628,12 +636,22 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
-        return hyp_stream
+        if path_only:
+            return hyp_text_path
+        else:
+            return (x for x in open(hyp_text_path, encoding='utf-8'))
 
-    # TODO: this function is extracted from _compute_score, avoid copying, add comments
-    def get_ref_text(self):
-        """Returns list of reference segments."""
+    def get_ref_text(self, path_only=False):
+        """Returns a list of reference segments.
+
+        Args:
+            path_only (bool): Return a path to the reference file instead of
+                a list of hypothesis segments
+
+        Returns:
+            list/str: A list of segments unless path_only and a file path
+                otherwise
+        """
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -642,12 +660,13 @@ class Submission(models.Model):
         elif self.test_set.file_format == TEXT_FILE:
             ref_text_path = self.test_set.ref_file.name
 
-        ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
-        return ref_stream
+        if path_only:
+            return ref_text_path
+        else:
+            return (r for r in open(ref_text_path, encoding='utf-8'))
 
-    # TODO: this function is extracted from _compute_score, avoid copying, add comments
     def get_src_text(self):
-        """Returns list of source segments."""
+        """Returns a list of source segments."""
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             src_sgml_path = self.test_set.src_file.name
@@ -714,45 +733,7 @@ class Submission(models.Model):
         return sgml_filtered_path
 
     def _compute_score(self):
-        """Computes sacreBLEU score for current submission."""
-
-        hyp_path = self.hyp_file.name
-
-        if self.file_format == SGML_FILE:
-            if self.test_set.file_format == SGML_FILE:
-                hyp_filtered_path = hyp_path.replace(
-                    '.sgm', '.filtered.sgm'
-                )
-                if not Path(hyp_filtered_path).exists():
-                    # Get docids from ref SGML path -- these are non "testsuite-"
-                    ref_docids = Submission._get_docids_from_path(
-                        self.test_set.ref_file.name
-                    )
-
-                    # Filter hyp SGML in matching order, skipping testsuite-* docs
-                    hyp_filtered_path = Submission._filter_sgml_by_docids(
-                        self.hyp_file.name,
-                        ref_docids,
-                    )
-
-            else:
-                hyp_filtered_path = hyp_path
-
-            # Create text version of (possibly filtered) hyp SGML
-            hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
-            if not Path(hyp_text_path).exists():
-                process_to_text(hyp_filtered_path, hyp_text_path)
-
-        elif self.file_format == TEXT_FILE:
-            hyp_text_path = hyp_path
-
-        if self.test_set.file_format == SGML_FILE:
-            # By design, the reference only contains valid docids
-            ref_sgml_path = self.test_set.ref_file.name
-            ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
-
-        elif self.test_set.file_format == TEXT_FILE:
-            ref_text_path = self.test_set.ref_file.name
+        """Computes sacreBLEU scores for current submission."""
 
         tokenize = '13a'
         target_language_code = self.test_set.target_language.code
@@ -770,6 +751,9 @@ class Submission(models.Model):
         # target_language_code, tokenize
         # )
         # print(_msg)
+
+        hyp_text_path = self.get_hyp_text(path_only=True)
+        ref_text_path = self.get_ref_text(path_only=True)
 
         try:
             hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
