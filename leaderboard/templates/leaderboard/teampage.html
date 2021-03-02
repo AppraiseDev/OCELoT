@@ -129,7 +129,9 @@
                   <tr>
                     <td>#{{submission.id}}</td>
                     <td>
-                      {{submission.name}}
+                      <a href="{% url 'submission-view' sub_id=submission.id %}">
+                        {{submission.name}}
+                      </a>
                       {% if submission.is_primary %}
                       <span class="badge badge-primary">Primary</span>
                       {% endif %}
