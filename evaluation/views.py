@@ -97,6 +97,7 @@ def submission(request, sub_id=None):
     compare_with = [
         (sub.id, str(sub))
         for sub in _subs
+        # Exclude anonymous submissions that are not yours
         if not sub.is_anonymous() or sub.is_yours(ocelot_team_token)
     ]
 
