@@ -374,7 +374,7 @@ def teampage(request):
         if submission.is_primary:
             primary[key] = submission
 
-    data_triples = []
+    data_triples = []   # (test set, primary submission, all submissions)
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
 
