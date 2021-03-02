@@ -1,18 +1,18 @@
 {% extends "leaderboard/base.html" %}
 {% load static %}
 
-{% block main %}
-    <main role="main">
-
-      <div class="jumbotron">
-        <div class="container">
-          <h1 class="display-4">{{competition.name}} hosted at OCELoT</h1>
-          <p>
-            {{competition.description}}
-          </p>
-        </div>
+{% block jumbotron %}
+    <div class="jumbotron">
+      <div class="container">
+        <h1 class="display-4">{{competition.name}} hosted at OCELoT</h1>
+        <p>
+          {{competition.description}}
+        </p>
       </div>
+    </div>
+{% endblock %}
 
+{% block main %}
       <div class="container">
         <form>
           <p>
@@ -99,7 +99,12 @@
               </tr>
               {% endif %}
             </tbody>
-            <caption>Systems in <strong>bold face</strong> are your submissions. We only display the top-{{MAX_SUBMISSION_DISPLAY_COUNT}} submissions per language pair. SGML validation errors denoted by -1.0 score.</caption>
+            <caption>
+                Systems in <strong>bold face</strong> are your submissions. We
+                only display the top-{{MAX_SUBMISSION_DISPLAY_COUNT}}
+                submissions per language pair. SGML validation errors denoted
+                by -1.0 score.
+            </caption>
           </table>
         </div>
         {% endfor %}
@@ -113,8 +118,6 @@
         <hr>
 
       </div> <!-- /container -->
-
-    </main>
 {% endblock %}
 
 {% block footer %}
