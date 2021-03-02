@@ -2,7 +2,6 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from collections import OrderedDict
-from datetime import datetime
 
 from django.contrib import messages
 from django.db.models import Count
