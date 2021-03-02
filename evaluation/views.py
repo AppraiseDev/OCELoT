@@ -4,6 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 from difflib import SequenceMatcher
 
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
@@ -157,21 +158,27 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
-    # TODO: paginate
-
     text1 = sub_a.get_hyp_text()
     text2 = sub_b.get_hyp_text()
     data = []
+    # TODO: Annotate with span diffs only the current page
     for sent1, sent2 in zip(text1, text2):
         data.append(_annotate_texts_with_span_diffs(sent1, sent2))
 
+    # Paginate
+    SEGMENTS_PER_PAGE = 20
+    paginator = Paginator(data, SEGMENTS_PER_PAGE)
+    page_num = request.GET.get('page', 1)
+    page_data = paginator.get_page(page_num)
+
     context = {
-        'data': data,
+        'page': page_data,
         'submission_a': str(sub_a),
         'submission_b': str(sub_b),
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        # 'comparison_options': [(0, '...'), (1, 'A>B'), (2, 'A<B'), (3, 'A=B')],
     }
     if 'h' in request.GET:
         template = 'comparison/compare_horizontal.html'
