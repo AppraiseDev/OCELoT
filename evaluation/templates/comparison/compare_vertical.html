@@ -24,6 +24,7 @@
                 <th>Line</th>
                 <th>{{submission_a}}</th>
                 <th>{{submission_b}}</th>
+                <th>Compare</th>
               </tr>
             </thead>
             <tbody>
@@ -32,6 +33,15 @@
                 <td>{{forloop.counter|add:page.start_index|add:"-1" }}</td>
                 <td class="segment-a">{{segment_a|safe}}</td>
                 <td class="segment-b">{{segment_b|safe}}</td>
+
+                <td class="form-inline">
+                <select id="select-compare" class="form-control form-control-sm">
+                  <option value="--">---</option>
+                  {% for comp_id, comp_name in comparison_options %}
+                  <option value="{{comp_id}}">{{comp_name}}</option>
+                  {% endfor %}
+                </select>
+                </td>
               </tr>
               {% endfor %}
             </tbody>
@@ -51,6 +61,8 @@
 
 {% block script %}
 <script>
-  $(document).ready(function(){});
+  $(document).ready(function(){
+
+  });
 </script>
 {% endblock %}

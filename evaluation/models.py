@@ -13,9 +13,9 @@ MAX_CHOICE_LENGTH = 10
 class PairwiseRanking(models.Model):
     """Models a pairwise ranking between two submissions at segment level."""
 
-    BETTER = 'A>B'
-    WORSE = 'A<B'
-    EQUAL = 'A=B'
+    BETTER = 'GT'
+    WORSE = 'LT'
+    EQUAL = 'EQ'
 
     RANK_CHOICES = [(BETTER, 'A>B'), (WORSE, 'A<B'), (EQUAL, 'A=B')]
 

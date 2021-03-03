@@ -9,6 +9,8 @@ from django.http import Http404
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 
+from evaluation.models import PairwiseRanking
+
 from leaderboard.models import Submission
 from leaderboard.views import _get_team_data
 
@@ -187,7 +189,7 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
-        # 'comparison_options': [(0, '...'), (1, 'A>B'), (2, 'A<B'), (3, 'A=B')],
+        'comparison_options': PairwiseRanking.RANK_CHOICES,
     }
     if 'h' in request.GET:
         template = 'comparison/compare_horizontal.html'
