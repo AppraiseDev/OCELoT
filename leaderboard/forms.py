@@ -83,12 +83,19 @@ class SubmissionForm(forms.ModelForm):
             competition__is_active=True,
             competition__deadline__isnull=True,
             competition__start_time__isnull=True,
-        )
+        ),
+        widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
         fields = ['test_set', 'file_format', 'hyp_file']
+        widgets = {
+            'file_format': forms.Select(attrs={'class': 'form-control'}),
+            'hyp_file': forms.FileInput(
+                attrs={'class': 'form-control form-control-file'}
+            ),
+        }
 
 
 class TeamForm(forms.ModelForm):
