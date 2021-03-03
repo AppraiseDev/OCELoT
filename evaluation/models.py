@@ -89,3 +89,11 @@ class PairwiseRanking(models.Model):
     def get_test_set(self):
         """Returns the test set name."""
         return str(self.submission_A.test_set)
+
+    def _submission_A_name(self):
+        """Returns name of submission A."""
+        return self.submission_A.name
+
+    def _submission_B_name(self):
+        """Returns name of submission B."""
+        return self.submission_B.name
