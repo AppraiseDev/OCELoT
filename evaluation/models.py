@@ -1,10 +1,11 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from django.core.exceptions import ValidationError
 from django.db import models
 
-from leaderboard.models import Team
 from leaderboard.models import Submission
+from leaderboard.models import Team
 
 MAX_CHOICE_LENGTH = 10
 
@@ -66,10 +67,10 @@ class PairwiseRanking(models.Model):
     def __repr__(self):
         return 'PairwiseRanking(rank={0}, A={1}, B={2}, line={3}, testset={4})'.format(
             self.rank,
-            self.segment_A.name,
-            self.segment_B.name,
+            self.submission_A.name,
+            self.submission_B.name,
             self.line_number,
-            self.segment_A.test_set.name,
+            self.submission_A.test_set.name,
         )
 
     def __str__(self):
