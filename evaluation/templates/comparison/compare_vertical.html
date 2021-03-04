@@ -28,21 +28,34 @@
               </tr>
             </thead>
             <tbody>
-              {% for segment_a, segment_b in page.object_list %}
+              {% for seg_a_orig, seg_b_orig, seg_a, seg_b in page.object_list %}
+              {% with line_num=forloop.counter|add:page.start_index|add:"-1" %}
               <tr>
-                <td>{{forloop.counter|add:page.start_index|add:"-1" }}</td>
-                <td class="segment-a">{{segment_a|safe}}</td>
-                <td class="segment-b">{{segment_b|safe}}</td>
+                <td>{{line_num}}</td>
+                <td class="segment-a">{{seg_a|safe}}</td>
+                <td class="segment-b">{{seg_b|safe}}</td>
 
                 <td class="form-inline">
-                <select id="select-compare" class="form-control form-control-sm">
-                  <option value="--">---</option>
-                  {% for comp_id, comp_name in comparison_options %}
-                  <option value="{{comp_id}}">{{comp_name}}</option>
-                  {% endfor %}
-                </select>
+                  <form action="{% url 'compare-view' %}" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="submission_a_id" value="{{submission_a.id}}"/>
+                    <input type="hidden" name="submission_b_id" value="{{submission_b.id}}"/>
+                    <input type="hidden" name="segment_a" value="{{seg_a_orig}}"/>
+                    <input type="hidden" name="segment_b" value="{{seg_b_orig}}"/>
+                    <input type="hidden" name="line_number" value="{{line_num}}"/>
+
+                    <select id="id_rank_select_{{line_num}}" name="rank" required
+                            class="rank-select form-control form-control-sm">
+                      <option value="--">---</option>
+                      {% for comp_id, comp_name in comparison_options %}
+                      <option value="{{comp_id}}">{{comp_name}}</option>
+                      {% endfor %}
+                    </select>
+                  </form>
                 </td>
+
               </tr>
+              {% endwith %}
               {% endfor %}
             </tbody>
           </table>
@@ -61,8 +74,45 @@
 
 {% block script %}
 <script>
-  $(document).ready(function(){
+  function submit_rank() {
+    var rank_select = $(this);
+    var rank_form = rank_select.closest('form');
+    var csrftoken = $("[name=csrfmiddlewaretoken]").val();
 
+    $.ajax({
+        data: rank_form.serialize(),
+        type: 'POST',
+        headers: { "X-CSRFToken": csrftoken },
+        url: '{% url "compare-view" %}',
+        dataType: 'json',
+        beforeSend: function() {
+            console.log('Sending Ajax request rank');
+        },
+        success: function(data) {
+            console.log('Done, success=', data.success, 'messages=', data.messages);
+            if (data.success) {
+              // TODO: Disabling the select box is unlikely what we finally want.
+              rank_select.prop('disabled', true);
+            } else {
+              // TODO: Show a message box with an error.
+            }
+        },
+        error: function(x,s,t) {
+            console.log('Error:', x, s, t);
+            // TODO: Show a message box with an error, e.g.
+            // 'An unrecognized error has occured. ' +
+            // 'Please reload the page or try again in a moment.' +
+            // 'Also, make sure you use a relatively modern browser.'
+        },
+    });
+  }
+
+  $(document).ready(function(){
+      $('.rank-select').on('change', submit_rank);
+      //function (e) {
+      //    var optionSelected = $("option:selected", this);
+      //    var valueSelected = this.value;
+      //});
   });
 </script>
 {% endblock %}

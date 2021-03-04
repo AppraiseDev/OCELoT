@@ -6,12 +6,14 @@ from difflib import SequenceMatcher
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404
+from django.http import JsonResponse
 from django.shortcuts import HttpResponseRedirect
 from django.shortcuts import render
 
 from evaluation.models import PairwiseRanking
 
 from leaderboard.models import Submission
+from leaderboard.models import Team
 from leaderboard.views import _get_team_data
 
 SEGMENTS_PER_PAGE = 100
@@ -129,6 +131,9 @@ def submission(request, sub_id=None):
 def compare(request, sub_a_id=None, sub_b_id=None):
     """Renders vertical or horizontal comparison between two submissions."""
 
+    if request.method == "POST" and sub_a_id is None and sub_b_id is None:
+        return submit_rank(request)
+
     try:
         sub_a = Submission.objects.get(id=sub_a_id)
         sub_b = Submission.objects.get(id=sub_b_id)
@@ -172,9 +177,18 @@ def compare(request, sub_a_id=None, sub_b_id=None):
     text1 = sub_a.get_hyp_text()
     text2 = sub_b.get_hyp_text()
     data = []
-    # TODO: Annotate with span diffs only the current page
+    # TODO: Annotate with span diffs only the current page, for example try to
+    # change page_data.object_list
+    # TODO: Check if there are some PairwiseRanking objects for each line and
+    # if so, select them in the select box. Should this be specific to the user
+    # or global?
     for sent1, sent2 in zip(text1, text2):
-        data.append(_annotate_texts_with_span_diffs(sent1, sent2))
+        sent1_spans, sent2_spans = _annotate_texts_with_span_diffs(
+            sent1, sent2
+        )
+        data.append(
+            (sent1.strip(), sent2.strip(), sent1_spans, sent2_spans)
+        )
 
     # Paginate
     paginator = Paginator(data, SEGMENTS_PER_PAGE)
@@ -184,8 +198,8 @@ def compare(request, sub_a_id=None, sub_b_id=None):
     context = {
         'page': page_data,
         'page_size': SEGMENTS_PER_PAGE,
-        'submission_a': str(sub_a),
-        'submission_b': str(sub_b),
+        'submission_a': sub_a,
+        'submission_b': sub_b,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
@@ -196,3 +210,36 @@ def compare(request, sub_a_id=None, sub_b_id=None):
     else:
         template = 'comparison/compare_vertical.html'
     return render(request, template, context=context)
+
+
+def submit_rank(request):
+    """Handles Ajax request to create a PairwiseRanking object."""
+    # Accept POST requests only
+    if request.method != "POST":
+        return
+
+    msg = []
+
+    _, _, ocelot_team_token = _get_team_data(request)
+    sub_a_id = int(request.POST.get('submission_a_id'))
+    sub_b_id = int(request.POST.get('submission_b_id'))
+
+    try:
+        rank_obj = PairwiseRanking.objects.create(
+            rank=request.POST.get('rank'),
+            submitted_by=Team.objects.get(token=ocelot_team_token),
+            submission_A=Submission.objects.get(id=sub_a_id),
+            submission_B=Submission.objects.get(id=sub_b_id),
+            line_number=int(request.POST.get('line_number')),
+            segment_A=request.POST.get('segment_a'),
+            segment_B=request.POST.get('segment_b'),
+        )
+        rank_obj.save()
+
+    except Exception as e:
+        # TODO: Better message
+        msg.append("Something went wrong...")
+        msg.append(e.message)
+
+    context = {'success': True, 'messages': msg}
+    return JsonResponse(context)

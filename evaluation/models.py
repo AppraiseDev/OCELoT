@@ -79,6 +79,8 @@ class PairwiseRanking(models.Model):
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submissions."""
 
+        # TODO: check submission_A and submission_B are not the same!
+
         if self.submission_A.test_set != self.submission_B.test_set:
             _msg = 'Segments A and B must come the same test set'
             raise ValidationError(_msg)
