@@ -164,3 +164,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# Static files that are not tied to a particular app should be put there
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'assets'),
+]
