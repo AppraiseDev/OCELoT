@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Pylint formatter knows about Django after adding the `pylint-django` plugin
+
 ### Changed
+- Updated requirements to Django 3
 - Removed static files which now need to be generated using `collectstatic`
 
 ## [0.0.1] - 2021-01-04
