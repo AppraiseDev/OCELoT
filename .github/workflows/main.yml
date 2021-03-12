@@ -1,11 +1,40 @@
-name: "PythonCodeValidator"
+name: "OCELoT"
 
 on: [push, pull_request]
 
 jobs:
   formatting:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Python Code Validator
-        uses: cfedermann/python-code-validator@master
+      - name: Python versions
+        # On Ubuntu 20.04 python should be Python 3.8.5
+        run: |
+            which python
+            python --version
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Install development tools
+        # Python tools will be installed in ~/.local/bin, which by default is not in $PATH
+        run: |
+            echo "$HOME/.local/bin" >> $GITHUB_PATH
+            pip install --upgrade pip setuptools wheel
+            pip install -r requirements-dev.txt
+      - name: Run mypy
+        run: find . -name "*.py" -not -path "./venv*" | xargs mypy
+      - name: Reformat
+        run: |
+            black -S -l 75 --check .
+            find . -name "*.py" -not -path "./venv*" | xargs pylint --fail-under 9 --rcfile setup.cfg
+            find . -name "*.py" -not -path "./venv*" | xargs reorder-python-imports --diff-only
+      - name: Check safety
+        run: cat requirements.txt | safety check --stdin
+
+  testing:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        run: python manage.py test -v2
