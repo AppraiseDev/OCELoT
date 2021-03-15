@@ -1,0 +1,210 @@
+{% extends "leaderboard/base.html" %}
+{% load static %}
+
+{% block navbar %}
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="{% url 'frontpage-view' %}">Project OCELoT</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'frontpage-view' %}">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'teampage-view' %}">Team</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'signup-view' %}">Registration</a>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'submit-view' %}">Submission</a>
+            {% else %}
+            <a class="nav-link disabled" href="#">Submission</a>
+            {% endif %}
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'updates-view' %}">Updates</a>
+          </li>
+          <li class="nav-item">
+            {% if ocelot_team_token %}
+            <a class="nav-link" href="{% url 'signout-view' %}">Sign out</a>
+            {% else %}
+            <a class="nav-link" href="{% url 'signin-view' %}">Sign in</a>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+    </nav>
+{% endblock%}
+
+{% block main %}
+    <main role="main">
+
+      <div class="jumbotron">
+        <div class="container">
+          <h1 class="display-4">{{competition.name}} hosted at OCELoT</h1>
+          <p>
+            {{competition.description}}
+          </p>
+        </div>
+      </div>
+
+      <div class="container">
+        <form>
+          <p>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
+            {% if ocelot_team_token %}
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
+            {% else %}
+            <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
+            <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
+            {% endif %}
+            <a class="btn btn-primary btn-sm" role="button" href="{% url 'updates-view' %}">Competition updates</a>
+          </p>
+        </form>
+      </div>
+
+      <div class="container">
+        <div id="deadline-container" >
+          <p id="competition-not-started" style="display: none;">
+            Submission for {{competition.name}} has not opened yet.
+            The competition starts <span id="timer-starttime">soon</span>.
+          </p>
+          <p id="competition-deadline" style="display: none;">
+            Submission for {{competition.name}} <span id="timer-deadline">closes soon</span>.
+            If you have not submitted yet, you should do so soon.
+          </p>
+          <p id="competition-closed" style="display: none;">
+            Submission for {{competition.name}} has closed.
+          </p>
+        </div>
+
+        <h2>Leaderboard of {{competition.name}}</h2>
+        {% if data %}
+        {% for testset, submissions in data %}
+        <h3>{{testset}}</h3>
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>SacreBLEU score</th>
+                <th>chrF score</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for submission in submissions|slice:MAX_SUBMISSION_DISPLAY_COUNT %}
+              <tr>
+                <td>{{forloop.counter}}</td>
+                {% if submission.4 == ocelot_team_token %}
+                <td><strong>{{submission.5}}</strong></td>
+                {% else %}
+                <td>{{submission.5}}</td>
+                {% endif %}
+                {% if submission.1 %}
+                <td>{{submission.1|stringformat:".1f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
+                {% if submission.2 %}
+                <td>{{submission.2|stringformat:".3f"}}</td>
+                {% else %}
+                <td>---</td>
+                {% endif %}
+                <td>{{submission.3}}</td>
+              </tr>
+              {% endfor %}
+              {% if submissions|length > MAX_SUBMISSION_DISPLAY_COUNT %}
+              <tr>
+                <td>...</td>
+                <td colspan="4"><em>showing top-{{MAX_SUBMISSION_DISPLAY_COUNT}} only, total number of submissions:
+                    {{submissions|length}}</em></td>
+              </tr>
+              {% endif %}
+            </tbody>
+            <caption>Systems in <strong>bold face</strong> are your submissions. We only display the top-{{MAX_SUBMISSION_DISPLAY_COUNT}} submissions per language pair. SGML validation errors denoted by -1.0 score.</caption>
+          </table>
+        </div>
+        {% endfor %}
+        {% else %}
+        {% if False %}
+        <p>Submissions will become available by 6/22/2020 at 11:59 pm, PDT.</p>
+        {% else %}
+        <p>No submissions yet.</p>
+        {% endif %}
+        {% endif %}
+        <hr>
+
+      </div> <!-- /container -->
+
+    </main>
+{% endblock %}
+
+{% block footer %}
+#blacklivesmatter #pride #andjusticeforall #capitolhillseattle
+{% endblock %}
+
+{% block script %}
+<script>
+  function updateDeadline() {
+    const $starttime = Date.parse('{{ competition.start_time }}');
+    const $deadline = Date.parse('{{ competition.deadline }}');
+    $currentTime = new Date();
+
+    // If the competition has a start time and there is still time
+    $currentDelta = new Date($starttime - $currentTime);
+    if ($currentDelta >= 0) {
+      $("#competition-container p").hide();
+      $("#timer-starttime").html('in ' + timeToGo($currentDelta));
+      $("#competition-not-started").show();
+      return;
+    }
+
+    // If the competition has no deadline
+    if (isNaN($deadline)) {
+      $("#competition-container").hide();
+      clearInterval();
+      return;
+    }
+
+    // If there is still time until the deadline
+    $currentDelta = new Date($deadline - $currentTime);
+    if ($currentDelta >= 0) {
+      $("#competition-container p").hide();
+      $("#timer-deadline").html('<strong> closes in ' + timeToGo($currentDelta) + '</strong>');
+      $("#competition-deadline").show();
+    }
+    // If the deadline has passed
+    else {
+      $("#competition-container p").hide();
+      $("#competition-closed").show();
+      clearInterval();
+    }
+  }
+
+  function timeToGo($currentDelta) {
+    $deltaHours = Math.floor($currentDelta / (3600 * 1000));
+    $deltaMinutes = Math.floor($currentDelta % (60 * 60 * 1000) / (60 * 1000));
+    $deltaSeconds = Math.floor($currentDelta % (60 * 1000)/ 1000);
+
+    if ($deltaHours < 10)   { $deltaHours = '0' + $deltaHours; }
+    if ($deltaMinutes < 10) { $deltaMinutes = '0' + $deltaMinutes; }
+    if ($deltaSeconds < 10) { $deltaSeconds = '0' + $deltaSeconds; }
+
+    return $deltaHours + 'h' + $deltaMinutes + 'm' + $deltaSeconds + 's';
+  }
+
+  $(document).ready(function(){
+    setInterval(updateDeadline, 1000);
+  });
+</script>
+{% endblock %}

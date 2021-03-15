@@ -9,6 +9,7 @@ from zipfile import ZipFile
 from django.contrib import admin
 from django.http import FileResponse
 
+from leaderboard.models import Competition
 from leaderboard.models import Language
 from leaderboard.models import Submission
 from leaderboard.models import Team
@@ -87,6 +88,7 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
+        '_team_name',
         'test_set',
         '_source_language',
         '_target_language',
@@ -98,6 +100,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set',
         'test_set__source_language',
         'test_set__target_language',
+        'submitted_by__publication_name',
         'is_flagged',
         'is_primary',
         'is_public',
@@ -156,24 +159,56 @@ class TestSetAdmin(admin.ModelAdmin):
         'file_format',
         'src_file',
         'ref_file',
+        'competition',
         'is_active',
+        'is_public',
     ]
 
     list_display = [
         '__str__',
         'source_language',
         'target_language',
+        'competition',
     ]
 
     list_filter = [
         'is_active',
+        'is_public',
         'file_format',
+        'competition',
     ]
 
     ordering = ('-name', 'source_language', 'target_language')
+
+
+class CompetitionAdmin(admin.ModelAdmin):
+    """Model admin for Competition objects."""
+
+    fields = [
+        'name',
+        'description',
+        'start_time',
+        'deadline',
+        'is_active',
+        'is_public',
+    ]
+
+    list_display = [
+        '__str__',
+        'start_time',
+        'deadline',
+    ]
+
+    list_filter = [
+        'is_active',
+        'is_public',
+    ]
+
+    ordering = ('-name',)
 
 
 admin.site.register(Language, LanguageAdmin)
 admin.site.register(Submission, SubmissionAdmin)
 admin.site.register(Team, TeamAdmin)
 admin.site.register(TestSet, TestSetAdmin)
+admin.site.register(Competition, CompetitionAdmin)

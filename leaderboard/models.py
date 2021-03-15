@@ -22,6 +22,7 @@ TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
+MAX_DESCRIPTION_LENGTH = 2000
 MAX_TOKEN_LENGTH = 10
 
 SGML_FILE = 'SGML'
@@ -82,8 +83,6 @@ def validate_sgml_schema(hyp_file):
 
     try:
         schema.validate(hyp_file)
-
-    # pylint: disable-msg=bad-continuation
     except (
         xmlschema.XMLSchemaValidationError,
         xml.etree.ElementTree.ParseError,
@@ -106,6 +105,72 @@ def validate_token(value):
     if not valid_token.match(value):
         _msg = 'Team name must match regexp r"[a-f0-9]{10}"'
         raise ValidationError(_msg)
+
+
+class Competition(models.Model):
+    """Models a competition."""
+
+    is_active = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is active competition?',
+    )
+
+    # True or False overrides the setting from TestSet and Submission.
+    # Set to None to fallback to TestSet.is_public
+    is_public = models.BooleanField(
+        blank=True,
+        db_index=True,
+        default=None,
+        help_text='Are submissions publicly visible? '
+        'Overwrites settings in test sets and submissions unless Unknown',
+        null=True,
+    )
+
+    name = models.CharField(
+        blank=False,
+        db_index=True,
+        help_text=(
+            'Competition name (max {0} characters)'.format(MAX_NAME_LENGTH)
+        ),
+        max_length=MAX_NAME_LENGTH,
+        unique=True,
+    )
+
+    description = models.TextField(
+        blank=False,
+        help_text=(
+            'Competition description (max {0} characters)'.format(
+                MAX_DESCRIPTION_LENGTH
+            )
+        ),
+        max_length=MAX_DESCRIPTION_LENGTH,
+    )
+
+    # Date and time when the competition starts
+    start_time = models.DateTimeField(
+        blank=True,
+        help_text='Competition start time (an empty value means no start time)',
+        null=True,
+    )
+
+    # Date and time when the competition ends
+    deadline = models.DateTimeField(
+        blank=True,
+        help_text='Competition deadline (an empty value means no deadline)',
+        null=True,
+    )
+
+    def __repr__(self):
+        return (
+            'Competition(name={0}, start_time={1}, deadline={2})'.format(
+                self.name, self.start_time, self.deadline
+            )
+        )
+
+    def __str__(self):
+        return self.name
 
 
 class Language(models.Model):
@@ -144,6 +209,17 @@ class TestSet(models.Model):
         db_index=True,
         default=False,
         help_text='Is active test set?',
+    )
+
+    # True or False overrides the setting from Submission.
+    # Set to None to fallback to Submission.is_public
+    is_public = models.BooleanField(
+        blank=True,
+        db_index=True,
+        default=None,
+        help_text='Are submissions publicly visible? '
+        'Overwrite settings from submissions unless Unknown',
+        null=True,
     )
 
     name = models.CharField(
@@ -189,11 +265,20 @@ class TestSet(models.Model):
         null=True,
     )
 
+    competition = models.ForeignKey(
+        Competition,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name='test_sets',
+        related_query_name='test_sets',
+    )
+
     def __repr__(self):
         return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4})'.format(
             self.name,
-            self.source_language.code,  # pylint: disable=no-member
-            self.target_language.code,  # pylint: disable=no-member
+            self.source_language.code,
+            self.target_language.code,
             self.src_file.name,
             self.ref_file.name,
         )
@@ -201,12 +286,15 @@ class TestSet(models.Model):
     def __str__(self):
         return '{0} test set ({1}-{2})'.format(
             self.name,
-            self.source_language.code,  # pylint: disable=no-member
-            self.target_language.code,  # pylint: disable=no-member
+            self.source_language.code,
+            self.target_language.code,
         )
 
     def _create_text_files(self):
-        """Creates test set text files."""
+        """
+        Creates test set text files from SGML files.
+        If files are already in text format, do nothing.
+        """
         if self.file_format == TEXT_FILE:
             return
 
@@ -240,7 +328,6 @@ class TestSet(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: disable=no-member,bad-continuation
     def save(
         self,
         force_insert=False,
@@ -332,12 +419,10 @@ class Team(models.Model):
         return '{0} ({1})'.format(self.name, self.email)
 
     def _submissions(self):
-        return Submission.objects.filter(  # pylint: disable=no-member
-            submitted_by=self
-        ).count()
+        return Submission.objects.filter(submitted_by=self).count()
 
     def _primary_submissions(self):
-        return Submission.objects.filter(  # pylint: disable=no-member
+        return Submission.objects.filter(
             submitted_by=self,
             is_primary=True,
         ).count()
@@ -347,7 +432,6 @@ class Team(models.Model):
         self.token = token
         self.save()
 
-    # pylint: disable=no-member,bad-continuation
     def save(
         self,
         force_insert=False,
@@ -366,11 +450,9 @@ def _get_submission_upload_path(instance, filename):
     del filename  # not used
 
     submissions_count = 0
-    submissions_for_team = (
-        Submission.objects.filter(  # pylint: disable=no-member
-            submitted_by=instance.submitted_by.id,
-            test_set=instance.test_set,
-        )
+    submissions_for_team = Submission.objects.filter(
+        submitted_by=instance.submitted_by.id,
+        test_set=instance.test_set,
     )
     if submissions_for_team.exists():
         submissions_count = submissions_for_team.count()
@@ -428,7 +510,8 @@ class Submission(models.Model):
         blank=False,
         db_index=True,
         default=False,
-        help_text='Is publicly visible?',
+        help_text='Is publicly visible? '
+        'Can be overwritten by settings of the test set or competition',
     )
 
     is_removed = models.BooleanField(
@@ -447,6 +530,7 @@ class Submission(models.Model):
         ),
     )
 
+    # TODO: This field is not used? Fix or remove.
     original_name = models.CharField(
         blank=False,
         editable=False,
@@ -485,14 +569,30 @@ class Submission(models.Model):
         Team, on_delete=models.PROTECT, blank=True, null=True
     )
 
+    def is_anonymous(self):
+        """Checks if the submission is not publicly visible, taking into
+        account settings at test set and competition levels."""
+        # If the submission's test set is a part of a competition and the
+        # competition has public visibility set (i.e. is not Unknown)
+        if (
+            self.test_set.competition
+            and self.test_set.competition.is_public is not None
+        ):
+            return not self.test_set.competition.is_public
+        # If the submission's test set has public visibility set (i.e. is not
+        # Unknown)
+        if self.test_set.is_public is not None:
+            return not self.test_set.is_public
+        # Otherwise, look at the submission public visibility only
+        return not self.is_public
+
     def __repr__(self):
         return 'Submission(name={0}, is_primary={1})'.format(
             self.name, self.is_primary
         )
 
     def __str__(self):
-        _name = self.name if self.is_public else 'Anonymous'
-        # pylint: disable=no-member
+        _name = 'Anonymous' if self.is_anonymous() else self.name
         return '{0} submission #{1}'.format(_name, self.id)
 
     @staticmethod
@@ -547,7 +647,6 @@ class Submission(models.Model):
 
         hyp_path = self.hyp_file.name
 
-        # pylint: disable=bad-continuation,no-member
         if self.file_format == SGML_FILE:
             if self.test_set.file_format == SGML_FILE:
                 hyp_filtered_path = hyp_path.replace(
@@ -576,7 +675,6 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        # pylint: disable=bad-continuation,no-member
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -586,9 +684,7 @@ class Submission(models.Model):
             ref_text_path = self.test_set.ref_file.name
 
         tokenize = '13a'
-        target_language_code = (
-            self.test_set.target_language.code  # pylint: disable=no-member
-        )
+        target_language_code = self.test_set.target_language.code
         if target_language_code == 'ja':
             # We use char-based tokenizer as MeCab was slow/unstable
             tokenize = 'char-based'
@@ -599,10 +695,10 @@ class Submission(models.Model):
         elif target_language_code == 'zh':
             tokenize = 'zh'
 
-        _msg = 'language: {0}, tokenize: {1}'.format(
-            target_language_code, tokenize
-        )
-        print(_msg)
+        # _msg = 'language: {0}, tokenize: {1}'.format(
+        # target_language_code, tokenize
+        # )
+        # print(_msg)
 
         try:
             hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
@@ -647,11 +743,15 @@ class Submission(models.Model):
 
     def _source_language(self):
         """Returns test set source language."""
-        return self.test_set.source_language  # pylint: disable=no-member
+        return self.test_set.source_language
 
     def _target_language(self):
         """Returns test set target language."""
-        return self.test_set.target_language  # pylint: disable=no-member
+        return self.test_set.target_language
+
+    def _team_name(self):
+        """Returns team publication name if set, or the original name otherwise."""
+        return self.submitted_by.publication_name or self.submitted_by.name
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML or text file."""
@@ -671,7 +771,6 @@ class Submission(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-    # pylint: disable=no-member,bad-continuation
     def save(
         self,
         force_insert=False,
