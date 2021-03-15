@@ -84,20 +84,20 @@ class ComparisonTests(TestCase):
         session.save()
 
     def test_non_public_submissions_cannot_be_compared(self):
-        """Checks that compare/a/b/ do not render for submissions that are not public."""
+        """Checks that submission/a/b/ do not render for submissions that are not public."""
         self.sub_1.is_public = False  # Note sub_1 is submitted by team_a
         self.sub_1.save()
         self.sub_2.is_public = False  # Note sub_2 is submitted by team_b
         self.sub_2.save()
         response = self.client.get(
-            '/compare/{0}/{1}'.format(self.sub_1.id, self.sub_2.id),
+            '/submission/{0}/{1}'.format(self.sub_1.id, self.sub_2.id),
             follow=True,
         )
         self.assertContains(response, 'cannot be compared')
         self.assertContains(response, 'must be public')
 
     def test_submissions_from_different_test_sets_cannot_be_compared(self):
-        """Checks that compare/a/b/ do not render for submissions from different test sets."""
+        """Checks that submission/a/b/ do not render for submissions from different test sets."""
 
         testset = TestSet.objects.create(
             is_active=True,
@@ -128,20 +128,20 @@ class ComparisonTests(TestCase):
         self.sub_1.save()
 
         response = self.client.get(
-            '/compare/{0}/{1}'.format(self.sub_1.id, sub_3.id),
+            '/submission/{0}/{1}'.format(self.sub_1.id, sub_3.id),
             follow=True,
         )
         self.assertContains(response, 'cannot be compared')
         self.assertContains(response, 'the same test set')
 
     def test_comparing_submissions_renders(self):
-        """Checks that compare/a/b/ renders submission names and diff spans."""
+        """Checks that submission/a/b/ renders submission names and diff spans."""
         self.sub_1.is_public = True
         self.sub_1.save()
         self.sub_2.is_public = True
         self.sub_2.save()
         response = self.client.get(
-            '/compare/{0}/{1}'.format(self.sub_1.id, self.sub_2.id)
+            '/submission/{0}/{1}'.format(self.sub_1.id, self.sub_2.id)
         )
         self.assertContains(response, str(self.sub_1))
         self.assertContains(response, str(self.sub_2))

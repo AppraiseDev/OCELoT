@@ -124,7 +124,7 @@ def submission(request, sub_id=None):
     return render(request, 'comparison/submission.html', context=context)
 
 
-def compare(request, sub_a_id=None, sub_b_id=None):
+def compare_submissions(request, sub_a_id=None, sub_b_id=None):
     """Renders vertical or horizontal comparison between two submissions."""
 
     try:
@@ -189,8 +189,5 @@ def compare(request, sub_a_id=None, sub_b_id=None):
         'ocelot_team_token': ocelot_team_token,
         # 'comparison_options': [(0, '...'), (1, 'A>B'), (2, 'A<B'), (3, 'A=B')],
     }
-    if 'h' in request.GET:
-        template = 'comparison/compare_horizontal.html'
-    else:
-        template = 'comparison/compare_vertical.html'
+    template = 'comparison/compare_submissions.html'
     return render(request, template, context=context)

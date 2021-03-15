@@ -18,7 +18,7 @@
             </select>
             <a id="compare-submit"
                class="btn btn-primary btn-sm"
-               href="{% url 'compare-view' sub_a_id=submission_id sub_b_id=compare_with.0.0 %}">Compare</a>
+               href="{% url 'compare-submissions-view' sub_a_id=submission_id sub_b_id=compare_with.0.0 %}">Compare</a>
           {% endif %}
         </p>
         <p>Displaying up to {{page_size}} segments per page.</p>
