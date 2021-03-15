@@ -15,3 +15,7 @@ ocelot/local_settings.py
 submissions
 testsets
 static
+
+# Unit tests
+leaderboard/testdata/*.filtered.txt
+leaderboard/testdata/*.filtered.sgm

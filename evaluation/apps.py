@@ -4,7 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 from django.apps import AppConfig
 
 
-class LeaderboardConfig(AppConfig):
-    """OCELoT leaderboard app Configuration"""
+class EvaluationConfig(AppConfig):
+    """OCELoT evaluation app Configuration"""
 
-    name = 'leaderboard'
+    name = 'evaluation'
