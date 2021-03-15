@@ -45,7 +45,7 @@ def _format_datetime_for_js(stamp):
     return stamp.strftime("%Y-%m-%d %H:%M:%S")  # JS will assume it's UTC
 
 
-def leaderboardpage(request, competition_id=None):
+def leaderboard(request, competition_id=None):
     """Renders leaderboard for a competition."""
 
     # Get the competition by its ID or render 404
