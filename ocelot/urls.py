@@ -20,7 +20,7 @@ from django.urls import path
 from evaluation.views import compare
 from evaluation.views import submission
 from leaderboard.views import frontpage
-from leaderboard.views import leaderboardpage
+from leaderboard.views import leaderboard
 from leaderboard.views import signin
 from leaderboard.views import signout
 from leaderboard.views import signup
@@ -40,7 +40,7 @@ urlpatterns = [
     path('', frontpage, name='frontpage-view'),
     path(
         'leaderboard/<competition_id>',
-        leaderboardpage,
+        leaderboard,
         name='leaderboard-view',
     ),
     path('sign-in', signin, name='signin-view'),
