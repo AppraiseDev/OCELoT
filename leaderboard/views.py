@@ -2,7 +2,6 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 from collections import OrderedDict
-from datetime import datetime
 
 from django.contrib import messages
 from django.db.models import Count
@@ -88,19 +87,20 @@ def leaderboard(request, competition_id=None):
             key = str(test_set)
             if not key in data.keys():
                 data[key] = []
+
             data[key].append(
-                (
-                    submission.id,
-                    submission.score,
-                    submission.score_chrf,
-                    submission.date_created,
+                {
+                    "id": submission.id,
+                    "name": str(submission),
+                    "score_bleu": submission.score,
+                    "score_chrf": submission.score_chrf,
+                    "date_created": submission.date_created,
                     # TODO: Double check if this foreign key reference does not
                     # generate an extra query. Optimize otherwise.
-                    submission.submitted_by.token,
-                    str(submission),
-                )
+                    "team_token": submission.submitted_by.token,
+                    "is_anonymous": submission.is_anonymous(),
+                }
             )
-
     (
         ocelot_team_name,
         ocelot_team_email,
@@ -374,7 +374,7 @@ def teampage(request):
         if submission.is_primary:
             primary[key] = submission
 
-    data_triples = []
+    data_triples = []  # (test set, primary submission, all submissions)
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
 

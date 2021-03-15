@@ -1,0 +1,56 @@
+{% extends "comparison/base.html" %}
+{% load static %}
+
+{% block style %}
+.compare .diff-sub { background: #ff06; }
+.compare .diff-ins { background: #28a74570; }
+.compare .diff-del { background: #dc354573; }
+{% endblock %}
+
+{% block main %}
+    <main role="main">
+
+      <div class="container">
+        <br/>
+        <h3>Compare two submissions</h3>
+        <p>Displaying up to {{page_size}} segments per page.</p>
+
+        {% include '_paginator.html' %}
+
+        <div class="table-responsive">
+          <table class="table table-striped table-sm compare">
+            <thead>
+              <tr>
+                <th>Line</th>
+                <th>{{submission_a}}</th>
+                <th>{{submission_b}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for segment_a, segment_b in page.object_list %}
+              <tr>
+                <td>{{forloop.counter|add:page.start_index|add:"-1" }}</td>
+                <td class="segment-a">{{segment_a|safe}}</td>
+                <td class="segment-b">{{segment_b|safe}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% include '_paginator.html' %}
+      <hr>
+      </div> <!-- /container -->
+
+    </main>
+{% endblock %}
+
+{% block footer %}
+#blacklivesmatter #pride #andjusticeforall #capitolhillseattle
+{% endblock %}
+
+{% block script %}
+<script>
+  $(document).ready(function(){});
+</script>
+{% endblock %}

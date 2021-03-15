@@ -17,6 +17,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
+from evaluation.views import compare_submissions
+from evaluation.views import submission
 from leaderboard.views import frontpage
 from leaderboard.views import leaderboard
 from leaderboard.views import signin
@@ -32,7 +34,9 @@ from ocelot.settings import STATIC_URL
 
 # pylint: disable-msg=invalid-name
 urlpatterns = [
+    # django.contrib.admin app
     path('admin/', admin.site.urls),
+    # leaderboard app
     path('', frontpage, name='frontpage-view'),
     path(
         'leaderboard/<competition_id>',
@@ -46,6 +50,13 @@ urlpatterns = [
     path('teampage', teampage, name='teampage-view'),
     path('updates', updates, name='updates-view'),
     path('welcome', welcome, name='welcome-view'),
+    # evaluation app
+    path('submission/<sub_id>', submission, name='submission-view'),
+    path(
+        'submission/<sub_a_id>/<sub_b_id>',
+        compare_submissions,
+        name='compare-submissions-view',
+    ),
 ]
 
 if DEBUG:

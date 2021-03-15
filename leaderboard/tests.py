@@ -62,21 +62,30 @@ class SubmissionTests(TestCase):
         session['ocelot_team_token'] = self.team.token
         session.save()
 
-    def _make_submission(self, filename):
+    def _make_submission(self, file_name, file_format=TEXT_FILE):
         """Makes a submission."""
         return Submission.objects.create(
-            name=filename,
-            original_name=filename,
+            name=file_name,
+            original_name=file_name,
             test_set=self.testset,
             submitted_by=self.team,
-            file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, filename),
+            file_format=file_format,
+            hyp_file=os.path.join(TESTDATA_DIR, file_name),
         )
 
-    def test_scores_are_computed_for_a_submission(self):
+    def test_scores_are_computed_for_submission_in_text_format(self):
         """Checks that scores are computed for a submission."""
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
         self._make_submission(_file)
+        sub = Submission.objects.get(name=_file)
+
+        self.assertEqual(round(sub.score, 3), 42.431)
+        self.assertEqual(round(sub.score_chrf, 3), 0.664)
+
+    def test_scores_are_computed_for_submission_in_sgml_format(self):
+        """Checks that scores are computed for a submission."""
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.sgm'
+        self._make_submission(_file, SGML_FILE)
         sub = Submission.objects.get(name=_file)
 
         self.assertEqual(round(sub.score, 3), 42.431)
