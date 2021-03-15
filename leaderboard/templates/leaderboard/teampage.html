@@ -1,6 +1,10 @@
 {% extends "leaderboard/base.html" %}
 {% load static %}
 
+{% block head %}
+  <link rel="stylesheet" href="{% static 'tablesorter/css/theme.bootstrap_4.css' %}">
+{% endblock %}
+
 {% block navbar-teampage %}
     <a class="nav-link active" href="{% url 'teampage-view' %}">Team <span class="sr-only">(current)</span></a>
 {% endblock%}
