@@ -16,7 +16,10 @@ from leaderboard.models import validate_token
 
 
 class PublicationNameForm(forms.Form):
-    """Form used for teampage view.  """
+    """Form used for teampage view.
+
+    Based on forms.Form as we don't want to create a new Team.
+    """
 
     publication_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
