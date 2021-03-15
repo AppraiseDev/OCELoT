@@ -1,6 +1,10 @@
 {% extends "leaderboard/base.html" %}
 {% load static %}
 
+{% block head %}
+  <link rel="stylesheet" href="{% static 'tablesorter/css/theme.bootstrap_4.css' %}">
+{% endblock %}
+
 {% block navbar-teampage %}
     <a class="nav-link active" href="{% url 'teampage-view' %}">Team <span class="sr-only">(current)</span></a>
 {% endblock%}
@@ -76,16 +80,23 @@
         <div>
           <h2>{{ocelot_team_name}} submissions</h2>
           {% if data %}
+            <p class="text-muted">
+              Click on the column header to sort the table. Hold down the
+              <code>Shift</code> key and select a second column to sort by
+              multiple criteria.
+              <br/>
+              BLEU and ChrF are sacreBLEU scores.
+            </p>
             {% for testset, primary, submissions in data %}
             <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
             <div class="table-responsive">
               <table class="table table-striped table-sm">
-                <thead>
+                <thead class="thead-dark">
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>SacreBLEU score</th>
-                    <th>chrF score</th>
+                    <th>BLEU</th>
+                    <th>chrF</th>
                     <th>Date</th>
                   </tr>
                 </thead>
@@ -130,6 +141,18 @@
         <hr>
 
       </div> <!-- /container -->
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'tablesorter/js/jquery.tablesorter.min.js' %}"></script>
+<script>
+  $(document).ready(function(){
+    $("table").tablesorter({
+      theme : "bootstrap",
+      widthFixed: true,
+    });
+  });
+</script>
 {% endblock %}
 
 {% block footer %}
