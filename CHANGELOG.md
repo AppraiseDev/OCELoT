@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Running multiple competitions at the same time with own deadlines
 - Segment-level comparison of two submissions
-- Sorting result tables with jQuery tablesorter 2.0
+- Sorting result tables with jQuery tablesorter 2.0 (MIT license)
 
 ### Fixed
 - Pylint formatter knows about Django after adding the `pylint-django` plugin
