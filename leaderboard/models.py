@@ -11,6 +11,8 @@ from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
+from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import process_xml_to_text
 from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu.sacrebleu import corpus_chrf  # type: ignore
 from sacrebleu.sacrebleu import process_to_text  # type: ignore
@@ -25,12 +27,14 @@ MAX_NAME_LENGTH = 200
 MAX_DESCRIPTION_LENGTH = 2000
 MAX_TOKEN_LENGTH = 10
 
-SGML_FILE = 'SGML'
-TEXT_FILE = 'TEXT'
+SGML_FILE = 'SGML'  # supported extensions: .sgm
+TEXT_FILE = 'TEXT'  # supported extensions: .txt
+XML_FILE = 'XML'  # supported extensions: .xml
 
 FILE_FORMAT_CHOICES = (
     (SGML_FILE, 'SGML format'),
     (TEXT_FILE, 'Text format'),
+    (XML_FILE, 'XML format'),
 )
 
 SGML_XSD_SCHEMA = """<?xml version="1.0"?>
@@ -79,6 +83,10 @@ def validate_sgml_schema(hyp_file):
     if hyp_file.name.endswith('.txt'):
         return  # Skip validation for text format files.
 
+    # TODO: Add XSD Schema for XML format and validate
+    if hyp_file.name.endswith('.xml'):
+        return  # Skip validation for XML format files until the schema is available
+
     schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
 
     try:
@@ -89,6 +97,41 @@ def validate_sgml_schema(hyp_file):
     ) as error:
         _msg = 'SGML file invalid: {0}'.format(error)
         raise ValidationError(_msg)
+
+
+def validate_xml_src_testset(xml_file):
+    """Validate source texts in XML file."""
+    if not xml_file.name.endswith('.xml'):
+        return  # Skip validation for other formats
+
+    src_langs, _, _, _ = analyze_xml_file(xml_file)
+    if len(src_langs) == 0:
+        _msg = 'No source language found in the XML file {0}'.format(
+            xml_file.name
+        )
+        raise ValidationError(_msg)
+    if len(src_langs) > 1:
+        _msg = 'XML files with multiple source languages are not supported'
+        raise ValidationError(_msg)
+
+
+def validate_xml_ref_testset(xml_file):
+    """Validate reference texts in XML file."""
+    if not xml_file.name.endswith('.xml'):
+        return  # Skip validation for other formats
+
+    _, ref_langs, translators, _ = analyze_xml_file(xml_file)
+    if len(ref_langs) == 0 or len(translators) == 0:
+        _msg = 'No reference found in the XML file {0}'.format(
+            xml_file.name
+        )
+        raise ValidationError(_msg)
+    if len(ref_langs) > 1:
+        _msg = (
+            'XML files with multiple reference languages are not supported'
+        )
+        raise ValidationError(_msg)
+        # Note that multiple references for a single language are supported
 
 
 def validate_team_name(value):
@@ -247,22 +290,24 @@ class TestSet(models.Model):
 
     file_format = models.CharField(
         choices=FILE_FORMAT_CHOICES,
-        default=SGML_FILE,
+        default=XML_FILE,
         max_length=4,
     )
 
     src_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='SGML or text file containing test set source',
+        help_text='SGML, XML or text file containing test set source',
         null=True,
+        validators=[validate_xml_src_testset],
     )
 
     ref_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='SGML or text file containing test set reference',
+        help_text='SGML, XML or text file containing test set reference(s)',
         null=True,
+        validators=[validate_xml_ref_testset],
     )
 
     competition = models.ForeignKey(
@@ -292,18 +337,44 @@ class TestSet(models.Model):
 
     def _create_text_files(self):
         """
-        Creates test set text files from SGML files.
+        Creates test set text files from SGML or XML files.
         If files are already in text format, do nothing.
         """
         if self.file_format == TEXT_FILE:
             return
 
-        for sgml_file in (self.ref_file, self.src_file):
-            sgml_path = str(sgml_file.name)
+        elif self.file_format == SGML_FILE:
+            for sgml_file in (self.ref_file, self.src_file):
+                sgml_path = str(sgml_file.name)
+                text_path = sgml_path.replace('.sgm', '.txt')
+                if not Path(text_path).exists():
+                    process_to_text(sgml_path, text_path)
 
-            text_path = sgml_path.replace('.sgm', '.txt')
-            if not Path(text_path).exists():
-                process_to_text(sgml_path, text_path)
+        elif self.file_format == XML_FILE:
+            # Extract source text
+            src_path = str(self.src_file.name)
+            txt_path = src_path.replace('.xml', '.txt')
+
+            if not Path(txt_path).exists():
+                # After validation it's guaranteed that src_langs has only one element
+                src_langs, _, _, _ = analyze_xml_file(src_path)
+                process_xml_to_text(
+                    src_path, txt_path, source=src_langs.pop()
+                )
+
+            # Extract reference texts; multiple references will be tab-separated
+            ref_path = str(self.ref_file.name)
+            # TODO: Consider storing references in separate files?
+            txt_path = ref_path.replace('.xml', '.txt')
+
+            if not Path(txt_path).exists():
+                _, _, translators, _ = analyze_xml_file(ref_path)
+                # Sort to guarantee reproducibility
+                translators = sorted(list(translators))
+                # TODO: support multiple references
+                process_xml_to_text(
+                    ref_path, txt_path, reference=translators[0]
+                )
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set SGML files."""
@@ -313,6 +384,13 @@ class TestSet(models.Model):
             if self.file_format == SGML_FILE:
                 if not current_path.endswith('.sgm'):
                     _msg = 'Invalid SGML file name {0}'.format(
+                        current_path
+                    )
+                    raise ValidationError(_msg)
+
+            elif self.file_format == XML_FILE:
+                if not current_path.endswith('.xml'):
+                    _msg = 'Invalid XML file named {0}'.format(
                         current_path
                     )
                     raise ValidationError(_msg)
@@ -460,6 +538,9 @@ def _get_submission_upload_path(instance, filename):
     if instance.file_format == SGML_FILE:
         file_extension = 'sgm'
 
+    elif instance.file_format == XML_FILE:
+        file_extension = 'xml'
+
     elif instance.file_format == TEXT_FILE:
         file_extension = 'txt'
 
@@ -558,7 +639,7 @@ class Submission(models.Model):
 
     hyp_file = models.FileField(
         upload_to=_get_submission_upload_path,
-        help_text='SGML or text file containing submission output',
+        help_text='SGML, XML or text file containing submission output',
         null=True,
         validators=[validate_sgml_schema],
     )
@@ -625,6 +706,14 @@ class Submission(models.Model):
                         self.hyp_file.name,
                         ref_docids,
                     )
+
+            # The hypothesis file is SGML, but the test set was XML
+            elif self.test_set.file_format == XML_FILE:
+                # TODO: make better
+                raise Exception(
+                    'Hypothesis is SGML, but the test set was XML'
+                )
+
             else:
                 hyp_filtered_path = hyp_path
 
@@ -632,6 +721,18 @@ class Submission(models.Model):
             hyp_text_path = hyp_filtered_path.replace('.sgm', '.txt')
             if not Path(hyp_text_path).exists():
                 process_to_text(hyp_filtered_path, hyp_text_path)
+
+        elif self.file_format == XML_FILE:
+            if self.test_set.file_format == XML_FILE:
+                # TODO: implement
+                pass
+
+            # The hypothesis file is XML, but the test set was SGML
+            elif self.test_set.file_format == SGML_FILE:
+                # TODO: make better
+                raise Exception(
+                    'Hypothesis is XML, but the test set was SGML'
+                )
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
@@ -657,6 +758,11 @@ class Submission(models.Model):
             ref_sgml_path = self.test_set.ref_file.name
             ref_text_path = ref_sgml_path.replace('.sgm', '.txt')
 
+        elif self.test_set.file_format == XML_FILE:
+            # By design, the reference only contains valid docids
+            ref_xml_path = self.test_set.ref_file.name
+            ref_text_path = ref_xml_path.replace('.xml', '.txt')
+
         elif self.test_set.file_format == TEXT_FILE:
             ref_text_path = self.test_set.ref_file.name
 
@@ -671,6 +777,11 @@ class Submission(models.Model):
             # By design, the reference only contains valid docids
             src_sgml_path = self.test_set.src_file.name
             src_text_path = src_sgml_path.replace('.sgm', '.txt')
+
+        elif self.test_set.file_format == XML_FILE:
+            # By design, the reference only contains valid docids
+            src_xml_path = self.test_set.src_file.name
+            src_text_path = src_xml_path.replace('.xml', '.txt')
 
         elif self.test_set.file_format == TEXT_FILE:
             src_text_path = self.test_set.src_file.name
@@ -809,12 +920,17 @@ class Submission(models.Model):
         return self.submitted_by.publication_name or self.submitted_by.name
 
     def full_clean(self, exclude=None, validate_unique=True):
-        """Validates submission SGML or text file."""
+        """Validates submission SGML, XML or text file."""
         hyp_name = str(self.hyp_file.name)
 
         if self.file_format == SGML_FILE:
             if not hyp_name.endswith('.sgm'):
                 _msg = 'Invalid SGML file named {0}'.format(hyp_name)
+                raise ValidationError(_msg)
+
+        elif self.file_format == XML_FILE:
+            if not hyp_name.endswith('.xml'):
+                _msg = 'Invalid XML file named {0}'.format(hyp_name)
                 raise ValidationError(_msg)
 
         elif self.file_format == TEXT_FILE:

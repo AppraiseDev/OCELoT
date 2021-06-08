@@ -4,6 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 import os
 from datetime import datetime
 from datetime import timedelta
+from pathlib import Path
 
 from django.test import TestCase
 from django.utils import timezone
@@ -15,6 +16,7 @@ from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
+from leaderboard.models import XML_FILE
 from ocelot.settings import BASE_DIR
 
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
@@ -293,6 +295,33 @@ class TestSetTests(TestCase):
         self.assertEqual(tst.name, 'TestSetB')
         self.assertTrue(tst.src_file.name.endswith('.txt'))
         self.assertTrue(tst.ref_file.name.endswith('.txt'))
+
+    def test_create_test_set_with_xml_files(self):
+        """Checks that a test set can be created from XML files."""
+
+        TestSet.objects.create(
+            name='TestSetC',
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+        )
+
+        tst = TestSet.objects.get(name='TestSetC')
+        self.assertEqual(tst.name, 'TestSetC')
+        self.assertTrue(tst.src_file.name.endswith('.xml'))
+        self.assertTrue(tst.ref_file.name.endswith('.xml'))
+
+        # Check if text files has been created and are non empty
+        src_txt_file = Path(tst.src_file.name.replace('.xml', '.txt'))
+        ref_txt_file = Path(tst.ref_file.name.replace('.xml', '.txt'))
+        self.assertTrue(src_txt_file.exists())
+        self.assertTrue(ref_txt_file.exists())
+        self.assertTrue(src_txt_file.stat().st_size > 0)
+        self.assertTrue(ref_txt_file.stat().st_size > 0)
+
+        # Clean up created files
+        src_txt_file.unlink()
+        ref_txt_file.unlink()
 
 
 class CompetitionTests(TestCase):
