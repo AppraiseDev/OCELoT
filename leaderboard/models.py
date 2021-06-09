@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import re
 import xml
+import lxml.etree as ET
 from pathlib import Path
 from uuid import uuid4
 
@@ -77,17 +78,124 @@ SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 </xs:schema>
 """
 
+XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"
+         datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="Segment">
+    <element>
+      <name ns="">seg</name>
+      <attribute>
+        <name ns="">id</name>
+        <data type="positiveInteger"/>
+      </attribute>
+      <text/>
+    </element>
+  </define>
+  <define name="Paragraph">
+    <element>
+      <name ns="">p</name>
+      <oneOrMore>
+        <ref name="Segment"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="Source">
+    <element>
+      <name ns="">src</name>
+      <attribute>
+        <name ns="">lang</name>
+        <data type="language"/>
+      </attribute>
+      <optional>
+        <attribute>
+          <name ns="">translator</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
+      <oneOrMore>
+        <ref name="Paragraph"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="Reference">
+    <element>
+      <name ns="">ref</name>
+      <attribute>
+        <name ns="">lang</name>
+        <data type="language"/>
+      </attribute>
+      <optional>
+        <attribute>
+          <name ns="">translator</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
+      <oneOrMore>
+        <ref name="Paragraph"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="System">
+    <element>
+      <name ns="">hyp</name>
+      <attribute>
+        <name ns="">system</name>
+        <data type="string"/>
+      </attribute>
+      <oneOrMore>
+        <ref name="Paragraph"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="Document">
+    <element>
+      <name ns="">doc</name>
+      <attribute>
+        <name ns="">id</name>
+        <data type="string"/>
+      </attribute>
+      <attribute>
+        <name ns="">origlang</name>
+        <data type="language"/>
+      </attribute>
+      <optional>
+        <attribute>
+          <name ns="">testsuite</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
+      <ref name="Source"/>
+      <zeroOrMore>
+        <ref name="Reference"/>
+      </zeroOrMore>
+      <zeroOrMore>
+        <ref name="System"/>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="Dataset">
+    <element>
+      <name ns="">dataset</name>
+      <attribute>
+        <name ns="">id</name>
+        <data type="string"/>
+      </attribute>
+      <oneOrMore>
+        <ref name="Document"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <start>
+    <ref name="Dataset"/>
+  </start>
+</grammar>
+"""
+
 
 def validate_sgml_schema(hyp_file):
     """Validates SGML file based on XSD schema."""
-    if hyp_file.name.endswith('.txt'):
-        return  # Skip validation for text format files.
-
-    # TODO: Add XSD Schema for XML format and validate
-    if hyp_file.name.endswith('.xml'):
-        return  # Skip validation for XML format files until the schema is available
-
-    schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
+    if not hyp_file.name.endswith('.sgm'):
+        return  # Skip validation for other format files.
 
     try:
         schema.validate(hyp_file)
@@ -96,6 +204,32 @@ def validate_sgml_schema(hyp_file):
         xml.etree.ElementTree.ParseError,
     ) as error:
         _msg = 'SGML file invalid: {0}'.format(error)
+        raise ValidationError(_msg)
+
+
+def validate_xml_schema(hyp_file):
+    """Validates XML file based on RNG schema."""
+
+    if not hyp_file.name.endswith('.xml'):
+        return  # Skip validation for other format files.
+
+    is_valid = False
+    try:
+        # Could not make it working with a RNC schema, so using RNG instead.
+        # lxml did not use rnc2rng as described in the documentation:
+        # https://lxml.de/validation.html#relaxng
+        schema = ET.fromstring(XML_RNG_SCHEMA.encode())
+        relaxng = ET.RelaxNG(schema)
+        hyp_doc = ET.parse(hyp_file)
+        is_valid = relaxng.validate(hyp_doc)
+    except Exception as error:
+        _msg = 'XML file error: {0}'.format(error)
+        raise ValidationError(_msg)
+
+    if not is_valid:
+        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema'.format(
+            hyp_file
+        )
         raise ValidationError(_msg)
 
 
@@ -364,16 +498,15 @@ class TestSet(models.Model):
 
             # Extract reference texts; multiple references will be tab-separated
             ref_path = str(self.ref_file.name)
-            # TODO: Consider storing references in separate files?
             txt_path = ref_path.replace('.xml', '.txt')
 
             if not Path(txt_path).exists():
                 _, _, translators, _ = analyze_xml_file(ref_path)
                 # Sort to guarantee reproducibility
-                translators = sorted(list(translators))
-                # TODO: support multiple references
+                # Scores will be computed against the first reference only
+                translator = sorted(list(translators))[0]
                 process_xml_to_text(
-                    ref_path, txt_path, reference=translators[0]
+                    ref_path, txt_path, reference=translator
                 )
 
     def full_clean(self, exclude=None, validate_unique=True):
@@ -641,7 +774,7 @@ class Submission(models.Model):
         upload_to=_get_submission_upload_path,
         help_text='SGML, XML or text file containing submission output',
         null=True,
-        validators=[validate_sgml_schema],
+        validators=[validate_sgml_schema, validate_xml_schema],
     )
 
     test_set = models.ForeignKey(TestSet, on_delete=models.PROTECT)
@@ -719,7 +852,9 @@ class Submission(models.Model):
             if not Path(hyp_text_path).exists():
                 # TODO: skip testsuites
                 _, _, _, sys_name = analyze_xml_file(hyp_path)
-                process_xml_to_text(hyp_path, hyp_text_path, system=sys_name.pop())
+                process_xml_to_text(
+                    hyp_path, hyp_text_path, system=sys_name.pop()
+                )
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path

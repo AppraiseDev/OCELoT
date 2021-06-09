@@ -42,6 +42,7 @@ def process_xml_to_text(
     Multiple references are not supported.
     """
 
+    # TODO: skip testsuites
     if [source, reference, system].count(None) != 2:
         raise ValueError(
             'Only one of source, reference or system must be provided'

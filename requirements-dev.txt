@@ -5,3 +5,4 @@ pylint
 pylint-django
 reorder-python-imports
 safety
+rnc2rng

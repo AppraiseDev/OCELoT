@@ -377,6 +377,12 @@ class XMLSubmissionTests(TestCase):
             hyp_file=os.path.join(TESTDATA_DIR, file_name),
         )
 
+    def _set_ocelot_team_token(self):
+        """Set the team token to be able to render the submission form."""
+        session = self.client.session
+        session['ocelot_team_token'] = self.team.token
+        session.save()
+
     def test_submission_in_text_format_to_xml_testset(self):
         """Checks making a submission in text format to XML testset."""
         _file = 'xml/sample-hyp.ha.txt'
@@ -407,6 +413,22 @@ class XMLSubmissionTests(TestCase):
         # only the first reference is used by design
         self.assertEqual(round(sub.score, 3), 81.141)
         self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+    def test_submission_in_xml_format_with_invalid_schema(self):
+        """Checks that XML file with invalid XML Schema cannot be submitted."""
+        self._set_ocelot_team_token()
+
+        _file = 'xml/sample-hyp.invalid.xml'
+        with open(os.path.join(TESTDATA_DIR, _file)) as xml:
+            data = {
+                'test_set': '1',
+                'file_format': 'XML',
+                'hyp_file': xml,
+            }
+            response = self.client.post('/submit', data, follow=True)
+
+        self.assertContains(response, 'does not validate against the XML Schema')
+        self.assertNotContains(response, 'successfully submitted')
 
 
 class TestSetTests(TestCase):
