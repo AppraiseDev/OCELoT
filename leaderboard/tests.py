@@ -350,19 +350,21 @@ class XMLSubmissionTests(TestCase):
         )
 
     def tearDown(self):
-        self._clean_text_files(self.testset)
-        self._clean_text_files(self.testset_multiref)
+        self._clean_text_file(self.testset.src_file.name, False)
+        self._clean_text_file(self.testset.ref_file.name, False)
+        self._clean_text_file(self.testset_multiref.src_file.name, False)
+        self._clean_text_file(self.testset_multiref.ref_file.name, False)
 
-    def _clean_text_files(self, test_set=None):
-        """Removes temporary text files."""
-        if test_set is None:
-            test_set = self.testset
-        src_path = Path(test_set.src_file.name.replace('.xml', '.txt'))
-        if src_path.exists():
-            src_path.unlink()
-        ref_path = Path(test_set.ref_file.name.replace('.xml', '.txt'))
-        if ref_path.exists():
-            ref_path.unlink()
+    def _clean_text_file(self, input_file, add_test_dir=True):
+        """Removes a temporary text file."""
+        _file = (
+            os.path.join(TESTDATA_DIR, input_file)
+            if add_test_dir
+            else input_file
+        )
+        input_path = Path(_file.replace('.xml', '.txt'))
+        if input_path.exists():
+            input_path.unlink()
 
     def _make_submission(
         self, file_name, file_format=TEXT_FILE, test_set=None
@@ -401,6 +403,8 @@ class XMLSubmissionTests(TestCase):
         self.assertEqual(round(sub.score, 3), 81.141)
         self.assertEqual(round(sub.score_chrf, 3), 0.892)
 
+        self._clean_text_file(_file)
+
     def test_submission_in_xml_format_to_xml_multiref_testset(self):
         """Checks making a submission in XML format to XML testset with multiple references."""
         _file = 'xml/sample-hyp.xml'
@@ -413,6 +417,20 @@ class XMLSubmissionTests(TestCase):
         # only the first reference is used by design
         self.assertEqual(round(sub.score, 3), 81.141)
         self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+        self._clean_text_file(_file)
+
+    def test_submission_in_xml_format_with_testsuite(self):
+        """Checks making a submission in XML format with testsuites."""
+        _file = 'xml/sample-hyp.testsuite.xml'
+        self._make_submission(_file, file_format=XML_FILE)
+        sub = Submission.objects.get(name=_file)
+
+        # Scores should be identical to a single-reference test set
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+        self._clean_text_file(_file)
 
     def test_submission_in_xml_format_with_invalid_schema(self):
         """Checks that XML file with invalid XML Schema cannot be submitted."""
@@ -427,8 +445,12 @@ class XMLSubmissionTests(TestCase):
             }
             response = self.client.post('/submit', data, follow=True)
 
-        self.assertContains(response, 'does not validate against the XML Schema')
+        self.assertContains(
+            response, 'does not validate against the XML Schema'
+        )
         self.assertNotContains(response, 'successfully submitted')
+
+        self._clean_text_file(_file)
 
 
 class TestSetTests(TestCase):

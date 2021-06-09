@@ -39,10 +39,10 @@ def process_xml_to_text(
 ):
     """
     Extract source, reference(s) or system texts from the XML file.
+    Segments from test suites are ignored.
     Multiple references are not supported.
     """
 
-    # TODO: skip testsuites
     if [source, reference, system].count(None) != 2:
         raise ValueError(
             'Only one of source, reference or system must be provided'
@@ -53,6 +53,9 @@ def process_xml_to_text(
     out_sents = []
 
     for doc in tree.getroot().findall(".//doc"):
+        if 'testsuite' in doc.attrib:   # Skip testsuites
+            continue
+
         src_sents = {
             int(seg.get("id")): seg.text
             for seg in doc.findall(".//src//seg")
