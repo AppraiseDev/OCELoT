@@ -3,22 +3,22 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import re
 import xml
-import lxml.etree as ET
 from pathlib import Path
 from uuid import uuid4
 
+import lxml.etree as ET
 import xmlschema
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
-from leaderboard.utils import analyze_xml_file
-from leaderboard.utils import process_xml_to_text
 from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu.sacrebleu import corpus_chrf  # type: ignore
 from sacrebleu.sacrebleu import process_to_text  # type: ignore
 from sacrebleu.sacrebleu import TOKENIZERS
 
+from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import process_xml_to_text
 
 # Add support for character-based BLEU scores
 TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
@@ -850,7 +850,6 @@ class Submission(models.Model):
         elif self.file_format == XML_FILE:
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
-                # TODO: skip testsuites
                 _, _, _, sys_name = analyze_xml_file(hyp_path)
                 process_xml_to_text(
                     hyp_path, hyp_text_path, system=sys_name.pop()

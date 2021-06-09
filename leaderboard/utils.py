@@ -1,7 +1,6 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
-
 import lxml.etree as ET
 
 
@@ -53,7 +52,7 @@ def process_xml_to_text(
     out_sents = []
 
     for doc in tree.getroot().findall(".//doc"):
-        if 'testsuite' in doc.attrib:   # Skip testsuites
+        if 'testsuite' in doc.attrib:  # Skip testsuites
             continue
 
         src_sents = {
