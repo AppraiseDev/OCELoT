@@ -17,9 +17,31 @@ from leaderboard.models import Team
 from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
 from leaderboard.models import XML_FILE
+from leaderboard.utils import analyze_xml_file
 from ocelot.settings import BASE_DIR
 
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
+
+
+class UtilsTests(TestCase):
+    """Tests for utils."""
+
+    def test_analyze_xml_file_with_testset(self):
+        """Checks if source and reference can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-src-ref.xml'
+        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(ref_langs, set(['ha']))
+        self.assertSetEqual(translators, set(['A']))
+
+    def test_analyze_xml_file_with_hypothesis(self):
+        """Checks if systems can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
+        src_langs, _, _, systems = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(systems, set(['test-team']))
 
 
 class SubmissionTests(TestCase):

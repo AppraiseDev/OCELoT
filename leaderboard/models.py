@@ -881,6 +881,7 @@ class Submission(models.Model):
 
         except EOFError:
             # Don't set score to None, as that would trigger infinite loop
+            # TODO: this should provide an error message to the user
             self.score = -1
             self.score_chrf = None
 

@@ -22,7 +22,11 @@ def analyze_xml_file(xml_path):
         if translator:
             translators.add(translator)
 
-    # TODO: extract systems
+    for hyp_doc in tree.getroot().findall(".//hyp"):
+        # hyp_langs.add(hyp_doc.get("lang"))  # Not used in the XML format?
+        system = hyp_doc.get("system")
+        if system:
+            systems.add(system)
 
     return src_langs, ref_langs, translators, systems
 
