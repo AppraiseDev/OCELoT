@@ -18,6 +18,8 @@ from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
 from leaderboard.models import XML_FILE
 from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import MISSING_TRANSLATION_MESSAGE
+from leaderboard.utils import process_xml_to_text
 from ocelot.settings import BASE_DIR
 
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
@@ -25,6 +27,11 @@ TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
 
 class UtilsTests(TestCase):
     """Tests for utils."""
+
+    def tearDown(self):
+        txt_path = Path(TESTDATA_DIR + '/xml/sample-hyp.xml.temp.txt')
+        if txt_path.exists():
+            txt_path.unlink()
 
     def test_analyze_xml_file_with_testset(self):
         """Checks if source and reference can be found in XML format."""
@@ -42,6 +49,16 @@ class UtilsTests(TestCase):
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))
+
+    def test_process_xml_to_text_with_hypothesis(self):
+        """Checks if system segments can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(xml_path, txt_path, system='test-team')
+
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        self.assertTrue(txt_file.stat().st_size > 0)
 
 
 class SubmissionTests(TestCase):
@@ -276,6 +293,80 @@ class SubmissionTests(TestCase):
         response = self.client.get('/leaderboard/{0}'.format(comp.id))
         self.assertContains(response, _file)
         self.assertNotContains(response, 'Anonymous submission #')
+
+
+class XMLSubmissionTests(TestCase):
+    """Tests Submission model."""
+
+    def setUp(self):
+        Language.objects.create(code='en', name='English')
+        Language.objects.create(code='ha', name='Hausa')
+
+        _next_year = datetime.now().year + 1
+        self.competition = Competition.objects.create(
+            is_active=True,
+            name='CompetitionB',
+            description='Description of the competition B',
+            deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
+        )
+
+        self.testset = TestSet.objects.create(
+            is_active=True,
+            name='TestSetB',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=XML_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'xml/sample-src.xml'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'xml/sample-src-ref.xml'
+            ),
+            competition=self.competition,
+        )
+
+        self.team = Team.objects.create(
+            is_active=True,
+            name='Team B',
+            email='team-b@email.com',
+        )
+
+    def tearDown(self):
+        src_path = Path(self.testset.src_file.name.replace('.xml', '.txt'))
+        if src_path.exists():
+            src_path.unlink()
+        ref_path = Path(self.testset.ref_file.name.replace('.xml', '.txt'))
+        if ref_path.exists():
+            ref_path.unlink()
+
+    def _make_submission(self, file_name, file_format=TEXT_FILE):
+        """Makes a submission."""
+        return Submission.objects.create(
+            name=file_name,
+            original_name=file_name,
+            test_set=self.testset,
+            submitted_by=self.team,
+            file_format=file_format,
+            hyp_file=os.path.join(TESTDATA_DIR, file_name),
+        )
+
+    def test_submission_in_text_format_to_xml_testset(self):
+        """Checks making a submission in text format to XML testset."""
+        _file = 'xml/sample-hyp.ha.txt'
+        self._make_submission(_file)
+        sub = Submission.objects.get(name=_file)
+
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+    def test_submission_in_xml_format_to_xml_testset(self):
+        """Checks making a submission in XML format to XML testset."""
+        _file = 'xml/sample-hyp.xml'
+        self._make_submission(_file, file_format=XML_FILE)
+        sub = Submission.objects.get(name=_file)
+
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
 
 
 class TestSetTests(TestCase):

@@ -5,6 +5,9 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 import lxml.etree as ET
 
 
+MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
+
+
 def analyze_xml_file(xml_path):
     """
     Return all source languages, reference languages, translators, and systems found in the XML file.
@@ -36,15 +39,12 @@ def process_xml_to_text(
 ):
     """
     Extract source, reference(s) or system texts from the XML file.
-    Multiple references will be separated by a tab.
+    Multiple references are delimited by a tab character.
     """
-
-    MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
 
     # TODO: ignore test suites
     # TODO: check if only one is requested: source or ref or sys
     # TODO: support multiple references
-    # TODO: support systems
 
     tree = ET.parse(xml_path)
     src_sents, ref_sents, sys_sents = [], [], []
@@ -70,8 +70,16 @@ def process_xml_to_text(
             )
 
         if system:
-            raise NotImplementedError(
-                'Extracting system translation from XML is not implemented yet'
+            hyp_docs = doc.findall(".//hyp")
+            sys_to_hyp = {hyp.get("system"): hyp for hyp in hyp_docs}
+            hyp_doc = sys_to_hyp.get(system, None)
+            hyp_sents = (
+                {
+                    int(seg.get("id")): seg.text
+                    for seg in hyp_doc.findall(f".//seg")
+                }
+                if hyp_doc is not None
+                else {}
             )
 
         for seg_id in sorted(src_sents.keys()):
@@ -83,7 +91,10 @@ def process_xml_to_text(
                 )
                 out_sents.append(ref_sent)
             elif system:
-                pass
+                hyp_sent = hyp_sents.get(
+                    seg_id, MISSING_TRANSLATION_MESSAGE
+                )
+                out_sents.append(hyp_sent)
 
     with open(txt_path, 'w') as txt_file:
         for sent in out_sents:

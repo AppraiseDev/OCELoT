@@ -706,14 +706,6 @@ class Submission(models.Model):
                         self.hyp_file.name,
                         ref_docids,
                     )
-
-            # The hypothesis file is SGML, but the test set was XML
-            elif self.test_set.file_format == XML_FILE:
-                # TODO: make better
-                raise Exception(
-                    'Hypothesis is SGML, but the test set was XML'
-                )
-
             else:
                 hyp_filtered_path = hyp_path
 
@@ -723,16 +715,11 @@ class Submission(models.Model):
                 process_to_text(hyp_filtered_path, hyp_text_path)
 
         elif self.file_format == XML_FILE:
-            if self.test_set.file_format == XML_FILE:
-                # TODO: implement
-                pass
-
-            # The hypothesis file is XML, but the test set was SGML
-            elif self.test_set.file_format == SGML_FILE:
-                # TODO: make better
-                raise Exception(
-                    'Hypothesis is XML, but the test set was SGML'
-                )
+            hyp_text_path = hyp_path.replace('.xml', '.txt')
+            if not Path(hyp_text_path).exists():
+                # TODO: skip testsuites
+                _, _, _, sys_name = analyze_xml_file(hyp_path)
+                process_xml_to_text(hyp_path, hyp_text_path, system=sys_name.pop())
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
@@ -867,14 +854,11 @@ class Submission(models.Model):
         ref_text_path = self.get_ref_text(path_only=True)
 
         try:
-            hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
-            ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
+            hyp_stream = [x for x in open(hyp_text_path, encoding='utf-8')]
+            ref_stream = [r for r in open(ref_text_path, encoding='utf-8')]
 
             bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
             self.score = bleu.score
-
-            hyp_stream = (x for x in open(hyp_text_path, encoding='utf-8'))
-            ref_stream = (r for r in open(ref_text_path, encoding='utf-8'))
 
             chrf = corpus_chrf(hyp_stream, ref_stream)
             self.score_chrf = chrf.score
