@@ -39,12 +39,13 @@ def process_xml_to_text(
 ):
     """
     Extract source, reference(s) or system texts from the XML file.
-    Multiple references are delimited by a tab character.
+    Multiple references are not supported.
     """
 
-    # TODO: ignore test suites
-    # TODO: check if only one is requested: source or ref or sys
-    # TODO: support multiple references
+    if [source, reference, system].count(None) != 2:
+        raise ValueError(
+            'Only one of source, reference or system must be provided'
+        )
 
     tree = ET.parse(xml_path)
     src_sents, ref_sents, sys_sents = [], [], []

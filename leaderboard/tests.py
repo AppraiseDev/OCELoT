@@ -42,6 +42,15 @@ class UtilsTests(TestCase):
         self.assertSetEqual(ref_langs, set(['ha']))
         self.assertSetEqual(translators, set(['A']))
 
+    def test_analyze_xml_file_with_multi_reference_testset(self):
+        """Checks if multiple references can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-src-multirefs.xml'
+        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(ref_langs, set(['ha']))
+        self.assertSetEqual(translators, set(['A', 'B']))
+
     def test_analyze_xml_file_with_hypothesis(self):
         """Checks if systems can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
@@ -316,11 +325,20 @@ class XMLSubmissionTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='ha'),
             file_format=XML_FILE,
-            src_file=os.path.join(
-                TESTDATA_DIR, 'xml/sample-src.xml'
-            ),
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+            competition=self.competition,
+        )
+
+        self.testset_multiref = TestSet.objects.create(
+            is_active=True,
+            name='TestSetMultiRefs',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
             ref_file=os.path.join(
-                TESTDATA_DIR, 'xml/sample-src-ref.xml'
+                TESTDATA_DIR, 'xml/sample-src-multirefs.xml'
             ),
             competition=self.competition,
         )
@@ -332,19 +350,28 @@ class XMLSubmissionTests(TestCase):
         )
 
     def tearDown(self):
-        src_path = Path(self.testset.src_file.name.replace('.xml', '.txt'))
+        self._clean_text_files(self.testset)
+        self._clean_text_files(self.testset_multiref)
+
+    def _clean_text_files(self, test_set=None):
+        """Removes temporary text files."""
+        if test_set is None:
+            test_set = self.testset
+        src_path = Path(test_set.src_file.name.replace('.xml', '.txt'))
         if src_path.exists():
             src_path.unlink()
-        ref_path = Path(self.testset.ref_file.name.replace('.xml', '.txt'))
+        ref_path = Path(test_set.ref_file.name.replace('.xml', '.txt'))
         if ref_path.exists():
             ref_path.unlink()
 
-    def _make_submission(self, file_name, file_format=TEXT_FILE):
+    def _make_submission(
+        self, file_name, file_format=TEXT_FILE, test_set=None
+    ):
         """Makes a submission."""
         return Submission.objects.create(
             name=file_name,
             original_name=file_name,
-            test_set=self.testset,
+            test_set=test_set or self.testset,
             submitted_by=self.team,
             file_format=file_format,
             hyp_file=os.path.join(TESTDATA_DIR, file_name),
@@ -365,6 +392,19 @@ class XMLSubmissionTests(TestCase):
         self._make_submission(_file, file_format=XML_FILE)
         sub = Submission.objects.get(name=_file)
 
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+    def test_submission_in_xml_format_to_xml_multiref_testset(self):
+        """Checks making a submission in XML format to XML testset with multiple references."""
+        _file = 'xml/sample-hyp.xml'
+        self._make_submission(
+            _file, file_format=XML_FILE, test_set=self.testset_multiref
+        )
+        sub = Submission.objects.get(name=_file)
+
+        # Scores should be identical to a single-reference test set because
+        # only the first reference is used by design
         self.assertEqual(round(sub.score, 3), 81.141)
         self.assertEqual(round(sub.score_chrf, 3), 0.892)
 
