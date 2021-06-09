@@ -1,5 +1,6 @@
 -r requirements.txt
 black
+lxml-stubs
 mypy
 pylint
 pylint-django
