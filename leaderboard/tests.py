@@ -4,6 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 import os
 from datetime import datetime
 from datetime import timedelta
+from pathlib import Path
 
 from django.test import TestCase
 from django.utils import timezone
@@ -15,9 +16,58 @@ from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
+from leaderboard.models import XML_FILE
+from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import MISSING_TRANSLATION_MESSAGE
+from leaderboard.utils import process_xml_to_text
 from ocelot.settings import BASE_DIR
 
 TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
+
+
+class UtilsTests(TestCase):
+    """Tests for utils."""
+
+    def tearDown(self):
+        txt_path = Path(TESTDATA_DIR + '/xml/sample-hyp.xml.temp.txt')
+        if txt_path.exists():
+            txt_path.unlink()
+
+    def test_analyze_xml_file_with_testset(self):
+        """Checks if source and reference can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-src-ref.xml'
+        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(ref_langs, set(['ha']))
+        self.assertSetEqual(translators, set(['A']))
+
+    def test_analyze_xml_file_with_multi_reference_testset(self):
+        """Checks if multiple references can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-src-multirefs.xml'
+        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(ref_langs, set(['ha']))
+        self.assertSetEqual(translators, set(['A', 'B']))
+
+    def test_analyze_xml_file_with_hypothesis(self):
+        """Checks if systems can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
+        src_langs, _, _, systems = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(src_langs, set(['en']))
+        self.assertSetEqual(systems, set(['test-team']))
+
+    def test_process_xml_to_text_with_hypothesis(self):
+        """Checks if system segments can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(xml_path, txt_path, system='test-team')
+
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        self.assertTrue(txt_file.stat().st_size > 0)
 
 
 class SubmissionTests(TestCase):
@@ -254,6 +304,155 @@ class SubmissionTests(TestCase):
         self.assertNotContains(response, 'Anonymous submission #')
 
 
+class XMLSubmissionTests(TestCase):
+    """Tests Submission model."""
+
+    def setUp(self):
+        Language.objects.create(code='en', name='English')
+        Language.objects.create(code='ha', name='Hausa')
+
+        _next_year = datetime.now().year + 1
+        self.competition = Competition.objects.create(
+            is_active=True,
+            name='CompetitionB',
+            description='Description of the competition B',
+            deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
+        )
+
+        self.testset = TestSet.objects.create(
+            is_active=True,
+            name='TestSetB',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+            competition=self.competition,
+        )
+
+        self.testset_multiref = TestSet.objects.create(
+            is_active=True,
+            name='TestSetMultiRefs',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'xml/sample-src-multirefs.xml'
+            ),
+            competition=self.competition,
+        )
+
+        self.team = Team.objects.create(
+            is_active=True,
+            name='Team B',
+            email='team-b@email.com',
+        )
+
+    def tearDown(self):
+        self._clean_text_file(self.testset.src_file.name, False)
+        self._clean_text_file(self.testset.ref_file.name, False)
+        self._clean_text_file(self.testset_multiref.src_file.name, False)
+        self._clean_text_file(self.testset_multiref.ref_file.name, False)
+
+    def _clean_text_file(self, input_file, add_test_dir=True):
+        """Removes a temporary text file."""
+        _file = (
+            os.path.join(TESTDATA_DIR, input_file)
+            if add_test_dir
+            else input_file
+        )
+        input_path = Path(_file.replace('.xml', '.txt'))
+        if input_path.exists():
+            input_path.unlink()
+
+    def _make_submission(
+        self, file_name, file_format=TEXT_FILE, test_set=None
+    ):
+        """Makes a submission."""
+        return Submission.objects.create(
+            name=file_name,
+            original_name=file_name,
+            test_set=test_set or self.testset,
+            submitted_by=self.team,
+            file_format=file_format,
+            hyp_file=os.path.join(TESTDATA_DIR, file_name),
+        )
+
+    def _set_ocelot_team_token(self):
+        """Set the team token to be able to render the submission form."""
+        session = self.client.session
+        session['ocelot_team_token'] = self.team.token
+        session.save()
+
+    def test_submission_in_text_format_to_xml_testset(self):
+        """Checks making a submission in text format to XML testset."""
+        _file = 'xml/sample-hyp.ha.txt'
+        self._make_submission(_file)
+        sub = Submission.objects.get(name=_file)
+
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+    def test_submission_in_xml_format_to_xml_testset(self):
+        """Checks making a submission in XML format to XML testset."""
+        _file = 'xml/sample-hyp.xml'
+        self._make_submission(_file, file_format=XML_FILE)
+        sub = Submission.objects.get(name=_file)
+
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+        self._clean_text_file(_file)
+
+    def test_submission_in_xml_format_to_xml_multiref_testset(self):
+        """Checks making a submission in XML format to XML testset with multiple references."""
+        _file = 'xml/sample-hyp.xml'
+        self._make_submission(
+            _file, file_format=XML_FILE, test_set=self.testset_multiref
+        )
+        sub = Submission.objects.get(name=_file)
+
+        # Scores should be identical to a single-reference test set because
+        # only the first reference is used by design
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+        self._clean_text_file(_file)
+
+    def test_submission_in_xml_format_with_testsuite(self):
+        """Checks making a submission in XML format with testsuites."""
+        _file = 'xml/sample-hyp.testsuite.xml'
+        self._make_submission(_file, file_format=XML_FILE)
+        sub = Submission.objects.get(name=_file)
+
+        # Scores should be identical to a single-reference test set
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+
+        self._clean_text_file(_file)
+
+    def test_submission_in_xml_format_with_invalid_schema(self):
+        """Checks that XML file with invalid XML Schema cannot be submitted."""
+        self._set_ocelot_team_token()
+
+        _file = 'xml/sample-hyp.invalid.xml'
+        with open(os.path.join(TESTDATA_DIR, _file)) as xml:
+            data = {
+                'test_set': '1',
+                'file_format': 'XML',
+                'hyp_file': xml,
+            }
+            response = self.client.post('/submit', data, follow=True)
+
+        self.assertContains(
+            response, 'does not validate against the XML Schema'
+        )
+        self.assertNotContains(response, 'successfully submitted')
+
+        self._clean_text_file(_file)
+
+
 class TestSetTests(TestCase):
     """Tests TestSet model."""
 
@@ -293,6 +492,33 @@ class TestSetTests(TestCase):
         self.assertEqual(tst.name, 'TestSetB')
         self.assertTrue(tst.src_file.name.endswith('.txt'))
         self.assertTrue(tst.ref_file.name.endswith('.txt'))
+
+    def test_create_test_set_with_xml_files(self):
+        """Checks that a test set can be created from XML files."""
+
+        TestSet.objects.create(
+            name='TestSetC',
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+        )
+
+        tst = TestSet.objects.get(name='TestSetC')
+        self.assertEqual(tst.name, 'TestSetC')
+        self.assertTrue(tst.src_file.name.endswith('.xml'))
+        self.assertTrue(tst.ref_file.name.endswith('.xml'))
+
+        # Check if text files has been created and are non empty
+        src_txt_file = Path(tst.src_file.name.replace('.xml', '.txt'))
+        ref_txt_file = Path(tst.ref_file.name.replace('.xml', '.txt'))
+        self.assertTrue(src_txt_file.exists())
+        self.assertTrue(ref_txt_file.exists())
+        self.assertTrue(src_txt_file.stat().st_size > 0)
+        self.assertTrue(ref_txt_file.stat().st_size > 0)
+
+        # Clean up created files
+        src_txt_file.unlink()
+        ref_txt_file.unlink()
 
 
 class CompetitionTests(TestCase):
