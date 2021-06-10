@@ -19,6 +19,7 @@ from leaderboard.models import Competition
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
+from leaderboard.models import XML_FILE
 
 
 MAX_SUBMISSION_DISPLAY_COUNT = 10
@@ -294,7 +295,8 @@ def submit(request):
             pass
 
     else:
-        form = SubmissionForm()
+        # Set the default file format without modifying the Submission model
+        form = SubmissionForm(initial={'file_format': XML_FILE})
 
     context = {
         'form': form,
