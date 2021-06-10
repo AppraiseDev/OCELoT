@@ -11,14 +11,12 @@
       <strong>E</strong>valuation <strong>L</strong>eaderboard
       <strong>o</strong>f <strong>T</strong>ranslations.
       This project started as part of the
-      <a href="http://statmt.org/mtma19/">Fifth Machine Translation Marathon in the Americas</a>,
-      hosted at UMD, College Park, MD, from May 28&ndash;June 1, 2019.  Project
-      OCELoT aims to create an open platform for competitive evaluation of
-      machine translation output, based on both automatic metrics and human
-      evalation. Code is available from
-      <a href="https://github.com/cfedermann/OCELoT/">GitHub</a>
-      and shared under an
-      <a href="https://github.com/cfedermann/OCELoT/blob/master/LICENSE">open license</a>.
+      <a href="http://statmt.org/mtma19/">Fifth Machine Translation Marathon in the Americas</a>.
+      Project OCELoT aims to create an open platform for competitive evaluation of machine
+      translation output, based on both automatic metrics and human evalation. It has been used for
+      several shared tasks, including the WMT20 News Task. Code is available from
+      <a href="https://github.com/AppraiseDev/OCELoT/">GitHub</a> and shared under an
+      <a href="https://github.com/AppraiseDev/OCELoT/blob/master/LICENSE">open license</a>.
     </p>
 {% endblock %}
 
@@ -26,7 +24,7 @@
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'wmt21-test-src.tgz' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>

@@ -9,7 +9,7 @@
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'wmt21-test-src.tgz' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
@@ -27,13 +27,7 @@
         <h2>Competition updates</h2>
         <p>
           <ul>
-            <li><em>7/17/2020:</em> deadline for the WMT20 robustness task has been extended until July 20th, anywhere on Earth.</li>
-            <li><em>7/16/2020:</em> submission is (finally) now open for the WMT20 robustness task, enjoy!</li>
-            <li><em>7/09/2020:</em> finalising list of primary submissions for the news task. Also preparing for submissions to the <a href="http://statmt.org/wmt20/robustness.html">robustness task</a>, to run from July 10&mdash;17.</li>
-            <li><em>6/25/2020:</em> changed SacreBLEU computation for Khmer (<code>'char-based'</code> tokeniser) target language. Also added chrF computation to give you more data points for your primary submission selection. Submissions remain ordered by decreasing SacreBLEU score.</li>
-            <li><em>6/24/2020:</em> changed SacreBLEU computation for Chinese (<code>'zh'</code> tokeniser) and Japanese (<code>'char-based'</code> tokeniser) target languages. Score <code>-1.0</code> used for any submissions with invalid SGML files. If your system shows as <code>-1.0</code>, please check your SGML file and avoid any <code><, >, &</code> or other HTML entities within your <code>&lt;seg/&gt;</code> segments.</li>
-            <li><em>6/23/2020:</em> submission is now open and competition updates have been added to the OCELoT website. 48 teams have signed up so far.</li>
-            <li><em>6/22/2020:</em> team registration is online and newstest2020 test set source data has been released.</li>
+            <li><em>10/6/2021:</em> Team registration is online and newstest2021 test set source data has been released.</li>
           </ul>
         </p>
 
@@ -45,13 +39,13 @@
             <li>Each team may upload <strong>up to {{ MAX_SUBMISSION_LIMIT }} submissions per language pair</strong>, without any time contraints between such uploads;</li>
             <li>Each team may choose <strong>exactly one primary submission</strong> to be included in the human evaluation campaign;</li>
             <li>If you fail to designate your primary submission, your <strong>highest-scoring submission will be the default</strong>;</li>
+            <li>Each team will contribute to human evaluation: 10 hours per primary submission;</li>
             <li>We request that you do not create multiple teams to game these submission rules &mdash; we trust and thank you!</li>
           </ul>
         </p>
 
-    
         <hr>
-    
+
       </div> <!-- /container -->
 {% endblock %}
 
