@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment-level comparison of two submissions
 - Sorting result tables with jQuery tablesorter 2.0 (MIT license)
 - Support for new XML format
+- Changed descriptions, updates and links for WMT21
 
 ### Fixed
 - Pylint formatter knows about Django after adding the `pylint-django` plugin
