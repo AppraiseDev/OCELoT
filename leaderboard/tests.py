@@ -102,6 +102,7 @@ class SubmissionTests(TestCase):
 
         self.team = Team.objects.create(
             is_active=True,
+            is_verified=True,
             name='Team A',
             email='team-a@email.com',
         )
@@ -208,6 +209,23 @@ class SubmissionTests(TestCase):
             response = self.client.post('/submit', data, follow=True)
         self.assertContains(response, 'successfully submitted')
         self.assertNotContains(response, 'submission has closed')
+
+    def test_submission_cannot_be_made_by_unverified_team(self):
+        """Checks that a submission cannot be made by an unverfied team."""
+        self._set_ocelot_team_token()
+        self.team.is_verified = False
+        self.team.save()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        with open(os.path.join(TESTDATA_DIR, _file)) as tst:
+            data = {
+                'test_set': '1',
+                'file_format': 'TEXT',
+                'hyp_file': tst,
+            }
+            response = self.client.post('/submit', data, follow=True)
+        self.assertContains(response, 'has not been verified')
+        self.assertNotContains(response, 'successfully submitted')
 
     def test_submission_is_anonymous(self):
         """Checks that a submission is anonymous by default."""

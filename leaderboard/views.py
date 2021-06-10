@@ -264,6 +264,16 @@ def submit(request):
                 messages.warning(request, _msg)
                 return HttpResponseRedirect('/')
 
+            if not current_team.is_verified:
+                _msg = (
+                    'The team account {0} has not been verified. '
+                    'Please contact us providing your institution(s) name.'.format(
+                        current_team
+                    )
+                )
+                messages.warning(request, _msg)
+                return HttpResponseRedirect('/')
+
             # Check if the number of submissions for this team and test set
             # does not exceed the limit
             number_of_submissions = Submission.objects.filter(
