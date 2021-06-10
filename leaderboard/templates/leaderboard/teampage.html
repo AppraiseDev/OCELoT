@@ -13,7 +13,7 @@
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="{% static 'robustness20-test-src.tgz' %}">Download test sets</a>
+            <a class="btn btn-danger btn-sm" role="button" href="{% static 'wmt21-test-src.tgz' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a style="font-weight: bold;" class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
@@ -31,7 +31,7 @@
           <h2>Final submissions</h2>
           <h4>Publication name</h4>
           <p class="form-text">
-            Please think about how you want your team to be named in the WMT20
+            Please think about how you want your team to be named in the
             overview paper. This should identify your affiliation so
             <code>ACME</code> is better than <code>johndoe</code>. If you do
             not set this, your team name <code>{{ ocelot_team_name }}</code>
