@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Pylint formatter knows about Django after adding the `pylint-django` plugin
+- Show an error message for submissions in XML format with no system translations
 
 ### Changed
 - Updated requirements to Django 3

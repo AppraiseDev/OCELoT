@@ -44,7 +44,7 @@ def process_xml_to_text(
 
     if [source, reference, system].count(None) != 2:
         raise ValueError(
-            'Only one of source, reference or system must be provided'
+            'Exactly one of source, reference or system must be provided'
         )
 
     tree = ET.parse(xml_path)

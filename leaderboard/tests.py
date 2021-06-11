@@ -470,6 +470,33 @@ class XMLSubmissionTests(TestCase):
 
         self._clean_text_file(_file)
 
+    def test_submission_in_xml_format_must_have_systems(self):
+        """Checks that submissions in XML format without system translations are not allowed."""
+        self._set_ocelot_team_token()
+
+        # Create a copied temp file for testing to avoid reading an
+        # automatically created '.txt' from the sample-src.xml
+        src_file = 'xml/sample-src.xml'
+        hyp_file = src_file.replace('-src.xml', '-hyp-no-systems.xml')
+        src_path = Path(TESTDATA_DIR) / src_file
+        hyp_path = Path(TESTDATA_DIR) / hyp_file
+
+        # Copy file
+        hyp_path.write_text(src_path.read_text())
+
+        with open(hyp_path) as xml:
+            data = {
+                'test_set': '1',
+                'file_format': 'XML',
+                'hyp_file': xml,
+            }
+            response = self.client.post('/submit', data, follow=True)
+
+        self.assertContains(response, 'No system found')
+        self.assertNotContains(response, 'successfully submitted')
+
+        self._clean_text_file(hyp_file)
+
 
 class TestSetTests(TestCase):
     """Tests TestSet model."""
