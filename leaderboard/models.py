@@ -94,9 +94,9 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
   <define name="Paragraph">
     <element>
       <name ns="">p</name>
-      <oneOrMore>
+      <zeroOrMore>
         <ref name="Segment"/>
-      </oneOrMore>
+      </zeroOrMore>
     </element>
   </define>
   <define name="Source">
