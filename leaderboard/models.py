@@ -207,32 +207,6 @@ def validate_sgml_schema(hyp_file):
         raise ValidationError(_msg)
 
 
-def validate_xml_schema(hyp_file):
-    """Validates XML file based on RNG schema."""
-
-    if not hyp_file.name.endswith('.xml'):
-        return  # Skip validation for other format files.
-
-    is_valid = False
-    try:
-        # Could not make it working with a RNC schema, so using RNG instead.
-        # lxml did not use rnc2rng as described in the documentation:
-        # https://lxml.de/validation.html#relaxng
-        schema = ET.fromstring(XML_RNG_SCHEMA.encode())
-        relaxng = ET.RelaxNG(schema)
-        hyp_doc = ET.parse(hyp_file)
-        is_valid = relaxng.validate(hyp_doc)
-    except Exception as error:
-        _msg = 'XML file error: {0}'.format(error)
-        raise ValidationError(_msg)
-
-    if not is_valid:
-        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema'.format(
-            hyp_file
-        )
-        raise ValidationError(_msg)
-
-
 def validate_xml_src_testset(xml_file):
     """Validate source texts in XML file."""
     if not xml_file.name.endswith('.xml'):
@@ -266,6 +240,50 @@ def validate_xml_ref_testset(xml_file):
         )
         raise ValidationError(_msg)
         # Note that multiple references for a single language are supported
+
+
+def validate_xml_submission(xml_file):
+    """Validate submissions in XML format."""
+    if not xml_file.name.endswith('.xml'):
+        return  # Skip validation for other formats
+
+    validate_xml_schema(xml_file)
+    xml_file.seek(0)  # To be able to read() again
+
+    # Check if the submission has some translations from one system only
+    _, _, _, systems = analyze_xml_file(xml_file)
+    if len(systems) == 0:
+        _msg = 'No system found in the XML file {0}'.format(xml_file.name)
+        raise ValidationError(_msg)
+    if len(systems) > 1:
+        _msg = 'XML files with multiple systems are not supported'
+        raise ValidationError(_msg)
+
+
+def validate_xml_schema(xml_file):
+    """Validates XML file based on RNG schema."""
+
+    if not xml_file.name.endswith('.xml'):
+        return  # Skip validation for other format files.
+
+    is_valid = False
+    try:
+        # Could not make it working with a RNC schema, so using RNG instead.
+        # lxml did not use rnc2rng as described in the documentation:
+        # https://lxml.de/validation.html#relaxng
+        schema = ET.fromstring(XML_RNG_SCHEMA.encode())
+        relaxng = ET.RelaxNG(schema)
+        hyp_doc = ET.parse(xml_file)
+        is_valid = relaxng.validate(hyp_doc)
+    except Exception as error:
+        _msg = 'XML file invalid: {0}'.format(error)
+        raise ValidationError(_msg)
+
+    if not is_valid:
+        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema'.format(
+            xml_file
+        )
+        raise ValidationError(_msg)
 
 
 def validate_team_name(value):
@@ -774,7 +792,7 @@ class Submission(models.Model):
         upload_to=_get_submission_upload_path,
         help_text='SGML, XML or text file containing submission output',
         null=True,
-        validators=[validate_sgml_schema, validate_xml_schema],
+        validators=[validate_sgml_schema, validate_xml_submission],
     )
 
     test_set = models.ForeignKey(TestSet, on_delete=models.PROTECT)
