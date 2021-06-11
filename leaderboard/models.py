@@ -139,6 +139,10 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
     <element>
       <name ns="">hyp</name>
       <attribute>
+        <name ns="">lang</name>
+        <data type="language"/>
+      </attribute>
+      <attribute>
         <name ns="">system</name>
         <data type="string"/>
       </attribute>
