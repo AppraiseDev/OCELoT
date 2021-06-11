@@ -868,10 +868,13 @@ class Submission(models.Model):
         elif self.file_format == XML_FILE:
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
-                _, _, _, sys_name = analyze_xml_file(hyp_path)
-                process_xml_to_text(
-                    hyp_path, hyp_text_path, system=sys_name.pop()
-                )
+                _, _, _, sys_names = analyze_xml_file(hyp_path)
+                # It should never happen that there is no system translations
+                # thanks to validation, but better to check
+                if len(sys_names) > 0:
+                    process_xml_to_text(
+                        hyp_path, hyp_text_path, system=sys_names.pop()
+                    )
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
