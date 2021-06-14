@@ -92,6 +92,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set',
         '_source_language',
         '_target_language',
+        'file_format',
         '_score',
         '_chrf',
     ]
@@ -101,6 +102,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set__source_language',
         'test_set__target_language',
         'submitted_by__publication_name',
+        'file_format',
         'is_flagged',
         'is_primary',
         'is_public',
@@ -133,6 +135,7 @@ class TeamAdmin(admin.ModelAdmin):
         '__str__',
         'email',
         'token',
+        'is_verified',
         '_submissions',
         '_primary_submissions',
     ]
