@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for new XML format
 - Changed descriptions, updates and links for WMT21
 - Unverified accounts cannot make submissions
+- Show file format and is-verified flag in the Admin Panel.
 
 ### Fixed
 - Pylint formatter knows about Django after adding the `pylint-django` plugin
