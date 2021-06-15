@@ -391,7 +391,7 @@ def teampage(request):
         data_triples.append((key, primary[key], data[key]))
 
     # Details needed for the post-submission/publication survey
-    publication_survey = { 'active': True, 'team': current_team }
+    publication_survey = {'active': True, 'team': current_team}
 
     context = {
         'data': data_triples,
