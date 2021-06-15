@@ -390,6 +390,9 @@ def teampage(request):
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
 
+    # Details needed for the post-submission/publication survey
+    publication_survey = { 'active': True, 'team': current_team }
+
     context = {
         'data': data_triples,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
@@ -397,6 +400,7 @@ def teampage(request):
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
         'publication_name_form': publication_name_form,
+        'publication_survey': publication_survey,
     }
     return render(request, 'leaderboard/teampage.html', context=context)
 

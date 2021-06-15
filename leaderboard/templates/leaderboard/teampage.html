@@ -83,12 +83,54 @@
             </p>
             <input class="btn btn-secondary btn-sm" type="submit" value="Submit">
           </form>
+
+          {% if publication_survey.active %}
+          <br/>
+
+          <h4>Publication surveys</h4>
+          <p class="form-text">
+            Please fill the publication survey for each primary submission.
+            A system submission <b>will not be deemed completed</b> if this form
+            is not filled.
+          </p>
+          <table class="table table-sm w-auto">
+            <tbody>
+            {% for testset, primary, submissions in data %}
+            {% if primary %}
+            {% with testset.source_language.name|add:'-'|add:testset.target_language.name as langpair %}
+            <tr>
+              <td class="pr-3">{{ testset }}</td>
+              <td>
+                <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLScofFZ97ez0sd3oam6Q4O8FqxxGWLBZ1lTHs3vqCcdKvyXwjA/viewform?usp=pp_url&entry.665807668={{ ocelot_team_name|escape }}&entry.180292303={{ publication_survey.team.publication_name|escape }}&entry.416430577={{ langpair }}&entry.1605619154=%23{{ primary.id }}" target="_blank">
+                  Complete form for submission #{{ primary.id }}
+                </a>
+              </td>
+              <td id="ocelot-survey-status-{{ primary.id }}">
+                <span class="ocelot-survey-complete text-success d-none">Completed</span>
+                <span class="ocelot-survey-missing text-danger d-none">Not completed yet</span>
+              </td>
+            </tr>
+            {% endwith %}
+            {% endif %}
+            {% endfor %}
+            </tbody>
+          <table>
+          <p class="form-text">
+            If there is no submission for a specific test set displayed on the
+            list below, please first choose your primary submission above.
+            If you change your primary submission after already submitting a
+            form for another submission for the same test set, you must submit
+            this form again for the newly chosen primary submission. More
+            instructions are provided in the form.
+          </p>
+          {% endif %}
         </div>
 
         <br/>
+        <br/>
 
         <div>
-          <h2>{{ocelot_team_name}} submissions</h2>
+          <h2>Your submissions</h2>
           {% if data %}
             <p class="text-muted">
               Click on the column header to sort the table. Hold down the
