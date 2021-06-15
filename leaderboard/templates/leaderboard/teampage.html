@@ -124,6 +124,9 @@
                       {% if submission.is_constrained %}
                       <span class="badge badge-info">Constrained</span>
                       {% endif %}
+                      {% if submission.is_removed %}
+                      <span class="badge badge-danger">Removed</span>
+                      {% endif %}
                     </td>
                     {% if submission.score %}
                     <td>{{submission.score|stringformat:".1f"}}</td>
