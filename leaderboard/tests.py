@@ -321,6 +321,37 @@ class SubmissionTests(TestCase):
         self.assertContains(response, _file)
         self.assertNotContains(response, 'Anonymous submission #')
 
+    def test_removed_submissions_are_not_shown(self):
+        """Checks that submissions with is_removed=True are not shown in leaderboard view."""
+        self._set_ocelot_team_token()
+
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+        sub.is_public = True
+        sub.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        tst = sub.test_set
+        tst.is_public = None
+        tst.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        comp = sub.test_set.competition
+        comp.is_public = None
+        comp.save()
+        self.assertNotIn('Anonymous', str(sub))
+
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertContains(response, _file)
+        self.assertNotContains(response, 'Anonymous submission #')
+
+        sub.is_removed = True
+        sub.save()
+
+        response = self.client.get('/leaderboard/{0}'.format(comp.id))
+        self.assertNotContains(response, _file)
+        self.assertNotContains(response, 'Anonymous submission #')
+
 
 class XMLSubmissionTests(TestCase):
     """Tests Submission model."""

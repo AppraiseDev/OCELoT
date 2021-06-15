@@ -82,6 +82,7 @@ def leaderboard(request, competition_id=None):
         submissions = Submission.objects.filter(
             test_set=test_set,
             score__gte=0,  # Ignore invalid submissions
+            is_removed=False,  # Ignore any removed submissions
         ).order_by('-score',)[:MAX_SUBMISSION_DISPLAY_COUNT]
 
         for submission in submissions:
