@@ -344,8 +344,15 @@ def teampage(request):
             publication_name = publication_name_form.cleaned_data[
                 'publication_name'
             ]
-            if publication_name != current_team.publication_name:
+            institution_name = publication_name_form.cleaned_data[
+                'institution_name'
+            ]
+            if (
+                publication_name != current_team.publication_name
+                or institution_name != current_team.institution_name
+            ):
                 current_team.publication_name = publication_name
+                current_team.institution_name = institution_name
                 current_team.save()
 
         primary_ids_and_constrainedness = zip(
@@ -359,7 +366,10 @@ def teampage(request):
                 submission.set_primary()  # This implicitly calls save()
 
     else:
-        context = {'publication_name': current_team.publication_name}
+        context = {
+            'publication_name': current_team.publication_name,
+            'institution_name': current_team.institution_name,
+        }
         publication_name_form = PublicationNameForm(context)
 
     data = OrderedDict()
