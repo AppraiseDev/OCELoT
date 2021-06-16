@@ -300,6 +300,30 @@ def validate_team_name(value):
         raise ValidationError(_msg)
 
 
+def validate_institution_name(value):
+    """Validates institution name: UTF-8 Latin script or LaTeX escape
+    sequences.
+    """
+    valid_name = re.compile(r'^[\u0000-\u017F]{2,32}$')
+    if not valid_name.match(value):
+        _msg = (
+            'Institution name must consist only of UTF-8 Latin script '
+            'or LaTeX escape sequences, and max 32 characters.'
+        )
+        raise ValidationError(_msg)
+
+
+def validate_publication_name(value):
+    """Validates short publication name: ASCII letters, digits, dot, dash
+    and underscore, no whitespace.
+    """
+    # Keeping max 32 characters for backward compatibility
+    valid_name = re.compile(r'^[a-zA-Z0-9_\-.]{2,32}$')
+    if not valid_name.match(value):
+        _msg = 'Short publication name must match regexp r"^[a-zA-Z0-9._\\-.]{2,12}$"'
+        raise ValidationError(_msg)
+
+
 def validate_token(value):
     """Validates token matches r'[a-f0-9]{10}'."""
     valid_token = re.compile(r'[a-f0-9]{10}')
@@ -625,6 +649,18 @@ class Team(models.Model):
         help_text='Team email',
     )
 
+    institution_name = models.CharField(
+        blank=True,
+        db_index=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text=(
+            'Institution name (max {0} characters)'.format(
+                32
+            )  # see validation
+        ),
+        validators=[validate_institution_name],
+    )
+
     publication_name = models.CharField(
         blank=True,
         db_index=True,
@@ -634,7 +670,23 @@ class Team(models.Model):
                 32
             )  # see validation
         ),
-        validators=[validate_team_name],
+        validators=[validate_publication_name],
+    )
+
+    publication_url = models.CharField(
+        blank=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text='Publication URL or citation',
+    )
+
+    description = models.TextField(
+        blank=True,
+        max_length=MAX_DESCRIPTION_LENGTH,
+        help_text=(
+            'Team description (max {0} characters)'.format(
+                MAX_DESCRIPTION_LENGTH
+            )
+        ),
     )
 
     token = models.CharField(

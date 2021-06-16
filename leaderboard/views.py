@@ -11,6 +11,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 
+from leaderboard.forms import PublicationDescriptionForm
 from leaderboard.forms import PublicationNameForm
 from leaderboard.forms import SigninForm
 from leaderboard.forms import SubmissionForm
@@ -339,15 +340,43 @@ def teampage(request):
     )
 
     if request.method == 'POST':
-        publication_name_form = PublicationNameForm(request.POST)
+        updated = False  # A helper variable to call save() once
 
+        publication_name_form = PublicationNameForm(request.POST)
         if publication_name_form.is_valid():
             publication_name = publication_name_form.cleaned_data[
                 'publication_name'
             ]
-            if publication_name != current_team.publication_name:
+            institution_name = publication_name_form.cleaned_data[
+                'institution_name'
+            ]
+            if (
+                publication_name != current_team.publication_name
+                or institution_name != current_team.institution_name
+            ):
                 current_team.publication_name = publication_name
-                current_team.save()
+                current_team.institution_name = institution_name
+                updated = True
+
+        publication_desc_form = PublicationDescriptionForm(request.POST)
+        if publication_desc_form.is_valid():
+            publication_url = publication_desc_form.cleaned_data[
+                'publication_url'
+            ]
+            description = publication_desc_form.cleaned_data['description']
+
+            if (
+                publication_url != current_team.publication_url
+                or description != current_team.description
+            ):
+                current_team.publication_url = publication_url
+                current_team.description = description
+                updated = True
+
+        if updated:  # Call save() once
+            current_team.save()
+            _msg = 'You have successfully updated publication information. Thank you!'
+            messages.success(request, _msg)
 
         primary_ids_and_constrainedness = zip(
             request.POST.getlist('primary'),
@@ -360,8 +389,14 @@ def teampage(request):
                 submission.set_primary()  # This implicitly calls save()
 
     else:
-        context = {'publication_name': current_team.publication_name}
+        context = {
+            'publication_name': current_team.publication_name,
+            'institution_name': current_team.institution_name,
+            'publication_url': current_team.publication_url,
+            'description': current_team.description,
+        }
         publication_name_form = PublicationNameForm(context)
+        publication_desc_form = PublicationDescriptionForm(context)
 
     data = OrderedDict()
     primary = OrderedDict()
@@ -391,6 +426,9 @@ def teampage(request):
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
 
+    # Details needed for the post-submission/publication survey
+    publication_survey = {'active': False, 'team': current_team}
+
     context = {
         'data': data_triples,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
@@ -398,6 +436,8 @@ def teampage(request):
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
         'publication_name_form': publication_name_form,
+        'publication_desc_form': publication_desc_form,
+        'publication_survey': publication_survey,
     }
     return render(request, 'leaderboard/teampage.html', context=context)
 
