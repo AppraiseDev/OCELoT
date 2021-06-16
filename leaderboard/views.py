@@ -11,8 +11,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 
-from leaderboard.forms import PublicationNameForm
 from leaderboard.forms import PublicationDescriptionForm
+from leaderboard.forms import PublicationNameForm
 from leaderboard.forms import SigninForm
 from leaderboard.forms import SubmissionForm
 from leaderboard.forms import TeamForm
