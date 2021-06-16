@@ -47,6 +47,7 @@ class PublicationDescriptionForm(forms.Form):
         max_length=MAX_NAME_LENGTH,
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         label='System paper',
+        required=False,
     )
     description = forms.CharField(
         max_length=MAX_DESCRIPTION_LENGTH,

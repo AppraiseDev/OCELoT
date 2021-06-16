@@ -5,6 +5,10 @@
   <link rel="stylesheet" href="{% static 'tablesorter/css/theme.bootstrap_4.css' %}">
 {% endblock %}
 
+{% block style %}
+  .errorlist { color:#dc3545!important; font-size:80%; }
+{% endblock %}
+
 {% block navbar-teampage %}
     <a class="nav-link active" href="{% url 'teampage-view' %}">Team <span class="sr-only">(current)</span></a>
 {% endblock%}
