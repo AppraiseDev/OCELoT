@@ -201,6 +201,8 @@ def validate_sgml_schema(hyp_file):
     if not hyp_file.name.endswith('.sgm'):
         return  # Skip validation for other format files.
 
+    schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
+
     try:
         schema.validate(hyp_file)
     except (
