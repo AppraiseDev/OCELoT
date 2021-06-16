@@ -48,8 +48,8 @@
               your system.  If the paper already exists, please specify its URL
               (or DOI, or a full citation in the worst case).
               If you are submitting the paper to this year's proceedings,
-              please specify the authors and title. E.g. John Doe, Jack Smith:
-              TurtleMT at Translation Task.
+              please specify the authors and title, e.g. <i>John Doe, Jack Smith:
+              TurtleMT at Translation Task</i>.
             </p>
             <div class="form-group">
             {{ publication_desc_form.as_p }}
@@ -61,6 +61,13 @@
               specify whether it comes from a constrained or unconstrained
               system.
             </p>
+            {% if publication_survey.active %}
+            <p class="form-text">
+              Additionally, we ask you to provide a structured description of
+              your submission(s) using an online form. The link to the form will
+              be made available when selecting the primary submissions.
+            </p>
+            {% endif %}
 
             <table class="table table-sm table-borderless w-auto form-group">
               {% for testset, primary, submissions in data %}
@@ -82,20 +89,20 @@
               {% if publication_survey.active %}
               {% if primary %}
               {% with testset.source_language.name|add:'-'|add:testset.target_language.name as langpair %}
-              <td>
-                <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLScofFZ97ez0sd3oam6Q4O8FqxxGWLBZ1lTHs3vqCcdKvyXwjA/viewform?usp=pp_url&entry.665807668={{ ocelot_team_name|escape }}&entry.180292303={{ publication_survey.team.publication_name|escape }}&entry.416430577={{ langpair }}&entry.1605619154=%23{{ primary.id }}" target="_blank">
-                  Complete the form with details for submission #{{ primary.id }}
-                </a>
-              </td>
-              <td id="ocelot-survey-status-{{ primary.id }}">
-                <span class="ocelot-survey-complete text-success d-none">Completed</span>
-                <span class="ocelot-survey-missing text-danger d-none">Not completed yet</span>
-              </td>
+                <td>
+                  <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLScofFZ97ez0sd3oam6Q4O8FqxxGWLBZ1lTHs3vqCcdKvyXwjA/viewform?usp=pp_url&entry.665807668={{ publication_survey.team.institution_name|escape }}&entry.180292303={{ publication_survey.team.publication_name|escape }}&entry.416430577={{ langpair }}&entry.1605619154=%23{{ primary.id }}" target="_blank">
+                    Complete the form with details for submission #{{ primary.id }}
+                  </a>
+                </td>
+                <td id="ocelot-survey-status-{{ primary.id }}">
+                  <span class="ocelot-survey-complete text-success d-none">Completed</span>
+                  <span class="ocelot-survey-missing text-danger d-none">Not completed yet</span>
+                </td>
               {% endwith %}
               {% else %}
-              <td>
-                <span class="text-muted">Choose the primary submission for this test set first.</span>
-              </td>
+                <td>
+                  <span class="text-muted">Please choose the primary submission for this test set</span>
+                </td>
               {% endif %}
               {% endif %}
               </tr>
