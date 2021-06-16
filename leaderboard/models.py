@@ -671,6 +671,22 @@ class Team(models.Model):
         validators=[validate_publication_name],
     )
 
+    publication_url = models.CharField(
+        blank=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text='Publication URL or citation',
+    )
+
+    description = models.TextField(
+        blank=True,
+        max_length=MAX_DESCRIPTION_LENGTH,
+        help_text=(
+            'Team description (max {0} characters)'.format(
+                MAX_DESCRIPTION_LENGTH
+            )
+        ),
+    )
+
     token = models.CharField(
         blank=True,
         db_index=True,

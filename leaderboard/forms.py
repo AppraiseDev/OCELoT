@@ -6,6 +6,7 @@ from datetime import datetime
 from django import forms
 from django.utils import timezone
 
+from leaderboard.models import MAX_DESCRIPTION_LENGTH
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
 from leaderboard.models import Submission
@@ -26,14 +27,33 @@ class PublicationNameForm(forms.Form):
         max_length=MAX_NAME_LENGTH,
         validators=[validate_institution_name],
         widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Institution name (use UTF-8 Latin script or LaTeX escape sequences)',
+        label='Institution name',
     )
-
     publication_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
         validators=[validate_publication_name],
         widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label='Short team name (use ASCII letters, digits, dot, dash or underscore)',
+        label='Short team name',
+    )
+
+
+class PublicationDescriptionForm(forms.Form):
+    """Form used for teampage view.
+
+    Based on forms.Form as we don't want to create a new Team.
+    """
+
+    publication_url = forms.CharField(
+        max_length=MAX_NAME_LENGTH,
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='System paper',
+    )
+    description = forms.CharField(
+        max_length=MAX_DESCRIPTION_LENGTH,
+        widget=forms.Textarea(
+            attrs={'class': 'form-control', 'rows': 6, 'cols': 80}
+        ),
+        label='Paragraph for the overview paper',
     )
 
 
