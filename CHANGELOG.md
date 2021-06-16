@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pylint formatter knows about Django after adding the `pylint-django` plugin
 - Show an error message for submissions in XML format with no system translations
 - Do not show removed submissions on leaderboards
+- The deadline counter on the competition page uses server timezone (UTC)
 
 ### Changed
 - Updated requirements to Django 3
