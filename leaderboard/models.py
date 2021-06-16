@@ -299,12 +299,15 @@ def validate_team_name(value):
 
 
 def validate_institution_name(value):
-    """Validates institution name: UTF-8 Basic Latin script or LaTeX
-    escape sequences.
+    """Validates institution name: UTF-8 Latin script or LaTeX escape
+    sequences.
     """
-    valid_name = re.compile(r'^[\u00C0-\u017F]{2,32}$')
+    valid_name = re.compile(r'^[\u0000-\u017F]{2,32}$')
     if not valid_name.match(value):
-        _msg = 'Institution name must match regexp r"^[\\u00C0-\\u017F]{2,32}$"'
+        _msg = (
+            'Institution name must consist only of UTF-8 Latin script '
+            'or LaTeX escape sequences, and max 32 characters.'
+        )
         raise ValidationError(_msg)
 
 
