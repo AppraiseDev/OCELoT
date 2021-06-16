@@ -42,7 +42,7 @@ def _format_datetime_for_js(stamp):
     """Formats time stamp for Javascript."""
     if not stamp:
         return None
-    return stamp.strftime("%Y-%m-%d %H:%M:%S %Z")  # JS will assume it's UTC
+    return stamp.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 def leaderboard(request, competition_id=None):
