@@ -29,13 +29,11 @@
       <div class="container">
         <div>
           <h2>Final submissions</h2>
-          <h4>Publication name</h4>
+          <h4>Publication names</h4>
           <p class="form-text">
             Please think about how you want your team to be named in the
-            overview paper. This should identify your affiliation so
-            <code>ACME</code> is better than <code>johndoe</code>. If you do
-            not set this, your team name <code>{{ ocelot_team_name }}</code>
-            will be used as default.
+            overview paper. The overview paper needs to show your institution
+            and also a short team name in the result tables.
           </p>
 
           <form action="{% url 'teampage-view' %}" method="post">
@@ -81,6 +79,10 @@
                 <span class="ocelot-survey-missing text-danger d-none">Not completed yet</span>
               </td>
               {% endwith %}
+              {% else %}
+              <td>
+                <span class="text-muted">Choose the primary submission for this test set first.</span>
+              </td>
               {% endif %}
               {% endif %}
               </tr>

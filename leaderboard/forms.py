@@ -11,7 +11,8 @@ from leaderboard.models import MAX_TOKEN_LENGTH
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
-from leaderboard.models import validate_team_name
+from leaderboard.models import validate_institution_name
+from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
 
 
@@ -21,10 +22,18 @@ class PublicationNameForm(forms.Form):
     Based on forms.Form as we don't want to create a new Team.
     """
 
+    institution_name = forms.CharField(
+        max_length=MAX_NAME_LENGTH,
+        validators=[validate_institution_name],
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='Institution name (use UTF-8 Latin script or LaTeX escape sequences)',
+    )
+
     publication_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
-        validators=[validate_team_name],
+        validators=[validate_publication_name],
         widget=forms.TextInput(attrs={'class': 'form-control'}),
+        label='Short team name (use ASCII letters, digits, dot, dash or underscore)',
     )
 
 
