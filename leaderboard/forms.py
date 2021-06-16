@@ -52,7 +52,7 @@ class PublicationDescriptionForm(forms.Form):
     description = forms.CharField(
         max_length=MAX_DESCRIPTION_LENGTH,
         widget=forms.Textarea(
-            attrs={'class': 'form-control', 'rows': 6, 'cols': 80}
+            attrs={'class': 'form-control', 'rows': 6}
         ),
         label='Paragraph for the overview paper',
     )
