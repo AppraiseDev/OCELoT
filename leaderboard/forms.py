@@ -17,6 +17,16 @@ from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
 
 
+PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer model equipped with our recent technique of problem
+obfuscation \citep{obfuscation:2021}. The best improvement was achieved thanks to doubly obfuscating
+both source and target side and mixing in our manually obfuscated set of examples.
+
+@inproceedings{obfuscation:2021,
+  title  = {Amazing Obfuscation of NMT Problems},
+  author = ...
+}"""
+
+
 class PublicationNameForm(forms.Form):
     """Form used for teampage view.
 
@@ -26,13 +36,20 @@ class PublicationNameForm(forms.Form):
     institution_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
         validators=[validate_institution_name],
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': r'Institution Team \textsc{ONE}',
+            }
+        ),
         label='Institution name',
     )
     publication_name = forms.CharField(
         max_length=MAX_NAME_LENGTH,
         validators=[validate_publication_name],
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(
+            attrs={'class': 'form-control', 'placeholder': 'TEAM-ONE'}
+        ),
         label='Short team name',
     )
 
@@ -45,13 +62,24 @@ class PublicationDescriptionForm(forms.Form):
 
     publication_url = forms.CharField(
         max_length=MAX_NAME_LENGTH,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'https://example.com/team-one/paper.bib',
+            }
+        ),
         label='System paper',
         required=False,
     )
     description = forms.CharField(
         max_length=MAX_DESCRIPTION_LENGTH,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 6}),
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'rows': 7,
+                'placeholder': PLACEHOLDER_FOR_DESCRIPTION,
+            }
+        ),
         label='Paragraph for the overview paper',
     )
 
