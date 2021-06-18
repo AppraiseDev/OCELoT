@@ -65,11 +65,10 @@ class PublicationDescriptionForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control',
-                'placeholder': 'https://example.com/team-one/paper.bib',
+                'placeholder': 'John Doe, Jack Smith: TeamOneMT at Translation Task',
             }
         ),
         label='System paper',
-        required=False,
     )
     description = forms.CharField(
         max_length=MAX_DESCRIPTION_LENGTH,
