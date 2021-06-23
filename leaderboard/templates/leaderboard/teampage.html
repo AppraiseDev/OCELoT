@@ -73,6 +73,9 @@
               Additionally, we ask you to provide a structured description of
               your submission(s) using an online form. The link to the form will
               be made available when selecting the primary submissions.
+              Feel free to fill one form for multiple primary submissions they
+              use very similar features (more details on how to do that are
+              provided in the form).
             </p>
             {% endif %}
 
@@ -95,15 +98,11 @@
                 </td>
               {% if publication_survey.active %}
               {% if primary %}
-              {% with testset.source_language.name|add:'-'|add:testset.target_language.name as langpair %}
+              {% with testset.source_language.code|add:'-'|add:testset.target_language.code as langpair %}
                 <td>
-                  <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLScofFZ97ez0sd3oam6Q4O8FqxxGWLBZ1lTHs3vqCcdKvyXwjA/viewform?usp=pp_url&entry.665807668={{ publication_survey.team.institution_name|escape }}&entry.180292303={{ publication_survey.team.publication_name|escape }}&entry.416430577={{ langpair }}&entry.1605619154=%23{{ primary.id }}" target="_blank">
+                    <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLSf7TTiYXY23-Rn47akxfd3jUisokOS8u-lv22ZNuO8igyV3YQ/viewform?entry.1616043926={{ publication_survey.username|escape }}&entry.63843270={{ publication_survey.shortname|escape }}&entry.2119951195={{ publication_survey.paper|escape }}&entry.1181486413={{ langpair }}&entry.896647915=%23{{ primary.id }}&entry.1971753910={{ publication_survey.paragraph|escape }}" target="_blank">
                     Complete the form with details for submission #{{ primary.id }}
                   </a>
-                </td>
-                <td id="ocelot-survey-status-{{ primary.id }}">
-                  <span class="ocelot-survey-complete text-success d-none">Completed</span>
-                  <span class="ocelot-survey-missing text-danger d-none">Not completed yet</span>
                 </td>
               {% endwith %}
               {% else %}
