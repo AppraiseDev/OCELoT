@@ -427,7 +427,17 @@ def teampage(request):
         data_triples.append((key, primary[key], data[key]))
 
     # Details needed for the post-submission/publication survey
-    publication_survey = {'active': False, 'team': current_team}
+    publication_survey = {
+        'active': True,
+        'username': '{} ({} from OCELoT)'.format(
+            current_team.institution_name, current_team.name
+        ),
+        'shortname': current_team.publication_name,
+        'paper': current_team.publication_url,
+        # The form does not seem to support pre-filled multiline text,
+        # so simply join lines with a whitespace
+        'paragraph': current_team.description.replace('\n', ' '),
+    }
 
     context = {
         'data': data_triples,
