@@ -52,7 +52,7 @@ except ImportError:
     })
 
     SECRET_KEY = os.environ.get('OCELOT_SECRET_KEY')  # Throw if no SECRET_KEY set!
-    ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', ['127.0.0.1'])
+    ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
     WSGI_APPLICATION = os.environ.get('OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application')
 
