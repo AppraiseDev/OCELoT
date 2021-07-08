@@ -22,24 +22,24 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
+DEBUG = os.environ.get('OCELOT_DEBUG', True)
+
+ADMINS = os.environ.get('OCELOT_ADMINS', ())
+MANAGERS = ADMINS
+
+SECRET_KEY = os.environ.get('OCELOT_SECRET_KEY')  # Throw if no SECRET_KEY set!
+ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(',')
+
+WSGI_APPLICATION = os.environ.get('OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application')
+
 # Try to load local settings, otherwise use defaults.
 try:
     # pylint: disable=W0611
     from ocelot.local_settings import (  # type: ignore
-        DEBUG,
-        ADMINS,
-        MANAGERS,
         DATABASES,
-        SECRET_KEY,
-        ALLOWED_HOSTS,
-        WSGI_APPLICATION,
     )
 
 except ImportError:
-    DEBUG = os.environ.get('OCELOT_DEBUG', True)
-
-    ADMINS = os.environ.get('OCELOT_ADMINS', ())
-    MANAGERS = ADMINS
 
     # Database
     # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -50,11 +50,6 @@ except ImportError:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     })
-
-    SECRET_KEY = os.environ.get('OCELOT_SECRET_KEY')  # Throw if no SECRET_KEY set!
-    ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(',')
-
-    WSGI_APPLICATION = os.environ.get('OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application')
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
