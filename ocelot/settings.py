@@ -27,10 +27,16 @@ DEBUG = os.environ.get('OCELOT_DEBUG', True)
 ADMINS = os.environ.get('OCELOT_ADMINS', ())
 MANAGERS = ADMINS
 
-SECRET_KEY = os.environ.get('OCELOT_SECRET_KEY')  # Throw if no SECRET_KEY set!
-ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(',')
+SECRET_KEY = os.environ.get(
+    'OCELOT_SECRET_KEY'
+)  # Throw if no SECRET_KEY set!
+ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(
+    ','
+)
 
-WSGI_APPLICATION = os.environ.get('OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application')
+WSGI_APPLICATION = os.environ.get(
+    'OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application'
+)
 
 # Try to load local settings, otherwise use defaults.
 try:
@@ -44,12 +50,15 @@ except ImportError:
     # Database
     # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-    DATABASES = os.environ.get('OCELOT_DATABASES', {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    })
+    DATABASES = os.environ.get(
+        'OCELOT_DATABASES',
+        {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            }
+        },
+    )
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
