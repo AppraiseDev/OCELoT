@@ -3,11 +3,10 @@ name: "OCELoT"
 on: [push, pull_request]
 
 jobs:
-  env:
-    OCELOT_SECRET_KEY: not-a-secret-key-but-needed-for-testing
-
   formatting:
     runs-on: ubuntu-20.04
+    env:
+      OCELOT_SECRET_KEY: not-a-secret-key-but-needed-for-testing
     steps:
       - uses: actions/checkout@v2
       - name: Python versions
@@ -35,6 +34,8 @@ jobs:
 
   testing:
     runs-on: ubuntu-20.04
+    env:
+      OCELOT_SECRET_KEY: not-a-secret-key-but-needed-for-testing
     steps:
       - uses: actions/checkout@v2
       - name: Install requirements
