@@ -166,6 +166,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'assets'),
 ]
 
+# Allow to specify absolute filesystem path to the directory that will hold user-uploaded files.
+MEDIA_ROOT = os.environ.get('OCELOT_MEDIA_ROOT', '')
 
 # Project version
 # See point 4 from https://packaging.python.org/guides/single-sourcing-package-version/
