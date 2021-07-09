@@ -17,6 +17,7 @@ strategy:
     Python37:
       PYTHON_VERSION: '3.7'
   maxParallel: 3
+  OCELOT_SECRET_KEY: 'not-a-secret-key-but-needed-for-testing'
 
 steps:
 - task: UsePythonVersion@0
