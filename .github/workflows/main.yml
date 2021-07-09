@@ -2,10 +2,10 @@ name: "OCELoT"
 
 on: [push, pull_request]
 
-env:
-  - OCELOT_SECRET_KEY: not-a-secret-key-but-needed-for-testing
-
 jobs:
+  env:
+    OCELOT_SECRET_KEY: not-a-secret-key-but-needed-for-testing
+
   formatting:
     runs-on: ubuntu-20.04
     steps:
