@@ -19,6 +19,7 @@ from sacrebleu.sacrebleu import TOKENIZERS
 
 from leaderboard.utils import analyze_xml_file
 from leaderboard.utils import process_xml_to_text
+from ocelot.settings import MEDIA_ROOT
 
 # Add support for character-based BLEU scores
 TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
@@ -937,6 +938,9 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
+        if MEDIA_ROOT:
+            hyp_text_path = '{0}{1}'.format(MEDIA_ROOT, hyp_text_path)
+
         if path_only:
             return hyp_text_path
         else:
@@ -966,6 +970,9 @@ class Submission(models.Model):
         elif self.test_set.file_format == TEXT_FILE:
             ref_text_path = self.test_set.ref_file.name
 
+        if MEDIA_ROOT:
+            ref_text_path = '{0}{1}'.format(MEDIA_ROOT, ref_text_path)
+
         if path_only:
             return ref_text_path
         else:
@@ -985,6 +992,9 @@ class Submission(models.Model):
 
         elif self.test_set.file_format == TEXT_FILE:
             src_text_path = self.test_set.src_file.name
+
+        if MEDIA_ROOT:
+            src_text_path = '{0}{1}'.format(MEDIA_ROOT, src_text_path)
 
         src_stream = (r for r in open(src_text_path, encoding='utf-8'))
         return src_stream
