@@ -1086,7 +1086,7 @@ class Submission(models.Model):
             chrf = corpus_chrf(hyp_stream, ref_stream)
             self.score_chrf = chrf.score
 
-        except EOFError:
+        except (EOFError, FileNotFoundError):
             # Don't set score to None, as that would trigger infinite loop
             # TODO: this should provide an error message to the user
             self.score = -1
