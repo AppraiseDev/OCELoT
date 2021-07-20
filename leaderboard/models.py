@@ -9,6 +9,7 @@ from uuid import uuid4
 import lxml.etree as ET
 import xmlschema
 from bs4 import BeautifulSoup
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
@@ -1086,11 +1087,14 @@ class Submission(models.Model):
             chrf = corpus_chrf(hyp_stream, ref_stream)
             self.score_chrf = chrf.score
 
-        except (EOFError, FileNotFoundError):
+        except (EOFError, FileNotFoundError) as exc:
             # Don't set score to None, as that would trigger infinite loop
             # TODO: this should provide an error message to the user
             self.score = -1
             self.score_chrf = None
+
+            messages.set_level(request, messages.ERROR)
+            messages.error(request, '{}: {}'.format(type(exc).__name__, exc))
 
         finally:
             self.save()
