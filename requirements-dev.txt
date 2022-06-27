@@ -4,6 +4,6 @@ lxml-stubs
 mypy
 pylint
 pylint-django
-reorder-python-imports
+reorder-python-imports==2.6.0
 safety
 rnc2rng

@@ -20,6 +20,13 @@ jobs:
             echo "$HOME/.local/bin" >> $GITHUB_PATH
             pip install --upgrade pip setuptools wheel
             pip install -r requirements-dev.txt
+      - name: Module versions
+        run: |
+            django --version
+            mypy --version
+            black --version
+            pylint --version
+            reorder-python-imports --version
       - name: Run mypy
         run: find . -name "*.py" -not -path "./venv*" | xargs mypy
       - name: Reformat
