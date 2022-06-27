@@ -533,7 +533,7 @@ class TestSet(models.Model):
         if self.file_format == TEXT_FILE:
             return
 
-        elif self.file_format == SGML_FILE:
+        if self.file_format == SGML_FILE:
             for sgml_file in (self.ref_file, self.src_file):
                 sgml_path = str(sgml_file.name)
                 text_path = sgml_path.replace('.sgm', '.txt')
@@ -947,8 +947,7 @@ class Submission(models.Model):
 
         if path_only:
             return hyp_text_path
-        else:
-            return (x for x in open(hyp_text_path, encoding='utf-8'))
+        return (x for x in open(hyp_text_path, encoding='utf-8'))
 
     def get_ref_text(self, path_only=False):
         """Returns a list of reference segments.
@@ -976,8 +975,7 @@ class Submission(models.Model):
 
         if path_only:
             return ref_text_path
-        else:
-            return (r for r in open(ref_text_path, encoding='utf-8'))
+        return (r for r in open(ref_text_path, encoding='utf-8'))
 
     def get_src_text(self):
         """Returns a list of source segments."""
