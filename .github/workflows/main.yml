@@ -25,7 +25,6 @@ jobs:
             mypy --version
             black --version
             pylint --version
-            reorder-python-imports --version
       - name: Run mypy
         run: find . -name "*.py" -not -path "./venv*" | xargs mypy
       - name: Reformat
