@@ -25,8 +25,8 @@ jobs:
       - name: Reformat
         run: |
             black -S -l 75 --check .
-            find . -name "*.py" -not -path "./venv*" | xargs pylint --fail-under 9 --rcfile setup.cfg
-            find . -name "*.py" -not -path "./venv*" | xargs reorder-python-imports --diff-only
+            find . -name "*.py" -not -path "./venv*" -not -path "*/migrations/*" | xargs pylint --fail-under 9 --rcfile setup.cfg
+            find . -name "*.py" -not -path "./venv*" -not -path "*/migrations/*" | xargs reorder-python-imports --diff-only
       - name: Check safety
         run: cat requirements.txt | safety check --stdin
 
