@@ -293,8 +293,10 @@ def validate_xml_schema(xml_file):
             xml_file,
         )
         if relaxng:
-            for error in relaxng.error_log[:1]: # Display only the first error
-                _msg += " Line %s: %s\n" % (error.line, error.message)
+            for _err in relaxng.error_log[
+                :1
+            ]:  # Display only the first error
+                _msg += " Line %s: %s\n" % (_err.line, _err.message)
         raise ValidationError(_msg)
 
 
