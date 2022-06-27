@@ -22,7 +22,6 @@ jobs:
             pip install -r requirements-dev.txt
       - name: Module versions
         run: |
-            django --version
             mypy --version
             black --version
             pylint --version
