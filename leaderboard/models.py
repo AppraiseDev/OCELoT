@@ -224,8 +224,10 @@ def validate_xml_src_testset(xml_file):
             xml_file.name
         )
         raise ValidationError(_msg)
+
+    # Two source languages in XML files are allowed since WMT22 Chat Task
     if len(src_langs) > 1:
-        _msg = 'XML files with multiple source languages are not supported'
+        _msg = 'XML files with 2+ source languages are not supported'
         raise ValidationError(_msg)
 
 
@@ -240,10 +242,10 @@ def validate_xml_ref_testset(xml_file):
             xml_file.name
         )
         raise ValidationError(_msg)
-    if len(ref_langs) > 1:
-        _msg = (
-            'XML files with multiple reference languages are not supported'
-        )
+
+    # Two reference languages in XML files are allowed since WMT22 Chat Task
+    if len(ref_langs) > 2:
+        _msg = 'XML files with 2+ reference languages are not supported'
         raise ValidationError(_msg)
         # Note that multiple references for a single language are supported
 
@@ -273,6 +275,7 @@ def validate_xml_schema(xml_file):
         return  # Skip validation for other format files.
 
     is_valid = False
+    relaxng = None
     try:
         # Could not make it working with a RNC schema, so using RNG instead.
         # lxml did not use rnc2rng as described in the documentation:
@@ -286,9 +289,14 @@ def validate_xml_schema(xml_file):
         raise ValidationError(_msg)
 
     if not is_valid:
-        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema'.format(
-            xml_file
+        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema:'.format(
+            xml_file,
         )
+        if relaxng:
+            for _err in relaxng.error_log[
+                :1
+            ]:  # Display only the first error
+                _msg += " Line %s: %s\n" % (_err.line, _err.message)
         raise ValidationError(_msg)
 
 
@@ -525,7 +533,7 @@ class TestSet(models.Model):
         if self.file_format == TEXT_FILE:
             return
 
-        elif self.file_format == SGML_FILE:
+        if self.file_format == SGML_FILE:
             for sgml_file in (self.ref_file, self.src_file):
                 sgml_path = str(sgml_file.name)
                 text_path = sgml_path.replace('.sgm', '.txt')
@@ -939,8 +947,7 @@ class Submission(models.Model):
 
         if path_only:
             return hyp_text_path
-        else:
-            return (x for x in open(hyp_text_path, encoding='utf-8'))
+        return (x for x in open(hyp_text_path, encoding='utf-8'))
 
     def get_ref_text(self, path_only=False):
         """Returns a list of reference segments.
@@ -968,8 +975,7 @@ class Submission(models.Model):
 
         if path_only:
             return ref_text_path
-        else:
-            return (r for r in open(ref_text_path, encoding='utf-8'))
+        return (r for r in open(ref_text_path, encoding='utf-8'))
 
     def get_src_text(self):
         """Returns a list of source segments."""

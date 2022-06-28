@@ -18,7 +18,6 @@ from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
 from leaderboard.models import XML_FILE
 from leaderboard.utils import analyze_xml_file
-from leaderboard.utils import MISSING_TRANSLATION_MESSAGE
 from leaderboard.utils import process_xml_to_text
 from ocelot.settings import BASE_DIR
 
@@ -200,7 +199,9 @@ class SubmissionTests(TestCase):
         self._set_ocelot_team_token()
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
-        with open(os.path.join(TESTDATA_DIR, _file)) as tst:
+        with open(
+            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+        ) as tst:
             data = {
                 'test_set': '1',
                 'file_format': 'TEXT',
@@ -217,7 +218,9 @@ class SubmissionTests(TestCase):
         self.team.save()
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
-        with open(os.path.join(TESTDATA_DIR, _file)) as tst:
+        with open(
+            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+        ) as tst:
             data = {
                 'test_set': '1',
                 'file_format': 'TEXT',
@@ -481,7 +484,9 @@ class XMLSubmissionTests(TestCase):
         self._set_ocelot_team_token()
 
         _file = 'xml/sample-hyp.invalid.xml'
-        with open(os.path.join(TESTDATA_DIR, _file)) as xml:
+        with open(
+            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+        ) as xml:
             data = {
                 'test_set': '1',
                 'file_format': 'XML',
@@ -510,7 +515,7 @@ class XMLSubmissionTests(TestCase):
         # Copy file
         hyp_path.write_text(src_path.read_text())
 
-        with open(hyp_path) as xml:
+        with open(hyp_path, encoding='utf8') as xml:
             data = {
                 'test_set': '1',
                 'file_format': 'XML',

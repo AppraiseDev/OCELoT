@@ -9,8 +9,9 @@ MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
 
 def analyze_xml_file(xml_path):
     """
-    Return all source languages, reference languages, translators, and systems found in the XML file.
-    Code extracted from https://github.com/wmt-conference/wmt-format-tools/blob/main/wmtformat/unwrap.py
+    Return all source languages, reference languages, translators, and systems
+    found in the XML file. Code extracted from
+    https://github.com/wmt-conference/wmt-format-tools/blob/main/wmtformat/unwrap.py
     """
     src_langs, ref_langs, translators, systems = set(), set(), set(), set()
     tree = ET.parse(xml_path)
@@ -48,7 +49,7 @@ def process_xml_to_text(
         )
 
     tree = ET.parse(xml_path)
-    src_sents, ref_sents, sys_sents = [], [], []
+    src_sents, ref_sents = [], []
     out_sents = []
 
     for doc in tree.getroot().findall(".//doc"):
@@ -67,7 +68,7 @@ def process_xml_to_text(
             ref_sents = (
                 {
                     int(seg.get("id")): seg.text
-                    for seg in ref_doc.findall(f".//seg")
+                    for seg in ref_doc.findall(".//seg")
                 }
                 if ref_doc is not None
                 else {}
@@ -80,7 +81,7 @@ def process_xml_to_text(
             hyp_sents = (
                 {
                     int(seg.get("id")): seg.text
-                    for seg in hyp_doc.findall(f".//seg")
+                    for seg in hyp_doc.findall(".//seg")
                 }
                 if hyp_doc is not None
                 else {}
