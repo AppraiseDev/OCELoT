@@ -35,7 +35,7 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_testset(self):
         """Checks if source and reference can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-ref.xml'
-        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -44,7 +44,7 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_multi_reference_testset(self):
         """Checks if multiple references can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-multirefs.xml'
-        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -53,7 +53,7 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_hypothesis(self):
         """Checks if systems can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
-        src_langs, _, _, systems = analyze_xml_file(xml_path)
+        _, src_langs, _, _, systems = analyze_xml_file(xml_path)
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))

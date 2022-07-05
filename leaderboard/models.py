@@ -218,7 +218,7 @@ def validate_xml_src_testset(xml_file):
     if not xml_file.name.endswith('.xml'):
         return  # Skip validation for other formats
 
-    src_langs, _, _, _ = analyze_xml_file(xml_file)
+    _, src_langs, _, _, _ = analyze_xml_file(xml_file)
     if len(src_langs) == 0:
         _msg = 'No source language found in the XML file {0}'.format(
             xml_file.name
@@ -236,7 +236,7 @@ def validate_xml_ref_testset(xml_file):
     if not xml_file.name.endswith('.xml'):
         return  # Skip validation for other formats
 
-    _, ref_langs, translators, _ = analyze_xml_file(xml_file)
+    _, _, ref_langs, translators, _ = analyze_xml_file(xml_file)
     if len(ref_langs) == 0 or len(translators) == 0:
         _msg = 'No reference found in the XML file {0}'.format(
             xml_file.name
@@ -259,7 +259,7 @@ def validate_xml_submission(xml_file):
     xml_file.seek(0)  # To be able to read() again
 
     # Check if the submission has some translations from one system only
-    _, _, _, systems = analyze_xml_file(xml_file)
+    _, _, _, _, systems = analyze_xml_file(xml_file)
     if len(systems) == 0:
         _msg = 'No system found in the XML file {0}'.format(xml_file.name)
         raise ValidationError(_msg)
@@ -547,7 +547,7 @@ class TestSet(models.Model):
 
             if not Path(txt_path).exists():
                 # After validation it's guaranteed that src_langs has only one element
-                src_langs, _, _, _ = analyze_xml_file(src_path)
+                _, src_langs, _, _, _ = analyze_xml_file(src_path)
                 process_xml_to_text(
                     src_path, txt_path, source=src_langs.pop()
                 )
@@ -557,7 +557,7 @@ class TestSet(models.Model):
             txt_path = ref_path.replace('.xml', '.txt')
 
             if not Path(txt_path).exists():
-                _, _, translators, _ = analyze_xml_file(ref_path)
+                _, _, _, translators, _ = analyze_xml_file(ref_path)
                 # Sort to guarantee reproducibility
                 # Scores will be computed against the first reference only
                 translator = sorted(list(translators))[0]
@@ -934,7 +934,7 @@ class Submission(models.Model):
         elif self.file_format == XML_FILE:
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
-                _, _, _, sys_names = analyze_xml_file(hyp_path)
+                _, _, _, _, sys_names = analyze_xml_file(hyp_path)
                 # It should never happen that there is no system translations
                 # thanks to validation, but better to check
                 if len(sys_names) > 0:
