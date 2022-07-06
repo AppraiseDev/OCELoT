@@ -88,6 +88,12 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
         <name ns="">id</name>
         <data type="positiveInteger"/>
       </attribute>
+      <optional>
+        <attribute>
+          <name ns="">type</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
       <text/>
     </element>
   </define>
@@ -177,9 +183,9 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
       </zeroOrMore>
     </element>
   </define>
-  <define name="Dataset">
+  <define name="Collection">
     <element>
-      <name ns="">dataset</name>
+      <name ns="">collection</name>
       <attribute>
         <name ns="">id</name>
         <data type="string"/>
@@ -187,6 +193,21 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
       <oneOrMore>
         <ref name="Document"/>
       </oneOrMore>
+    </element>
+  </define>
+  <define name="Dataset">
+    <element>
+      <name ns="">dataset</name>
+      <attribute>
+        <name ns="">id</name>
+        <data type="string"/>
+      </attribute>
+      <zeroOrMore>
+        <ref name="Collection"/>
+      </zeroOrMore>
+      <zeroOrMore>
+        <ref name="Document"/>
+      </zeroOrMore>
     </element>
   </define>
   <start>

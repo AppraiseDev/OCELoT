@@ -58,6 +58,13 @@ class UtilsTests(TestCase):
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))
 
+    def test_analyze_xml_file_with_multiple_datasets(self):
+        """Checks if multile data set IDs can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+        collections, _, _, _, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(collections, set(['A', 'B', 'C']))
+
     def test_process_xml_to_text_with_hypothesis(self):
         """Checks if system segments can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'

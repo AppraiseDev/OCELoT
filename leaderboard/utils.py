@@ -9,15 +9,21 @@ MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
 
 def analyze_xml_file(xml_path):
     """
-    Return all data set names, source languages, reference languages,
+    Return all collection names, source languages, reference languages,
     translators, and systems found in the XML file. Code extracted from
     https://github.com/wmt-conference/wmt-format-tools/blob/main/wmtformat/unwrap.py
     """
-    data_sets, src_langs, ref_langs, translators, systems = set(), set(), set(), set(), set()
+    collections, src_langs, ref_langs, translators, systems = (
+        set(),
+        set(),
+        set(),
+        set(),
+        set(),
+    )
     tree = ET.parse(xml_path)
 
-    for data_set in tree.getroot().findall(".//dataset"):
-        data_sets.add(data_set.get("id"))
+    for collection in tree.getroot().findall(".//collection"):
+        collections.add(collection.get("id"))
 
     for src_doc in tree.getroot().findall(".//src"):
         src_langs.add(src_doc.get("lang"))
@@ -34,7 +40,7 @@ def analyze_xml_file(xml_path):
         if system:
             systems.add(system)
 
-    return data_sets, src_langs, ref_langs, translators, systems
+    return collections, src_langs, ref_langs, translators, systems
 
 
 def process_xml_to_text(
