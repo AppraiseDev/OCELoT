@@ -44,7 +44,8 @@ def analyze_xml_file(xml_path):
 
 
 def process_xml_to_text(
-    xml_path, txt_path, source=None, reference=None, system=None
+    xml_path, txt_path, source=None, reference=None, system=None,
+    collection=None
 ):
     """
     Extract source, reference(s) or system texts from the XML file.
@@ -61,7 +62,11 @@ def process_xml_to_text(
     src_sents, ref_sents = [], []
     out_sents = []
 
-    for doc in tree.getroot().findall(".//doc"):
+    root = tree.getroot()
+    if collection: # Restrict to the given collection if requested
+        root = root.find(f".//collection[@id='{collection}']")
+
+    for doc in root.findall(".//doc"):
         if 'testsuite' in doc.attrib:  # Skip testsuites
             continue
 

@@ -75,6 +75,27 @@ class UtilsTests(TestCase):
         self.assertTrue(txt_file.exists())
         self.assertTrue(txt_file.stat().st_size > 0)
 
+    def test_process_xml_to_text_from_one_collection(self):
+        """Checks if source segments from a collection can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(xml_path, txt_path, source=True, collection='B')
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        with open(txt_file, 'r', encoding='utf8') as content:
+            self.assertTrue(len(content.readlines()) == 12)
+
+    def test_process_xml_to_text_from_all_collections(self):
+        """Checks if reference segments from all collections can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(xml_path, txt_path, reference=True, collection=None)
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        with open(txt_file, 'r', encoding='utf8') as content:
+            self.assertTrue(len(content.readlines()) == 56)
 
 class SubmissionTests(TestCase):
     """Tests Submission model."""
