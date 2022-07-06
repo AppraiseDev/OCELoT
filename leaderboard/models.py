@@ -530,13 +530,25 @@ class TestSet(models.Model):
         related_query_name='test_sets',
     )
 
+    # If a collection ID is provided, automatic scores are computed only on the
+    # data from that collection
+    collection = models.CharField(
+        blank=True,
+        null=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text=(
+            'Optional collection name (max {0} characters)'.format(MAX_NAME_LENGTH)
+        ),
+    )
+
     def __repr__(self):
-        return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4})'.format(
+        return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4}, collection={5})'.format(
             self.name,
             self.source_language.code,
             self.target_language.code,
             self.src_file.name,
             self.ref_file.name,
+            self.collection,
         )
 
     def __str__(self):
