@@ -587,7 +587,7 @@ class TestSet(models.Model):
                 )
 
     def full_clean(self, exclude=None, validate_unique=True):
-        """Validates test set SGML files."""
+        """Validates test set files."""
         for current_file in (self.ref_file, self.src_file):
             current_path = str(current_file.name)
 
