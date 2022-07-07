@@ -36,7 +36,9 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_testset(self):
         """Checks if source and reference can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-ref.xml'
-        _, src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(
+            xml_path
+        )
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -45,7 +47,9 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_multi_reference_testset(self):
         """Checks if multiple references can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-multirefs.xml'
-        _, src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(
+            xml_path
+        )
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -81,7 +85,9 @@ class UtilsTests(TestCase):
         xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
 
         txt_path = xml_path + '.temp.txt'
-        process_xml_to_text(xml_path, txt_path, source=True, collection='B')
+        process_xml_to_text(
+            xml_path, txt_path, source=True, collection='B'
+        )
         txt_file = Path(txt_path)
         self.assertTrue(txt_file.exists())
         with open(txt_file, 'r', encoding='utf8') as content:
@@ -92,11 +98,14 @@ class UtilsTests(TestCase):
         xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
 
         txt_path = xml_path + '.temp.txt'
-        process_xml_to_text(xml_path, txt_path, reference=True, collection=None)
+        process_xml_to_text(
+            xml_path, txt_path, reference=True, collection=None
+        )
         txt_file = Path(txt_path)
         self.assertTrue(txt_file.exists())
         with open(txt_file, 'r', encoding='utf8') as content:
             self.assertTrue(len(content.readlines()) == 56)
+
 
 class SubmissionTests(TestCase):
     """Tests Submission model."""
@@ -591,7 +600,7 @@ class XMLSubmissionTests(TestCase):
         # Check if only the collection 'B' was extracted to a text file
         txt_path = Path(TESTDATA_DIR) / _file.replace('.xml', '.txt')
         # with open(txt_path, 'r', encoding='utf8') as cnt:
-            # self.assertTrue(len(cnt.readlines()) == 12)
+        # self.assertTrue(len(cnt.readlines()) == 12)
 
         # Check scores
         self.assertEqual(round(sub.score, 3), 34.992)

@@ -291,6 +291,7 @@ def validate_xml_submission(xml_file):
     # TODO: Validate that the collection (if specified in the test set) is
     # present in the file. Do it here or in full_clean()
 
+
 def validate_xml_schema(xml_file):
     """Validates XML file based on RNG schema."""
 
@@ -539,7 +540,9 @@ class TestSet(models.Model):
         null=True,
         max_length=MAX_NAME_LENGTH,
         help_text=(
-            'Optional collection name (max {0} characters)'.format(MAX_NAME_LENGTH)
+            'Optional collection name (max {0} characters)'.format(
+                MAX_NAME_LENGTH
+            )
         ),
     )
 
@@ -585,7 +588,10 @@ class TestSet(models.Model):
                 # After validation it's guaranteed that src_langs has only one element
                 _, src_langs, _, _, _ = analyze_xml_file(src_path)
                 process_xml_to_text(
-                    src_path, txt_path, source=src_langs.pop(), collection=self.collection
+                    src_path,
+                    txt_path,
+                    source=src_langs.pop(),
+                    collection=self.collection,
                 )
 
             # Extract reference texts; multiple references will be tab-separated
@@ -598,7 +604,10 @@ class TestSet(models.Model):
                 # Scores will be computed against the first reference only
                 translator = sorted(list(translators))[0]
                 process_xml_to_text(
-                    ref_path, txt_path, reference=translator, collection=self.collection
+                    ref_path,
+                    txt_path,
+                    reference=translator,
+                    collection=self.collection,
                 )
 
     def full_clean(self, exclude=None, validate_unique=True):
@@ -976,12 +985,15 @@ class Submission(models.Model):
                 _, _, _, _, sys_names = analyze_xml_file(hyp_path)
                 # There will be no text version if no collection found
                 # if self.test_set.collection and self.test_set.collection not in collections:
-                    # hyp_text_path = None
+                # hyp_text_path = None
                 # It should never happen that there is no system translations
                 # thanks to validation, but better to check
                 if len(sys_names) > 0:
                     process_xml_to_text(
-                        hyp_path, hyp_text_path, system=sys_names.pop(), collection=self.test_set.collection
+                        hyp_path,
+                        hyp_text_path,
+                        system=sys_names.pop(),
+                        collection=self.test_set.collection,
                     )
 
         elif self.file_format == TEXT_FILE:
