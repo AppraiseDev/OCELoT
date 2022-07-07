@@ -562,6 +562,7 @@ class TestSet(models.Model):
         """
         Creates test set text files from SGML or XML files.
         If files are already in text format, do nothing.
+        For XML format, it extracts data only from the collection if defined.
         """
         if self.file_format == TEXT_FILE:
             return
@@ -582,7 +583,7 @@ class TestSet(models.Model):
                 # After validation it's guaranteed that src_langs has only one element
                 _, src_langs, _, _, _ = analyze_xml_file(src_path)
                 process_xml_to_text(
-                    src_path, txt_path, source=src_langs.pop()
+                    src_path, txt_path, source=src_langs.pop(), collection=self.collection
                 )
 
             # Extract reference texts; multiple references will be tab-separated
@@ -595,7 +596,7 @@ class TestSet(models.Model):
                 # Scores will be computed against the first reference only
                 translator = sorted(list(translators))[0]
                 process_xml_to_text(
-                    ref_path, txt_path, reference=translator
+                    ref_path, txt_path, reference=translator, collection=self.collection
                 )
 
     def full_clean(self, exclude=None, validate_unique=True):
@@ -616,6 +617,13 @@ class TestSet(models.Model):
                         current_path
                     )
                     raise ValidationError(_msg)
+
+                # collections, _, _, _, _ = analyze_xml_file(current_path)
+                # if self.collection is not None and self.collection not in collections:
+                    # _msg = 'Collection {0} not found in the file'.format(
+                        # self.collection
+                    # )
+                    # raise ValidationError(_msg)
 
             elif self.file_format == TEXT_FILE:
                 if not current_path.endswith('.txt'):
@@ -972,7 +980,7 @@ class Submission(models.Model):
                 # thanks to validation, but better to check
                 if len(sys_names) > 0:
                     process_xml_to_text(
-                        hyp_path, hyp_text_path, system=sys_names.pop()
+                        hyp_path, hyp_text_path, system=sys_names.pop(), collection=self.test_set.collection
                     )
 
         elif self.file_format == TEXT_FILE:
