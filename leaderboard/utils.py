@@ -65,6 +65,11 @@ def process_xml_to_text(
     root = tree.getroot()
     if collection: # Restrict to the given collection if requested
         root = root.find(f".//collection[@id='{collection}']")
+        if root is None:
+            # Create an empty hypothesis file as this case is catched later
+            with open(txt_path, 'w') as txt_file:
+                pass
+            return False
 
     for doc in root.findall(".//doc"):
         if 'testsuite' in doc.attrib:  # Skip testsuites
@@ -118,3 +123,4 @@ def process_xml_to_text(
     with open(txt_path, 'w') as txt_file:
         for sent in out_sents:
             txt_file.write("{}\n".format(sent))
+    return True

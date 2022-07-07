@@ -288,6 +288,8 @@ def validate_xml_submission(xml_file):
         _msg = 'XML files with multiple systems are not supported'
         raise ValidationError(_msg)
 
+    # TODO: Validate that the collection (if specified in the test set) is
+    # present in the file. Do it here or in full_clean()
 
 def validate_xml_schema(xml_file):
     """Validates XML file based on RNG schema."""
@@ -618,12 +620,8 @@ class TestSet(models.Model):
                     )
                     raise ValidationError(_msg)
 
-                # collections, _, _, _, _ = analyze_xml_file(current_path)
-                # if self.collection is not None and self.collection not in collections:
-                    # _msg = 'Collection {0} not found in the file'.format(
-                        # self.collection
-                    # )
-                    # raise ValidationError(_msg)
+                # TODO: Validate that a collection (if requested) is present in
+                # the XML file. Do it here or in validate_xml_submission()
 
             elif self.file_format == TEXT_FILE:
                 if not current_path.endswith('.txt'):
@@ -976,6 +974,9 @@ class Submission(models.Model):
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
                 _, _, _, _, sys_names = analyze_xml_file(hyp_path)
+                # There will be no text version if no collection found
+                # if self.test_set.collection and self.test_set.collection not in collections:
+                    # hyp_text_path = None
                 # It should never happen that there is no system translations
                 # thanks to validation, but better to check
                 if len(sys_names) > 0:
@@ -1123,9 +1124,12 @@ class Submission(models.Model):
             chrf = corpus_chrf(hyp_stream, ref_stream)
             self.score_chrf = chrf.score
 
-        except EOFError:
+        except Exception:
             # Don't set score to None, as that would trigger infinite loop
             # TODO: this should provide an error message to the user
+            # TODO: the error message should be specific. A simple yet ugly
+            # solution would be to use self.score as error codes to propagate
+            # the source of the error
             self.score = -1
             self.score_chrf = None
 
