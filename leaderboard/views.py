@@ -297,10 +297,20 @@ def submit(request):
             new_submission.submitted_by = current_team
             new_submission.save()
 
-            _msg = 'You have successfully submitted {0}'.format(
-                new_submission.hyp_file.name
-            )
-            messages.success(request, _msg)
+            if new_submission.score != -1:
+                _msg = 'You have successfully submitted {0}'.format(
+                    new_submission.hyp_file.name
+                )
+                messages.success(request, _msg)
+            else:
+                _msg = (
+                    'Unsuccessful submission of {0}. '
+                    'Please check the format of the submitted file.'.format(
+                        new_submission.hyp_file.name
+                    )
+                )
+                messages.warning(request, _msg)
+
             return HttpResponseRedirect(reverse('teampage-view'))
         else:
             # TODO: add logging message with form.errors
