@@ -9,7 +9,6 @@
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="{% static 'wmt21-test-src.tgz' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
@@ -27,12 +26,7 @@
         <h2>Competition updates</h2>
         <p>
           <ul>
-            <li><em>17/6/2021:</em> With submission open for less than 17 hours we currently have 81 verified teams and 868 submissions.</li>
-            <li><em>16/6/2021:</em> The deadline counter for WMT21 now properly counts down to 23:59 on June 17th, Anywhere on Earth.</li>
-            <li><em>14/6/2021:</em> We have 47 verified teams and 126 submissions so far.</li>
-            <li><em>11/6/2021:</em> We have updated the XML schema and submissions created with the official wrapping/unwrapping scripts work now. Please use the newest scripts from <a href="https://github.com/wmt-conference/wmt-format-tools">https://github.com/wmt-conference/wmt-format-tools</a> when preparing your submission.</li>
-            <li><em>11/6/2021:</em> We strongly recommend submitting system outputs in the XML format. Submissions in plain text must not include translations of test suites.</li>
-            <li><em>10/6/2021:</em> Team registration is online and newstest2021 test set source data has been released.</li>
+            <li><em>20/7/2021:</em> Team registration and submission is online.</li>
           </ul>
         </p>
 
@@ -40,11 +34,9 @@
         <p>
           The following rules apply to this year's shared task:
           <ul>
-            <li>We only accept submissions from verified teams &mdash; you will <strong>have to contact us</strong> (<code>bhaddow@ed.ac.uk</code>, <code>tomkocmi@microsoft.com</code>) to verify your team account;</li>
+            <li>We only accept submissions from verified teams &mdash; you will <strong>have to contact us</strong> (<code>libovicky@cis.lmu.de</code>) to verify your team account;</li>
             <li>Each team may upload <strong>up to {{ MAX_SUBMISSION_LIMIT }} submissions per language pair</strong>, without any time contraints between such uploads;</li>
-            <li>Each team may choose <strong>exactly one primary submission</strong> to be included in the human evaluation campaign;</li>
             <li>If you fail to designate your primary submission, your <strong>highest-scoring submission will be the default</strong>;</li>
-            <li>Each team will contribute to human evaluation &mdash; 10 hours per primary submission;</li>
             <li>We request that you do not create multiple teams to game these submission rules &mdash; we trust and thank you!</li>
           </ul>
         </p>

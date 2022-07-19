@@ -2,6 +2,7 @@ beautifulsoup4
 Django>=3.0
 django-stubs
 lxml>=3.6
+psycopg2
 sacrebleu==1.4.10
 sqlparse
 xmlschema
