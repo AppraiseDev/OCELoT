@@ -9,11 +9,21 @@ MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
 
 def analyze_xml_file(xml_path):
     """
-    Return all source languages, reference languages, translators, and systems found in the XML file.
-    Code extracted from https://github.com/wmt-conference/wmt-format-tools/blob/main/wmtformat/unwrap.py
+    Return all collection names, source languages, reference languages,
+    translators, and systems found in the XML file. Code extracted from
+    https://github.com/wmt-conference/wmt-format-tools/blob/main/wmtformat/unwrap.py
     """
-    src_langs, ref_langs, translators, systems = set(), set(), set(), set()
+    collections, src_langs, ref_langs, translators, systems = (
+        set(),
+        set(),
+        set(),
+        set(),
+        set(),
+    )
     tree = ET.parse(xml_path)
+
+    for collection in tree.getroot().findall(".//collection"):
+        collections.add(collection.get("id"))
 
     for src_doc in tree.getroot().findall(".//src"):
         src_langs.add(src_doc.get("lang"))
@@ -30,11 +40,16 @@ def analyze_xml_file(xml_path):
         if system:
             systems.add(system)
 
-    return src_langs, ref_langs, translators, systems
+    return collections, src_langs, ref_langs, translators, systems
 
 
 def process_xml_to_text(
-    xml_path, txt_path, source=None, reference=None, system=None
+    xml_path,
+    txt_path,
+    source=None,
+    reference=None,
+    system=None,
+    collection=None,
 ):
     """
     Extract source, reference(s) or system texts from the XML file.
@@ -48,10 +63,19 @@ def process_xml_to_text(
         )
 
     tree = ET.parse(xml_path)
-    src_sents, ref_sents, sys_sents = [], [], []
+    src_sents, ref_sents = [], []
     out_sents = []
 
-    for doc in tree.getroot().findall(".//doc"):
+    root = tree.getroot()
+    if collection:  # Restrict to the given collection if requested
+        root = root.find(f".//collection[@id='{collection}']")
+        if root is None:
+            # Create an empty hypothesis file as this case is catched later
+            with open(txt_path, 'w') as txt_file:
+                pass
+            return False
+
+    for doc in root.findall(".//doc"):
         if 'testsuite' in doc.attrib:  # Skip testsuites
             continue
 
@@ -67,7 +91,7 @@ def process_xml_to_text(
             ref_sents = (
                 {
                     int(seg.get("id")): seg.text
-                    for seg in ref_doc.findall(f".//seg")
+                    for seg in ref_doc.findall(".//seg")
                 }
                 if ref_doc is not None
                 else {}
@@ -80,7 +104,7 @@ def process_xml_to_text(
             hyp_sents = (
                 {
                     int(seg.get("id")): seg.text
-                    for seg in hyp_doc.findall(f".//seg")
+                    for seg in hyp_doc.findall(".//seg")
                 }
                 if hyp_doc is not None
                 else {}
@@ -103,3 +127,4 @@ def process_xml_to_text(
     with open(txt_path, 'w') as txt_file:
         for sent in out_sents:
             txt_file.write("{}\n".format(sent))
+    return True

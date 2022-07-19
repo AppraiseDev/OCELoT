@@ -162,6 +162,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'file_format',
         'src_file',
         'ref_file',
+        'collection',
         'competition',
         'is_active',
         'is_public',

@@ -89,6 +89,12 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
         <name ns="">id</name>
         <data type="positiveInteger"/>
       </attribute>
+      <optional>
+        <attribute>
+          <name ns="">type</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
       <text/>
     </element>
   </define>
@@ -178,9 +184,9 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
       </zeroOrMore>
     </element>
   </define>
-  <define name="Dataset">
+  <define name="Collection">
     <element>
-      <name ns="">dataset</name>
+      <name ns="">collection</name>
       <attribute>
         <name ns="">id</name>
         <data type="string"/>
@@ -188,6 +194,21 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
       <oneOrMore>
         <ref name="Document"/>
       </oneOrMore>
+    </element>
+  </define>
+  <define name="Dataset">
+    <element>
+      <name ns="">dataset</name>
+      <attribute>
+        <name ns="">id</name>
+        <data type="string"/>
+      </attribute>
+      <zeroOrMore>
+        <ref name="Collection"/>
+      </zeroOrMore>
+      <zeroOrMore>
+        <ref name="Document"/>
+      </zeroOrMore>
     </element>
   </define>
   <start>
@@ -219,14 +240,16 @@ def validate_xml_src_testset(xml_file):
     if not xml_file.name.endswith('.xml'):
         return  # Skip validation for other formats
 
-    src_langs, _, _, _ = analyze_xml_file(xml_file)
+    _, src_langs, _, _, _ = analyze_xml_file(xml_file)
     if len(src_langs) == 0:
         _msg = 'No source language found in the XML file {0}'.format(
             xml_file.name
         )
         raise ValidationError(_msg)
+
+    # Two source languages in XML files are allowed since WMT22 Chat Task
     if len(src_langs) > 1:
-        _msg = 'XML files with multiple source languages are not supported'
+        _msg = 'XML files with 2+ source languages are not supported'
         raise ValidationError(_msg)
 
 
@@ -235,16 +258,16 @@ def validate_xml_ref_testset(xml_file):
     if not xml_file.name.endswith('.xml'):
         return  # Skip validation for other formats
 
-    _, ref_langs, translators, _ = analyze_xml_file(xml_file)
+    _, _, ref_langs, translators, _ = analyze_xml_file(xml_file)
     if len(ref_langs) == 0 or len(translators) == 0:
         _msg = 'No reference found in the XML file {0}'.format(
             xml_file.name
         )
         raise ValidationError(_msg)
-    if len(ref_langs) > 1:
-        _msg = (
-            'XML files with multiple reference languages are not supported'
-        )
+
+    # Two reference languages in XML files are allowed since WMT22 Chat Task
+    if len(ref_langs) > 2:
+        _msg = 'XML files with 2+ reference languages are not supported'
         raise ValidationError(_msg)
         # Note that multiple references for a single language are supported
 
@@ -258,13 +281,16 @@ def validate_xml_submission(xml_file):
     xml_file.seek(0)  # To be able to read() again
 
     # Check if the submission has some translations from one system only
-    _, _, _, systems = analyze_xml_file(xml_file)
+    _, _, _, _, systems = analyze_xml_file(xml_file)
     if len(systems) == 0:
         _msg = 'No system found in the XML file {0}'.format(xml_file.name)
         raise ValidationError(_msg)
     if len(systems) > 1:
         _msg = 'XML files with multiple systems are not supported'
         raise ValidationError(_msg)
+
+    # TODO: Validate that the collection (if specified in the test set) is
+    # present in the file. Do it here or in full_clean()
 
 
 def validate_xml_schema(xml_file):
@@ -274,6 +300,7 @@ def validate_xml_schema(xml_file):
         return  # Skip validation for other format files.
 
     is_valid = False
+    relaxng = None
     try:
         # Could not make it working with a RNC schema, so using RNG instead.
         # lxml did not use rnc2rng as described in the documentation:
@@ -287,9 +314,14 @@ def validate_xml_schema(xml_file):
         raise ValidationError(_msg)
 
     if not is_valid:
-        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema'.format(
-            xml_file
+        _msg = 'XML file invalid: {0}. It does not validate against the XML Schema:'.format(
+            xml_file,
         )
+        if relaxng:
+            for _err in relaxng.error_log[
+                :1
+            ]:  # Display only the first error
+                _msg += " Line %s: %s\n" % (_err.line, _err.message)
         raise ValidationError(_msg)
 
 
@@ -502,13 +534,27 @@ class TestSet(models.Model):
         related_query_name='test_sets',
     )
 
+    # If a collection ID is provided, automatic scores are computed only on the
+    # data from that collection
+    collection = models.CharField(
+        blank=True,
+        null=True,
+        max_length=MAX_NAME_LENGTH,
+        help_text=(
+            'Optional collection name (max {0} characters)'.format(
+                MAX_NAME_LENGTH
+            )
+        ),
+    )
+
     def __repr__(self):
-        return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4})'.format(
+        return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4}, collection={5})'.format(
             self.name,
             self.source_language.code,
             self.target_language.code,
             self.src_file.name,
             self.ref_file.name,
+            self.collection,
         )
 
     def __str__(self):
@@ -522,11 +568,12 @@ class TestSet(models.Model):
         """
         Creates test set text files from SGML or XML files.
         If files are already in text format, do nothing.
+        For XML format, it extracts data only from the collection if defined.
         """
         if self.file_format == TEXT_FILE:
             return
 
-        elif self.file_format == SGML_FILE:
+        if self.file_format == SGML_FILE:
             for sgml_file in (self.ref_file, self.src_file):
                 sgml_path = str(sgml_file.name)
                 text_path = sgml_path.replace('.sgm', '.txt')
@@ -540,9 +587,12 @@ class TestSet(models.Model):
 
             if not Path(txt_path).exists():
                 # After validation it's guaranteed that src_langs has only one element
-                src_langs, _, _, _ = analyze_xml_file(src_path)
+                _, src_langs, _, _, _ = analyze_xml_file(src_path)
                 process_xml_to_text(
-                    src_path, txt_path, source=src_langs.pop()
+                    src_path,
+                    txt_path,
+                    source=src_langs.pop(),
+                    collection=self.collection,
                 )
 
             # Extract reference texts; multiple references will be tab-separated
@@ -550,16 +600,19 @@ class TestSet(models.Model):
             txt_path = ref_path.replace('.xml', '.txt')
 
             if not Path(txt_path).exists():
-                _, _, translators, _ = analyze_xml_file(ref_path)
+                _, _, _, translators, _ = analyze_xml_file(ref_path)
                 # Sort to guarantee reproducibility
                 # Scores will be computed against the first reference only
                 translator = sorted(list(translators))[0]
                 process_xml_to_text(
-                    ref_path, txt_path, reference=translator
+                    ref_path,
+                    txt_path,
+                    reference=translator,
+                    collection=self.collection,
                 )
 
     def full_clean(self, exclude=None, validate_unique=True):
-        """Validates test set SGML files."""
+        """Validates test set files."""
         for current_file in (self.ref_file, self.src_file):
             current_path = str(current_file.name)
 
@@ -576,6 +629,9 @@ class TestSet(models.Model):
                         current_path
                     )
                     raise ValidationError(_msg)
+
+                # TODO: Validate that a collection (if requested) is present in
+                # the XML file. Do it here or in validate_xml_submission()
 
             elif self.file_format == TEXT_FILE:
                 if not current_path.endswith('.txt'):
@@ -927,12 +983,18 @@ class Submission(models.Model):
         elif self.file_format == XML_FILE:
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
-                _, _, _, sys_names = analyze_xml_file(hyp_path)
+                _, _, _, _, sys_names = analyze_xml_file(hyp_path)
+                # There will be no text version if no collection found
+                # if self.test_set.collection and self.test_set.collection not in collections:
+                # hyp_text_path = None
                 # It should never happen that there is no system translations
                 # thanks to validation, but better to check
                 if len(sys_names) > 0:
                     process_xml_to_text(
-                        hyp_path, hyp_text_path, system=sys_names.pop()
+                        hyp_path,
+                        hyp_text_path,
+                        system=sys_names.pop(),
+                        collection=self.test_set.collection,
                     )
 
         elif self.file_format == TEXT_FILE:
@@ -943,8 +1005,7 @@ class Submission(models.Model):
 
         if path_only:
             return hyp_text_path
-        else:
-            return (x for x in open(hyp_text_path, encoding='utf-8'))
+        return (x for x in open(hyp_text_path, encoding='utf-8'))
 
     def get_ref_text(self, path_only=False):
         """Returns a list of reference segments.
@@ -975,8 +1036,7 @@ class Submission(models.Model):
 
         if path_only:
             return ref_text_path
-        else:
-            return (r for r in open(ref_text_path, encoding='utf-8'))
+        return (r for r in open(ref_text_path, encoding='utf-8'))
 
     def get_src_text(self):
         """Returns a list of source segments."""
@@ -1086,9 +1146,12 @@ class Submission(models.Model):
             chrf = corpus_chrf(hyp_stream, ref_stream)
             self.score_chrf = chrf.score
 
-        except (EOFError, FileNotFoundError) as exc:
+        except Exception:
             # Don't set score to None, as that would trigger infinite loop
             # TODO: this should provide an error message to the user
+            # TODO: the error message should be specific. A simple yet ugly
+            # solution would be to use self.score as error codes to propagate
+            # the source of the error
             self.score = -1
             self.score_chrf = None
 
