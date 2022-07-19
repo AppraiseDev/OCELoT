@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
+from shutil import copyfile
 
 from django.test import TestCase
 from django.utils import timezone
@@ -35,7 +36,9 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_testset(self):
         """Checks if source and reference can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-ref.xml'
-        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(
+            xml_path
+        )
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -44,7 +47,9 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_multi_reference_testset(self):
         """Checks if multiple references can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-src-multirefs.xml'
-        src_langs, ref_langs, translators, _ = analyze_xml_file(xml_path)
+        _, src_langs, ref_langs, translators, _ = analyze_xml_file(
+            xml_path
+        )
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -53,10 +58,17 @@ class UtilsTests(TestCase):
     def test_analyze_xml_file_with_hypothesis(self):
         """Checks if systems can be found in XML format."""
         xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
-        src_langs, _, _, systems = analyze_xml_file(xml_path)
+        _, src_langs, _, _, systems = analyze_xml_file(xml_path)
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))
+
+    def test_analyze_xml_file_with_multiple_datasets(self):
+        """Checks if multile data set IDs can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+        collections, _, _, _, _ = analyze_xml_file(xml_path)
+
+        self.assertSetEqual(collections, set(['A', 'B', 'C']))
 
     def test_process_xml_to_text_with_hypothesis(self):
         """Checks if system segments can be found in XML format."""
@@ -67,6 +79,32 @@ class UtilsTests(TestCase):
         txt_file = Path(txt_path)
         self.assertTrue(txt_file.exists())
         self.assertTrue(txt_file.stat().st_size > 0)
+
+    def test_process_xml_to_text_from_one_collection(self):
+        """Checks if source segments from a collection can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(
+            xml_path, txt_path, source=True, collection='B'
+        )
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        with open(txt_file, 'r', encoding='utf8') as content:
+            self.assertTrue(len(content.readlines()) == 12)
+
+    def test_process_xml_to_text_from_all_collections(self):
+        """Checks if reference segments from all collections can be found in XML format."""
+        xml_path = TESTDATA_DIR + '/xml/multi-src-ref.xml'
+
+        txt_path = xml_path + '.temp.txt'
+        process_xml_to_text(
+            xml_path, txt_path, reference=True, collection=None
+        )
+        txt_file = Path(txt_path)
+        self.assertTrue(txt_file.exists())
+        with open(txt_file, 'r', encoding='utf8') as content:
+            self.assertTrue(len(content.readlines()) == 56)
 
 
 class SubmissionTests(TestCase):
@@ -390,6 +428,23 @@ class XMLSubmissionTests(TestCase):
             competition=self.competition,
         )
 
+        # A copy of XML with source(s) and reference(s) is created to prevent
+        # overwritting automatically generated text files
+        _tst_file = Path(TESTDATA_DIR) / 'xml/multi-src-ref.xml'
+        copyfile(_tst_file, str(_tst_file).replace('src-ref', 'ref'))
+
+        self.testset_collection = TestSet.objects.create(
+            is_active=True,
+            name='TestSetCollections',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/multi-ref.xml'),
+            competition=self.competition,
+            collection='B',
+        )
+
         self.team = Team.objects.create(
             is_active=True,
             name='Team B',
@@ -401,6 +456,12 @@ class XMLSubmissionTests(TestCase):
         self._clean_text_file(self.testset.ref_file.name, False)
         self._clean_text_file(self.testset_multiref.src_file.name, False)
         self._clean_text_file(self.testset_multiref.ref_file.name, False)
+        self._clean_text_file(self.testset_collection.src_file.name, False)
+        self._clean_text_file(self.testset_collection.ref_file.name, False)
+        # Clean up temporary file created for 'TestSetCollections'
+        _tst_file = Path(TESTDATA_DIR) / 'xml/multi-ref.xml'
+        if _tst_file.exists():
+            _tst_file.unlink()
 
     def _clean_text_file(self, input_file, add_test_dir=True):
         """Removes a temporary text file."""
@@ -528,6 +589,25 @@ class XMLSubmissionTests(TestCase):
 
         self._clean_text_file(hyp_file)
 
+    def test_submission_in_xml_format_to_xml_testset_with_collection(self):
+        """Checks making a submission to XML testset with a defined collection."""
+        _file = 'xml/multi-hypA.xml'
+        self._make_submission(
+            _file, file_format=XML_FILE, test_set=self.testset_collection
+        )
+        sub = Submission.objects.get(name=_file)
+
+        # Check if only the collection 'B' was extracted to a text file
+        txt_path = Path(TESTDATA_DIR) / _file.replace('.xml', '.txt')
+        # with open(txt_path, 'r', encoding='utf8') as cnt:
+        # self.assertTrue(len(cnt.readlines()) == 12)
+
+        # Check scores
+        self.assertEqual(round(sub.score, 3), 34.992)
+        self.assertEqual(round(sub.score_chrf, 3), 0.686)
+
+        self._clean_text_file(_file)
+
 
 class TestSetTests(TestCase):
     """Tests TestSet model."""
@@ -595,6 +675,42 @@ class TestSetTests(TestCase):
         # Clean up created files
         src_txt_file.unlink()
         ref_txt_file.unlink()
+
+    def test_create_test_set_with_collections(self):
+        """Checks that a test set can be created from a single collection."""
+
+        TestSet.objects.create(
+            name='TestSetD',
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
+            ref_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
+            collection='B',
+        )
+
+        tst = TestSet.objects.get(name='TestSetD')
+        self.assertEqual(tst.name, 'TestSetD')
+        self.assertTrue(tst.src_file.name.endswith('.xml'))
+        self.assertTrue(tst.ref_file.name.endswith('.xml'))
+        self.assertEqual(tst.collection, 'B')
+
+        # Check if text files has been created and have only 12 segments from
+        # the collection 'B'
+        src_txt_file = Path(tst.src_file.name.replace('.xml', '.txt'))
+        ref_txt_file = Path(tst.ref_file.name.replace('.xml', '.txt'))
+        self.assertTrue(src_txt_file.exists())
+        self.assertTrue(ref_txt_file.exists())
+        self.assertTrue(src_txt_file.stat().st_size > 0)
+        self.assertTrue(ref_txt_file.stat().st_size > 0)
+        with open(src_txt_file, 'r', encoding='utf8') as cnt:
+            self.assertTrue(len(cnt.readlines()) == 12)
+        with open(ref_txt_file, 'r', encoding='utf8') as cnt:
+            self.assertTrue(len(cnt.readlines()) == 12)
+
+        # Clean up created files
+        if src_txt_file.exists():
+            src_txt_file.unlink()
+        if ref_txt_file.exists():
+            ref_txt_file.unlink()
 
 
 class CompetitionTests(TestCase):

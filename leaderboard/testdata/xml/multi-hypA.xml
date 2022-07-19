@@ -1,0 +1,171 @@
+<?xml version='1.0' encoding='utf-8'?>
+<dataset id="multi2021sample">
+<collection id="A">
+  <doc origlang="fr" id="nouvelobs.com.133448">
+    <src lang="fr">
+      <p>
+        <seg id="1">Wall Street cale: résultats, virus et tensions géopolitiques pèsent</seg>
+        <seg id="2">PARIS (Reuters) - La Bourse de New York a fini en baisse de 0,68% vendredi, terminant la semaine sur un repli général, pénalisée par des résultats décevants, le rebond du nombre de contaminations par le coronavirus et les incertitudes géopolitiques.</seg>
+        <seg id="3">L'indice Dow Jones a cédé 182,44 points à 26.469,89.</seg>
+        <seg id="4">Le S&amp;P-500, plus large, a perdu 20,03 points, soit -0,62%, à 3.215,63.</seg>
+        <seg id="5">Le Nasdaq Composite a reculé de son côté de 98,24 points (-0,94%) à 10.363,18 points.</seg>
+        <seg id="6">Chacun des indices boursiers affiche un recul sur la semaine, après trois semaines de hausse pour le S&amp;P 500 et le Dow Jones.</seg>
+        <seg id="7">Le Nasdaq enregistre sa plus mauvaise semaine sur les quatre dernières.</seg>
+        <seg id="8">"Avec le rebond que nous avions constaté jusque-là en juillet, cela a du sens de voir de l'anxiété avant une méga semaine de résultats, la décision de la Fed et ce qui devrait être le pire PIB de notre histoire", estime Ryan Detrick de LPL Financial à Charlotte, en Caroline du Nord.</seg>
+        <seg id="9">Les géants Apple, Alphabet Inc et Amazon.com doivent publier leurs résultats le 30 juillet, le jour où le département du Commerce doit annoncer sa première estimation du PIB du deuxième trimestre, attendu en chute de 35% par des analystes.</seg>
+        <seg id="10">Plus d'un millier d'Américains sont décédés du coronavirus jeudi tandis que le nombre de cas a dépassé les 4 millions.</seg>
+        <seg id="11">La Chine a par ailleurs ordonné vendredi aux Etats-Unis de fermer leur consulat à Chengdu, dans le centre du pays, une mesure prise en représailles à la fermeture du consulat chinois à Houston décidée cette semaine par Washington.</seg>
+        <seg id="12">Aux valeurs, Intel a plongé de 16% après avoir annoncé un retard dans la production d'une puce plus rapide et plus petite de 7 nanomètres.</seg>
+      </p>
+    </src>
+  <hyp system="Online-A" lang="de">
+      <p>
+        <seg id="1">Wall Street Cale: Ergebnisse, Viren und geopolitische Spannungen wiegen</seg>
+        <seg id="2">PARIS (Reuters) - Die New Yorker Börse ging am Freitag um 0,68% zurück und beendete die Woche mit einem allgemeinen Rückgang, der durch enttäuschende Ergebnisse, die Erholung der Zahl der Coronavirus-Infektionen und geopolitische Unsicherheiten beeinträchtigt wurde.</seg>
+        <seg id="3">Der Dow Jones Index verlor 182,44 Punkte auf 26.469,89 Punkte.</seg>
+        <seg id="4">Der breitere S &amp;amp; P-500 verlor 20,03 Punkte oder -0,62% auf 3.215,63.</seg>
+        <seg id="5">Der Nasdaq Composite sank seinerseits um 98,24 Punkte (-0,94%) 10.363,18 Punkte.</seg>
+        <seg id="6">Jeder Aktienindex verzeichnete einen Rückgang über die Woche, nachdem der S &amp;amp; P 500 und der Dow Jones drei Wochen gestiegen waren.</seg>
+        <seg id="7">Die Nasdaq hat ihre schlechteste Woche in den letzten vier.</seg>
+        <seg id="8">"Mit dem Aufschwung, den wir bis Juli erlebt haben, macht es Sinn, vor einer Mega-Woche der Ergebnisse, der Entscheidung der Fed und dem, was das schlechteste BIP unserer Geschichte sein sollte, Angst zu sehen", sagt Ryan Detrick von LPL Financial in Charlotte, North Carolina.</seg>
+        <seg id="9">Die Giganten Apple, Alphabet Inc. und Amazon.com werden ihre Ergebnisse am 30. Juli veröffentlichen, dem Tag, an dem das Handelsministerium seine erste Schätzung des BIP für das zweite Quartal ankündigen muss, die von Analysten um 35% sinken soll.</seg>
+        <seg id="10">Mehr als tausend Amerikaner starben am Donnerstag an Coronavirus, während die Zahl der Fälle über 4 Millionen lag.</seg>
+        <seg id="11">China hat am Freitag den USA befohlen, ihr Konsulat in Chengdu im Zentrum des Landes zu schließen, eine Vergeltungsmaßnahme für die Schließung des chinesischen Konsulats in Houston, die diese Woche von Washington beschlossen wurde.</seg>
+        <seg id="12">Bei den Werten sank Intel um 16%, nachdem es eine Verzögerung bei der Herstellung eines schnelleren und kleineren Chips von 7 Nanometern angekündigt hatte.</seg>
+      </p>
+    </hyp>
+  </doc>
+  <doc origlang="fr" id="lameuse.be.76395">
+    <src lang="fr">
+      <p>
+        <seg id="1">l'Italie va débloquer 25 milliards d'euros supplémentaires pour soutenir la reprise post-pandémie</seg>
+        <seg id="2">Le gouvernement italien va engager des dépenses supplémentaires de 25 milliards d'euros au titre du budget 2020, portant le déficit public à 11,9% du PIB, le plus élevé de la zone euro, pour soutenir la reprise économique après la pandémie.</seg>
+        <seg id="3">Annoncée au lendemain de l'accord historique conclu par l'UE sur un plan de relance post-coronavirus et dont l'Italie est un des principaux bénéficiaires, cette rallonge budgétaire va creuser la dette italienne à 157,6% du PIB.</seg>
+        <seg id="4">" Le gouvernement juge de la plus grande importance, dans les circonstances, de continuer à assurer le soutien au système productif et au pouvoir d'achat des citoyens, de soutenir la reprise et d'intervenir quand nécessaire pour préserver l'emploi ", a-t-il indiqué dans un communiqué à l'issue du conseil des ministres tenu dans la nuit de mercredi à jeudi.</seg>
+        <seg id="5">Les détails de ces nouvelles dépenses seront présentées début août devant le parlement de la 3e économie de la zone euro.</seg>
+      </p>
+    </src>
+  <hyp system="Online-A" lang="de">
+      <p>
+        <seg id="1">Italien wird weitere 25 Milliarden Euro zur Unterstützung der Erholung nach der Pandemie bereitstellen</seg>
+        <seg id="2">Die italienische Regierung wird zusätzliche Ausgaben in Höhe von 25 Mrd. EUR aus dem Haushalt 2020 tätigen, womit sich das gesamtstaatliche Defizit auf 11,9% des BIP, das höchste der Eurozone, erhöht, um die wirtschaftliche Erholung nach der Pandemie zu unterstützen.</seg>
+        <seg id="3">Diese Haushaltsverlängerung, die nach der historischen Einigung der EU über ein Konjunkturprogramm nach dem Coronavirus angekündigt wurde und von der Italien einer der Hauptnutznießer ist, wird die italienische Verschuldung auf 157,6% des BIP erhöhen.</seg>
+        <seg id="4">"Die Regierung hält es unter den gegebenen Umständen für sehr wichtig, weiterhin die Unterstützung des Produktionssystems und der Kaufkraft der Bürger zu gewährleisten, den Aufschwung zu unterstützen und einzugreifen, wenn es notwendig ist, um Arbeitsplätze zu erhalten", erklärte er in einer Erklärung zum Abschluss des Ministerrates in der Nacht von Mittwoch auf Donnerstag.</seg>
+        <seg id="5">Die Einzelheiten dieser neuen Ausgaben werden Anfang August dem Parlament der 3. Volkswirtschaft der Eurozone vorgelegt.</seg>
+      </p>
+    </hyp>
+  </doc>
+</collection>
+<collection id="B" >
+  <doc origlang="fr" id="lefigaro.197481">
+    <src lang="fr">
+      <p>
+        <seg id="1">la France paiera-t-elle plus que ce qu'elle recevra ?</seg>
+        <seg id="2">LA VÉRIFICATION - Une partie de l'opposition estime que la France, qui recevra 40 milliards, pourrait devoir verser en retour plus de 66 milliards à l'Union européenne.</seg>
+        <seg id="3">Comme le RN ou DLF, LFI n'apprécie pas le nouveau plan de relance européen.</seg>
+        <seg id="4">"Jour historique", selon le président Emmanuel Macron, qui a ainsi fait l'éloge du plan de relance décidé mardi dans la douleur, à l'issue du plus long Conseil européen de l'histoire.</seg>
+        <seg id="5">Pour l'opposition, en revanche, l'heure n'est pas au triomphe.</seg>
+        <seg id="6">Chez LR, on est pour le moins circonspect.</seg>
+        <seg id="7">Du côté de LFI, du RN ou de DLF, le réquisitoire est plus sévère.</seg>
+        <seg id="8">Le mot de Nicolas Dupont-Aignan résume assez bien le sentiment général de cette partie de l'opposition: "Les Français ont été roulés dans la farine".</seg>
+        <seg id="9">Les critiques portent en particulier sur le coût du plan de relance européen, qui s'élève au total à 750 milliards d'euros.</seg>
+        <seg id="10">Qui va le financer ?</seg>
+        <seg id="11">Et, à la fin, la France ne va-t-elle pas payer davantage que ce qu'elle touchera ?</seg>
+        <seg id="12">"La France va contribuer à un fonds en étant contributeur déficitaire", explique Marine Le Pen.</seg>
+      </p>
+    </src>
+  <hyp system="Online-A" lang="de">
+      <p>
+        <seg id="1">Wird Frankreich mehr zahlen, als es erhalten wird?</seg>
+        <seg id="2">DIE ÜBERPRÜFUNG - Ein Teil der Opposition geht davon aus, dass Frankreich, das 40 Milliarden Euro erhalten wird, im Gegenzug mehr als 66 Milliarden euro an die Europäische Union zahlen muss.</seg>
+        <seg id="3">Wie RN oder DLF mag LFI das neue europäische Konjunkturprogramm nicht.</seg>
+        <seg id="4">"Historischer Tag", so Präsident Emmanuel Macron, der das Konjunkturprogramm lobte, das am Dienstag nach dem längsten Europäischen Rat in der Geschichte unter Schmerzen beschlossen wurde.</seg>
+        <seg id="5">Für die Opposition hingegen ist nicht die Zeit des Triumphes.</seg>
+        <seg id="6">Bei LR sind wir vorsichtig.</seg>
+        <seg id="7">Auf der Seite von LFI, RN oder DLF ist die Anklage strenger.</seg>
+        <seg id="8">Das Wort von Nicolas Dupont-Aignan fasst das allgemeine Gefühl dieses Teils der Opposition ziemlich gut zusammen: "Die Franzosen wurden in Mehl gerollt".</seg>
+        <seg id="9">Kritisiert werden vor allem die Kosten des Europäischen Konjunkturprogramms, das sich auf insgesamt 750 Milliarden Euro beläuft.</seg>
+        <seg id="10">Wer soll es finanzieren?</seg>
+        <seg id="11">Und wird Frankreich am Ende nicht mehr zahlen, als es bekommen wird?</seg>
+        <seg id="12">"Frankreich wird einen Beitrag zu einem Fonds leisten, indem es ein Defizit leistet", erklärt Marine Le Pen.</seg>
+      </p>
+    </hyp>
+  </doc>
+</collection>
+<collection id="C">
+  <doc origlang="fr" id="dhnet.be.179851">
+    <src lang="fr">
+      <p>
+        <seg id="1">Où sont passés les 319.000 euros de Josette ?</seg>
+        <seg id="2">La nonagénaire accuse sa banquière</seg>
+        <seg id="3">Elle a refilé sa carte et son code à sa dame de compagnie, proche d'une gérante de banque.</seg>
+        <seg id="4">Le parquet de Charleroi vient de requérir le renvoi en correctionnelle de deux dames pour abus de confiance et pour manipulation de données informatiques afin de se procurer un avantage illégal.</seg>
+        <seg id="5">Le parquet estime qu'il y a suffisamment d"éléments à charge.</seg>
+        <seg id="6">Josette (prénom d'emprunt), la victime présumée, est une nonagénaire de la région de Charleroi.</seg>
+        <seg id="7">Le préjudice est estimé à 319 370 euros.</seg>
+        <seg id="8">La plaignante est un membre de sa famille devenu en 2018 administratrice provisoire de Josette.</seg>
+        <seg id="9">Une flopée de retraits douteux ont attiré son attention.</seg>
+        <seg id="10">Tout comme l'achat via une carte de fidélité Carrefour d'un jeu de zombie, ce qui ne cadrait pas vraiment avec le profil de Josette...</seg>
+        <seg id="11">Nous sommes en 2015.</seg>
+        <seg id="12">Josette vit seule dans la région de Charleroi sans trop de contact avec l'extérieur.</seg>
+        <seg id="13">Le reste de sa famille est plutôt dispersé.</seg>
+        <seg id="14">Elle dispose d'un fameux matelas, plusieurs centaines de milliers d'euros.</seg>
+        <seg id="15">Plusieurs heures par jour, elle reçoit la visite d'une dame de compagnie.</seg>
+        <seg id="16">Un beau jour, cette dame lui présente une connaissance.</seg>
+        <seg id="17">Celle-ci est gérante d'une banque.</seg>
+        <seg id="18">Tout le monde sympathise.</seg>
+      </p>
+    </src>
+  <hyp system="Online-A" lang="de">
+      <p>
+        <seg id="1">Wo sind Josettes 319.000 Euro hin?</seg>
+        <seg id="2">Die Neunzigjährige beschuldigt ihre Bankerin.</seg>
+        <seg id="3">Sie gab ihre Karte und ihren Code an ihre Hausdame, die einer Bankmanagerin nahe stand.</seg>
+        <seg id="4">Die Staatsanwaltschaft in Charleroi hat soeben die Entlassung von zwei Damen wegen Vertrauensmissbrauchs und Manipulation von Computerdaten beantragt, um sich einen illegalen Vorteil zu verschaffen.</seg>
+        <seg id="5">Die Staatsanwaltschaft ist der Auffassung, dass es genügend belastende Elemente gibt.</seg>
+        <seg id="6">Josette (Vorname), das mutmaßliche Opfer, ist eine 90-Jährige aus der Region Charleroi.</seg>
+        <seg id="7">Der Schaden wird auf 319 370 Euro geschätzt.</seg>
+        <seg id="8">Die Beschwerdeführerin ist ein Familienmitglied, das 2018 provisorische Verwaltungsrätin von Josette wurde.</seg>
+        <seg id="9">Eine ganze Reihe zweifelhafter Abhebungen erregten seine Aufmerksamkeit.</seg>
+        <seg id="10">Genau wie der Kauf eines Zombie-Spiels über eine Carrefour-Treuekarte, was nicht wirklich zu Josettes Profil passen...</seg>
+        <seg id="11">Es ist 2015.</seg>
+        <seg id="12">Josette lebt allein in der Region Charleroi ohne viel Kontakt nach außen.</seg>
+        <seg id="13">Der Rest seiner Familie ist ziemlich zerstreut.</seg>
+        <seg id="14">Sie hat eine berühmte Matratze, mehrere Hunderttausend Euro.</seg>
+        <seg id="15">Mehrere Stunden am Tag empfängt sie Besuch von einer Begleiterin.</seg>
+        <seg id="16">Eines Tages stellt ihr diese Dame einen Bekannten vor.</seg>
+        <seg id="17">Sie ist Geschäftsführerin einer Bank.</seg>
+        <seg id="18">Alle sind sympathisch.</seg>
+      </p>
+    </hyp>
+  </doc>
+  <doc origlang="fr" id="lefigaro.197546">
+    <src lang="fr">
+      <p>
+        <seg id="1">Vente de l'OM: McCourt refuse formellement de négocier avec Ajroudi</seg>
+        <seg id="2">Selon un courriel que l'AFP a pu consulter aujourd'hui, le propriétaire Frank McCourt rejette formellement l'offre de négociation de l'homme d'affaires franco-tunisien Mohamed Ajroudi</seg>
+        <seg id="3">Après avoir assuré dans les médias ne pas vouloir vendre l'Olympique de Marseille, le propriétaire Frank McCourt a formellement rejeté l'offre de négociation de l'homme d'affaires franco-tunisien Mohamed Ajroudi, selon un courriel que l'AFP a pu consulter jeudi.</seg>
+        <seg id="4">L'avocat de l'Américain, Olivier de Vilmorin, fait "part, de manière formelle et définitive, de la réponse de (son) client: le club n'est pas à vendre, Monsieur McCourt ne souhaite pas engager de discussions avec vos clients".</seg>
+        <seg id="5">L'inspiration incroyable de Dimitri Payet face à Saint-Etienne cette saison</seg>
+        <seg id="6">Première fin de non-recevoir à Mohamed Ajroud</seg>
+        <seg id="7">Si l'OM, par l'intermédiaire de son président Jacques-Henri Eyraud et de la communication de son propriétaire, répétait depuis trois semaines que le club n'était pas à vendre et qu'il n'y avait jamais eu de négociations entamées avec l'homme d'affaires franco-tunisien, c'est la première fois qu'une fin de non-recevoir est officiellement adressée à Mohamed Ajroudi.</seg>
+        <seg id="8">Le courriel consulté par l'AFP est une réponse de Me Vilmorin (du cabinet Sullivan&amp;Cromwell) à la banque d'affaires Wingate, mandatée par Ajroudi pour racheter l'OM.</seg>
+        <seg id="9">La banque avait depuis peu contacté officiellement McCourt pour entamer des négociations.</seg>
+      </p>
+    </src>
+  <hyp system="Online-A" lang="de">
+      <p>
+        <seg id="1">Verkauf von OM: McCourt weigert sich formell, mit Ajroudi zu verhandeln</seg>
+        <seg id="2">Laut einer E-Mail, die die AFP heute einsehen konnte, lehnt der Eigentümer Frank McCourt formell das Verhandlungsangebot des französisch-tunesischen Geschäftsmanns Mohamed Ajroudi ab.</seg>
+        <seg id="3">Nachdem der Eigentümer Frank McCourt in den Medien versichert hatte, die Olympischen Spiele in Marseille nicht verkaufen zu wollen, lehnte er formell das Verhandlungsangebot des französisch-tunesischen Geschäftsmanns Mohamed Ajroudi ab, laut einer E-Mail, die die AFP am Donnerstag einsehen konnte.</seg>
+        <seg id="4">Der Anwalt des Amerikaners, Olivier de Vilmorin, "geht formell und endgültig von der Antwort (seines) Mandanten aus: Der Club steht nicht zum Verkauf, Herr McCourt möchte keine Gespräche mit Ihren Mandanten führen".</seg>
+        <seg id="5">Die unglaubliche Inspiration von Dimitri Payet gegen Saint-Etienne in dieser Saison</seg>
+        <seg id="6">Erstes Ende der Ablehnung von Mohamed Ajroud</seg>
+        <seg id="7">Wenn die OM über ihren Präsidenten Jacques-Henri Eyraud und die Kommunikation ihres Eigentümers seit drei Wochen wiederholte, dass der Club nicht zu verkaufen sei und dass es nie Verhandlungen mit dem französisch-tunesischen Geschäftsmann gegeben habe, dann sei dies das erste Mal, dass mohamed Ajroudi offiziell ein Ende der Nichterteilung erging.</seg>
+        <seg id="8">Die von der AFP eingesehene E-Mail ist eine Antwort von Rechtsanwalt Vilmorin (von der Kanzlei Sullivan &amp;amp; Cromwell) an die Wingate InvestmentBank, die von Ajroudi beauftragt wurde, das OM aufzukaufen.</seg>
+        <seg id="9">Die Bank hatte sich vor kurzem offiziell mit McCourt in Verbindung gesetzt, um Verhandlungen aufzunehmen.</seg>
+      </p>
+    </hyp>
+  </doc>
+</collection>
+</dataset>
