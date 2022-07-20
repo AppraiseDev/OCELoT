@@ -38,27 +38,38 @@ WSGI_APPLICATION = os.environ.get(
     'OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application'
 )
 
-# Try to load local settings, otherwise use defaults.
-try:
-    # pylint: disable=W0611
-    from ocelot.local_settings import (  # type: ignore
-        DATABASES,
-    )
+# Try to load database settings, otherwise use defaults.
+DB_ENGINE = os.environ.get('OCELOT_DB_ENGINE')
+DB_NAME = os.environ.get('OCELOT_DB_NAME')
+DB_USER = os.environ.get('OCELOT_DB_USER')
+DB_PASSWORD = os.environ.get('OCELOT_DB_PASSWORD')
+DB_HOST = os.environ.get('OCELOT_DB_HOST')
+DB_PORT = os.environ.get('OCELOT_DB_PORT')
 
-except ImportError:
+if all((DB_ENGINE, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)):
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+            'OPTIONS': {'sslmode': 'require'},
+        }
+    }
+
+else:
 
     # Database
     # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-    DATABASES = os.environ.get(
-        'OCELOT_DATABASES',
-        {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-            }
-        },
-    )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
