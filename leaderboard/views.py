@@ -80,23 +80,33 @@ def leaderboard(request, competition_id=None):
     )
 
     for test_set in test_sets:
+        order_flag = '-score'
+        if not test_set.compute_scores:
+            order_flag = '-id'
+
         submissions = Submission.objects.filter(
             test_set=test_set,
             score__gte=0,  # Ignore invalid submissions
             is_removed=False,  # Ignore any removed submissions
-        ).order_by('-score',)[:MAX_SUBMISSION_DISPLAY_COUNT]
+        ).order_by(order_flag,)[:MAX_SUBMISSION_DISPLAY_COUNT]
 
         for submission in submissions:
             key = str(test_set)
             if not key in data.keys():
                 data[key] = []
 
+            score_bleu = submission.score
+            score_chrf = submission.score_chrf
+            if not test_test.compute_scores:
+                score_bleu = '---'
+                score_chrf = '---'
+
             data[key].append(
                 {
                     "id": submission.id,
                     "name": str(submission),
-                    "score_bleu": submission.score,
-                    "score_chrf": submission.score_chrf,
+                    "score_bleu": score_bleu,
+                    "score_chrf": score_chrf,
                     "date_created": submission.date_created,
                     # TODO: Double check if this foreign key reference does not
                     # generate an extra query. Optimize otherwise.
