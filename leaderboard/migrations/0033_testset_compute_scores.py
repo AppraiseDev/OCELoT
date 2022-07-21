@@ -13,6 +13,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='testset',
             name='compute_scores',
-            field=models.BooleanField(db_index=True, default=True, help_text='Compute automatic scores?'),
+            field=models.BooleanField(
+                db_index=True,
+                default=True,
+                help_text='Compute automatic scores?',
+            ),
         ),
     ]
