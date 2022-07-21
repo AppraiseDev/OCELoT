@@ -983,6 +983,10 @@ class Submission(models.Model):
         elif self.file_format == XML_FILE:
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
+                # Prefix the XML file name with MEDIA_ROOT if needed
+                if MEDIA_ROOT and MEDIA_ROOT not in hyp_path:
+                    hyp_path = '{0}{1}'.format(MEDIA_ROOT, hyp_path)
+
                 _, _, _, _, sys_names = analyze_xml_file(hyp_path)
                 # There will be no text version if no collection found
                 # if self.test_set.collection and self.test_set.collection not in collections:
@@ -1000,7 +1004,7 @@ class Submission(models.Model):
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        if MEDIA_ROOT:
+        if MEDIA_ROOT and MEDIA_ROOT not in hyp_text_path:
             hyp_text_path = '{0}{1}'.format(MEDIA_ROOT, hyp_text_path)
 
         if path_only:
