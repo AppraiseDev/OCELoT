@@ -98,8 +98,8 @@ def leaderboard(request, competition_id=None):
             score_bleu = submission.score
             score_chrf = submission.score_chrf
             if not test_set.compute_scores:
-                score_bleu = '---'
-                score_chrf = '---'
+                score_bleu = None
+                score_chrf = None
 
             data[key].append(
                 {
