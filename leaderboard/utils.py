@@ -2,6 +2,7 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import lxml.etree as ET
+
 from ocelot.settings import MEDIA_ROOT
 
 
