@@ -480,6 +480,24 @@ def updates(request):
     return render(request, 'leaderboard/updates.html', context=context)
 
 
+def download(request):
+    """Renders OCELoT download page."""
+
+    (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+    ) = _get_team_data(request)
+
+    context = {
+        'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
+        'ocelot_team_name': ocelot_team_name,
+        'ocelot_team_email': ocelot_team_email,
+        'ocelot_team_token': ocelot_team_token,
+    }
+    return render(request, 'leaderboard/download.html', context=context)
+
+
 def welcome(request):
     """Renders OCELoT welcome (registration confirmation) page."""
 

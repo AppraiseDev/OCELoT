@@ -19,6 +19,7 @@ from django.urls import path
 
 from evaluation.views import compare_submissions
 from evaluation.views import submission
+from leaderboard.views import download
 from leaderboard.views import frontpage
 from leaderboard.views import leaderboard
 from leaderboard.views import signin
@@ -49,6 +50,7 @@ urlpatterns = [
     path('submit', submit, name='submit-view'),
     path('teampage', teampage, name='teampage-view'),
     path('updates', updates, name='updates-view'),
+    path('download', download, name='download-view'),
     path('welcome', welcome, name='welcome-view'),
     # evaluation app
     path('submission/<sub_id>', submission, name='submission-view'),

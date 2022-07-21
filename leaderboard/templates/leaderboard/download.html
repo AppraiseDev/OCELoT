@@ -1,11 +1,15 @@
 {% extends "leaderboard/base.html" %}
 {% load static %}
 
+{% block navbar-updates %}
+    <a class="nav-link active" href="{% url 'uploads-view' %}">Updates <span class="sr-only">(current)</span></a>
+{% endblock %}
+
 {% block main %}
       <div class="container">
         <form>
           <p>
-            <a class="btn btn-danger btn-sm" role="button" href="{% url 'download-view' %}">Download test sets</a>
+            <a style="font-weight: bold;" class="btn btn-danger btn-sm" role="button" href="{% url 'download-view' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
             <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
@@ -20,14 +24,14 @@
 
       <div class="container">
 
-        <h2>Registration confirmation</h2>
+        <h2>Download test sets</h2>
         <p>
-            <em>Important:</em> please note this down as you will need this information for sign-in later. Upon first registration, your team will be automatically signed into the current browser session. On your personal computer, you can stay signed in. Otherwise, on a public or shared machine, please sign out when leaving.
-        </p>
-        <p>
-            <strong>Team name:</strong> {{ocelot_team_name}}<br/>
-            <strong>Email:</strong> {{ocelot_team_email}}<br/>
-            <strong>Token:</strong> {{ocelot_team_token}}<br/>
+          <ul>
+              <li>WMT-SLT 22: SignLT Task: <a href="https://www.wmt-slt.com/data#h.4yj6q4ibhord">see instructions on the shared task website</a></li>
+              <li>WMT22: Biomedical Translation Task: <a href="">biomedtest2022.src.zip</a></li>
+              <li>WMT22: General MT Task: <a href="">wmttest2022.src.zip</a></li>
+              <li>WMT22: Unsupervised and Very Low Resource Task: <a href="">lowres2022.src.zip</a></li>
+          </ul>
         </p>
 
         <hr>
