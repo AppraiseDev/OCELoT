@@ -1,8 +1,6 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
-from pathlib import Path
-
 import lxml.etree as ET
 
 from ocelot.settings import MEDIA_ROOT
@@ -26,7 +24,7 @@ def analyze_xml_file(xml_path):
     )
 
     if MEDIA_ROOT and MEDIA_ROOT not in xml_path:
-        xml_path = Path(MEDIA_ROOT) / str(xml_path)
+        xml_path = '{0}{1}'.format(MEDIA_ROOT, xml_path)
     tree = ET.parse(xml_path)
 
     for collection in tree.getroot().findall(".//collection"):
@@ -70,7 +68,7 @@ def process_xml_to_text(
         )
 
     if MEDIA_ROOT and MEDIA_ROOT not in xml_path:
-        xml_path = Path(MEDIA_ROOT) / str(xml_path)
+        xml_path = '{0}{1}'.format(MEDIA_ROOT, xml_path)
 
     tree = ET.parse(xml_path)
     src_sents, ref_sents = [], []
@@ -135,7 +133,7 @@ def process_xml_to_text(
                 out_sents.append(hyp_sent)
 
     if MEDIA_ROOT and MEDIA_ROOT not in txt_path:
-        txt_path = Path(MEDIA_ROOT) / str(txt_path)
+        txt_path = '{0}{1}'.format(MEDIA_ROOT, txt_path)
 
     with open(txt_path, 'w') as txt_file:
         for sent in out_sents:
