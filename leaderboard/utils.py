@@ -1,6 +1,8 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+from pathlib import Path
+
 import lxml.etree as ET
 
 from ocelot.settings import MEDIA_ROOT
