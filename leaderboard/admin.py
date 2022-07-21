@@ -168,6 +168,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'competition',
         'is_active',
         'is_public',
+        'compute_scores',
     ]
 
     list_display = [
@@ -180,6 +181,7 @@ class TestSetAdmin(admin.ModelAdmin):
     list_filter = [
         'is_active',
         'is_public',
+        'compute_scores',
         'file_format',
         'competition',
     ]

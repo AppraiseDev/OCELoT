@@ -480,6 +480,13 @@ class TestSet(models.Model):
         null=True,
     )
 
+    compute_scores = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=True,
+        help_text='Compute automatic scores?',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -1124,6 +1131,10 @@ class Submission(models.Model):
 
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
+
+        # Do not compute scores if instructed not to do so
+        if not self.test_set.compute_scores:
+            return
 
         tokenize = '13a'
         target_language_code = self.test_set.target_language.code
