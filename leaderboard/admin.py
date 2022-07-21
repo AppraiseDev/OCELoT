@@ -65,6 +65,8 @@ class LanguageAdmin(admin.ModelAdmin):
 
     fields = ['code', 'name']
 
+    ordering = ('name',)
+
 
 class SubmissionAdmin(admin.ModelAdmin):
     """Model admin for Submission objects."""
