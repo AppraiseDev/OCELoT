@@ -172,12 +172,12 @@
                       <span class="badge badge-danger">Removed</span>
                       {% endif %}
                     </td>
-                    {% if submission.score %}
+                    {% if submission.score and submission.test_set.compute_scores %}
                     <td>{{submission.score|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
                     {% endif %}
-                    {% if submission.score_chrf %}
+                    {% if submission.score_chrf and submission.test_set.compute_scores %}
                     <td>{{submission.score_chrf|stringformat:".3f"}}</td>
                     {% else %}
                     <td>---</td>
