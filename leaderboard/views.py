@@ -138,14 +138,15 @@ def frontpage(request):
         Competition.objects.filter(
             is_active=True,
         )
-        .order_by(
-            '-deadline',
-        )
         .annotate(
             # Number of test sets assigned to a competition
             num_test_sets=Count('test_sets', distinct=True),
             # The total number of submissions from all assigned test sets
             num_submissions=Count('test_sets__submission'),
+        )
+        .order_by(
+            '-deadline',
+            '-num_test_sets',
         )
         .values(
             'id',
