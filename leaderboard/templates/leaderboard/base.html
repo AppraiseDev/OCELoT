@@ -70,6 +70,9 @@
               {% block navbar-updates %}<a class="nav-link" href="{% url 'updates-view' %}">Updates</a>{% endblock %}
           </li>
           <li class="nav-item">
+            {% block navbar-download %}<a class="nav-link" href="{% url 'download-view' %}">Download</a>{% endblock %}
+          </li>
+          <li class="nav-item">
             {% if ocelot_team_token %}
             <a class="nav-link" href="{% url 'signout-view' %}">Sign out</a>
             {% else %}
