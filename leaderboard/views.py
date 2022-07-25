@@ -316,7 +316,8 @@ def submit(request):
             else:
                 _msg = (
                     'Unsuccessful submission of {0}. '
-                    'Please check the format of the submitted file.'.format(
+                    'Please check the format of the submitted file. '
+                    'Does the submitted file have a .xml extension?'.format(
                         new_submission.hyp_file.name
                     )
                 )
