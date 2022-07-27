@@ -80,7 +80,7 @@ def leaderboard(request, competition_id=None):
     )
 
     for test_set in test_sets:
-        order_flag = '-score'
+        order_flag = '-score_chrf'
         if not test_set.compute_scores:
             order_flag = '-id'
 
