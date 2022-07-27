@@ -434,7 +434,7 @@ def teampage(request):
         'test_set__name',
         'test_set__source_language__code',
         'test_set__target_language__code',
-        '-score',
+        '-score_chrf',
     )
     for submission in submissions.order_by(*ordering):
         key = submission.test_set
