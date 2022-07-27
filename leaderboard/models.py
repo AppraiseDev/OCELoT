@@ -361,7 +361,7 @@ def validate_token(value):
     """Validates token matches r'[a-f0-9]{10}'."""
     valid_token = re.compile(r'[a-f0-9]{10}')
     if not valid_token.match(value):
-        _msg = 'Team name must match regexp r"[a-f0-9]{10}"'
+        _msg = 'Token must match regexp r"[a-f0-9]{10}"'
         raise ValidationError(_msg)
 
 
