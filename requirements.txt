@@ -1,5 +1,5 @@
 beautifulsoup4
-Django>=3,<4
+Django
 django-stubs
 lxml>=3.6
 psycopg2
