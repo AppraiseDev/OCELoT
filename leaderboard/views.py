@@ -199,11 +199,11 @@ def signin(request):
                 ]
                 _msg = 'You have successfully signed in.'
                 messages.success(request, _msg)
-            
+
             else:
                 _msg = 'Your sign in attempt failed.'
                 messages.warning(request, _msg)
-            
+
             return HttpResponseRedirect(reverse('frontpage-view'))
 
     else:
