@@ -17,7 +17,7 @@ from leaderboard.models import TestSet
 
 
 def download_submission_files(modeladmin, request, queryset):
-    """Creates zip file with all SGML or text files for queryset."""
+    """Creates zip file with all XML, SGML or text files for queryset."""
     del modeladmin  # unused
     del request  # unused
 
@@ -56,7 +56,51 @@ def download_submission_files(modeladmin, request, queryset):
 
 
 download_submission_files.short_description = (  # type: ignore
-    "Download SGML or text files for selected submissions"
+    "Download XML, SGML or text files for selected submissions"
+)
+
+
+def download_testset_files(modeladmin, request, queryset):
+    """Creates zip file with all XML, SGML or text files for queryset."""
+    del modeladmin  # unused
+    del request  # unused
+
+    tmp_file = NamedTemporaryFile(delete=False)
+    with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
+        for test_set in queryset:
+            for the_file in (test_set.src_file, test_set.ref_file):
+                file_extension = the_file.name.split('.')[-1]
+
+                file_type = 'src'
+                if the_file == test_set.ref_file:
+                    file_type = 'ref'
+
+                new_filename = 'testsets/{0}.{1}-{2}.{3}.{4}'.format(
+                    test_set.name,
+                    test_set.source_language.code,
+                    test_set.target_language.code,
+                    file_type,
+                    file_extension,
+                )
+                new_filename.replace(' ', '_').lower()
+
+                zip_file.writestr(
+                    Path(new_filename).name,
+                    the_file.open('rb').read(),
+                )
+
+    tmp_file.seek(0)
+    response = FileResponse(
+        open(tmp_file.name, 'rb'),
+        as_attachment=True,
+        content_type='application/x-zip-compressed',
+        filename='testsets.zip',
+    )
+    return response
+
+
+download_testset_files.short_description = (  # type: ignore
+    "Download XML, SGML or text files for selected test sets"
 )
 
 
@@ -71,7 +115,7 @@ class LanguageAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     """Model admin for Submission objects."""
 
-    actions = [download_submission_files]
+    actions = [download_submission_files, download_testset_files]
 
     fields = [
         'name',
