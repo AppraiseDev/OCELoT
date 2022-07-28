@@ -2,6 +2,7 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import os.path
+import re
 
 import lxml.etree as ET
 from sacrebleu.utils import smart_open
