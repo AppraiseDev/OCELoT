@@ -168,7 +168,7 @@ class SubmissionTests(TestCase):
         sub = Submission.objects.get(name=_file)
 
         self.assertEqual(round(sub.score, 3), 42.431)
-        self.assertEqual(round(sub.score_chrf, 3), 0.664)
+        self.assertEqual(round(sub.score_chrf, 3), 66.444)
 
     def test_scores_are_computed_for_submission_in_sgml_format(self):
         """Checks that scores are computed for a submission."""
@@ -177,7 +177,7 @@ class SubmissionTests(TestCase):
         sub = Submission.objects.get(name=_file)
 
         self.assertEqual(round(sub.score, 3), 42.431)
-        self.assertEqual(round(sub.score_chrf, 3), 0.664)
+        self.assertEqual(round(sub.score_chrf, 3), 66.444)
 
     def test_inactive_testsets_are_not_shown(self):
         """Checks that inactive test sets are not shown in the submission form."""
@@ -500,7 +500,7 @@ class XMLSubmissionTests(TestCase):
         sub = Submission.objects.get(name=_file)
 
         self.assertEqual(round(sub.score, 3), 81.141)
-        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+        self.assertEqual(round(sub.score_chrf, 3), 89.180)
 
     def test_submission_in_xml_format_to_xml_testset(self):
         """Checks making a submission in XML format to XML testset."""
@@ -509,7 +509,7 @@ class XMLSubmissionTests(TestCase):
         sub = Submission.objects.get(name=_file)
 
         self.assertEqual(round(sub.score, 3), 81.141)
-        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+        self.assertEqual(round(sub.score_chrf, 3), 89.180)
 
         self._clean_text_file(_file)
 
@@ -524,7 +524,7 @@ class XMLSubmissionTests(TestCase):
         # Scores should be identical to a single-reference test set because
         # only the first reference is used by design
         self.assertEqual(round(sub.score, 3), 81.141)
-        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+        self.assertEqual(round(sub.score_chrf, 3), 89.180)
 
         self._clean_text_file(_file)
 
@@ -536,7 +536,7 @@ class XMLSubmissionTests(TestCase):
 
         # Scores should be identical to a single-reference test set
         self.assertEqual(round(sub.score, 3), 81.141)
-        self.assertEqual(round(sub.score_chrf, 3), 0.892)
+        self.assertEqual(round(sub.score_chrf, 3), 89.180)
 
         self._clean_text_file(_file)
 
@@ -604,7 +604,7 @@ class XMLSubmissionTests(TestCase):
 
         # Check scores
         self.assertEqual(round(sub.score, 3), 34.992)
-        self.assertEqual(round(sub.score_chrf, 3), 0.686)
+        self.assertEqual(round(sub.score_chrf, 3), 68.605)
 
         self._clean_text_file(_file)
 
