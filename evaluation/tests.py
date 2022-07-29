@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import os
 from datetime import datetime
+from pathlib import Path
 
 from django.test import TestCase
 from django.utils import timezone
@@ -16,7 +17,7 @@ from leaderboard.models import TestSet
 from leaderboard.models import TEXT_FILE
 from ocelot.settings import BASE_DIR
 
-TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
+TESTDATA_DIR = str(Path(BASE_DIR, 'leaderboard/testdata'))
 
 
 class ComparisonTests(TestCase):
@@ -40,12 +41,12 @@ class ComparisonTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='de'),
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
-            ),
+            )),
             competition=self.competition,
         )
 
@@ -61,7 +62,7 @@ class ComparisonTests(TestCase):
             test_set=testset,
             submitted_by=self.team_a,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, file_1),
+            hyp_file=str(Path(TESTDATA_DIR, file_1)),
         )
 
         self.team_b = Team.objects.create(
@@ -76,7 +77,7 @@ class ComparisonTests(TestCase):
             test_set=testset,
             submitted_by=self.team_b,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, file_2),
+            hyp_file=str(Path(TESTDATA_DIR, file_2)),
         )
 
         session = self.client.session
@@ -105,12 +106,12 @@ class ComparisonTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='de'),
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
-            ),
+            )),
             competition=self.competition,
         )
 
@@ -120,7 +121,7 @@ class ComparisonTests(TestCase):
             test_set=testset,
             submitted_by=self.team_a,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, _file),
+            hyp_file=str(Path(TESTDATA_DIR, _file)),
             is_public=True,
         )
 

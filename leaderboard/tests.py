@@ -22,7 +22,7 @@ from leaderboard.utils import analyze_xml_file
 from leaderboard.utils import process_xml_to_text
 from ocelot.settings import BASE_DIR
 
-TESTDATA_DIR = os.path.join(BASE_DIR, 'leaderboard/testdata')
+TESTDATA_DIR = Path(BASE_DIR, 'leaderboard/testdata')
 
 
 class UtilsTests(TestCase):
@@ -128,12 +128,12 @@ class SubmissionTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='de'),
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
-            ),
+            )),
             competition=self.competition,
         )
 
@@ -158,7 +158,7 @@ class SubmissionTests(TestCase):
             test_set=self.testset,
             submitted_by=self.team,
             file_format=file_format,
-            hyp_file=os.path.join(TESTDATA_DIR, file_name),
+            hyp_file=str(Path(TESTDATA_DIR, file_name)),
         )
 
     def test_scores_are_computed_for_submission_in_text_format(self):
@@ -238,7 +238,7 @@ class SubmissionTests(TestCase):
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
         with open(
-            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+            str(Path(TESTDATA_DIR, _file)), encoding='utf8'
         ) as tst:
             data = {
                 'test_set': '1',
@@ -257,7 +257,7 @@ class SubmissionTests(TestCase):
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
         with open(
-            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+            str(Path(TESTDATA_DIR, _file)), encoding='utf8'
         ) as tst:
             data = {
                 'test_set': '1',
@@ -410,8 +410,8 @@ class XMLSubmissionTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='ha'),
             file_format=XML_FILE,
-            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
-            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+            src_file=str(Path(TESTDATA_DIR, 'xml/sample-src.xml')),
+            ref_file=str(Path(TESTDATA_DIR, 'xml/sample-src-ref.xml')),
             competition=self.competition,
         )
 
@@ -421,10 +421,10 @@ class XMLSubmissionTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='ha'),
             file_format=XML_FILE,
-            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
-            ref_file=os.path.join(
+            src_file=str(Path(TESTDATA_DIR, 'xml/sample-src.xml')),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'xml/sample-src-multirefs.xml'
-            ),
+            )),
             competition=self.competition,
         )
 
@@ -439,8 +439,8 @@ class XMLSubmissionTests(TestCase):
             source_language=Language.objects.get(code='en'),
             target_language=Language.objects.get(code='ha'),
             file_format=XML_FILE,
-            src_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
-            ref_file=os.path.join(TESTDATA_DIR, 'xml/multi-ref.xml'),
+            src_file=str(Path(TESTDATA_DIR, 'xml/multi-src-ref.xml')),
+            ref_file=str(Path(TESTDATA_DIR, 'xml/multi-ref.xml')),
             competition=self.competition,
             collection='B',
         )
@@ -466,7 +466,7 @@ class XMLSubmissionTests(TestCase):
     def _clean_text_file(self, input_file, add_test_dir=True):
         """Removes a temporary text file."""
         _file = (
-            os.path.join(TESTDATA_DIR, input_file)
+            str(Path(TESTDATA_DIR, input_file))
             if add_test_dir
             else input_file
         )
@@ -484,7 +484,7 @@ class XMLSubmissionTests(TestCase):
             test_set=test_set or self.testset,
             submitted_by=self.team,
             file_format=file_format,
-            hyp_file=os.path.join(TESTDATA_DIR, file_name),
+            hyp_file=str(Path(TESTDATA_DIR, file_name)),
         )
 
     def _set_ocelot_team_token(self):
@@ -546,7 +546,7 @@ class XMLSubmissionTests(TestCase):
 
         _file = 'xml/sample-hyp.invalid.xml'
         with open(
-            os.path.join(TESTDATA_DIR, _file), encoding='utf8'
+            str(Path(TESTDATA_DIR, _file)), encoding='utf8'
         ) as xml:
             data = {
                 'test_set': '1',
@@ -618,12 +618,12 @@ class TestSetTests(TestCase):
         TestSet.objects.create(
             name='TestSetA',
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
-            ),
+            )),
         )
 
         tst = TestSet.objects.get(name='TestSetA')
@@ -636,12 +636,12 @@ class TestSetTests(TestCase):
         TestSet.objects.create(
             name='TestSetB',
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.txt'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.txt'
-            ),
+            )),
         )
 
         tst = TestSet.objects.get(name='TestSetB')
@@ -655,8 +655,8 @@ class TestSetTests(TestCase):
         TestSet.objects.create(
             name='TestSetC',
             file_format=XML_FILE,
-            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
-            ref_file=os.path.join(TESTDATA_DIR, 'xml/sample-src-ref.xml'),
+            src_file=str(Path(TESTDATA_DIR, 'xml/sample-src.xml')),
+            ref_file=str(Path(TESTDATA_DIR, 'xml/sample-src-ref.xml')),
         )
 
         tst = TestSet.objects.get(name='TestSetC')
@@ -682,8 +682,8 @@ class TestSetTests(TestCase):
         TestSet.objects.create(
             name='TestSetD',
             file_format=XML_FILE,
-            src_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
-            ref_file=os.path.join(TESTDATA_DIR, 'xml/multi-src-ref.xml'),
+            src_file=str(Path(TESTDATA_DIR, 'xml/multi-src-ref.xml')),
+            ref_file=str(Path(TESTDATA_DIR, 'xml/multi-src-ref.xml')),
             collection='B',
         )
 
@@ -748,12 +748,12 @@ class LeaderboardTests(TestCase):
             source_language=l_en,
             target_language=l_de,
             file_format=SGML_FILE,
-            src_file=os.path.join(
+            src_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-src.en.sgm'
-            ),
-            ref_file=os.path.join(
+            )),
+            ref_file=str(Path(
                 TESTDATA_DIR, 'newstest2019-ende-ref.de.sgm'
-            ),
+            )),
             competition=comp_a,
         )
 
@@ -770,7 +770,7 @@ class LeaderboardTests(TestCase):
             test_set=test_a,
             submitted_by=team_a,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, _file1),
+            hyp_file=str(Path(TESTDATA_DIR, _file1)),
         )
 
         team_b = Team.objects.create(
@@ -786,7 +786,7 @@ class LeaderboardTests(TestCase):
             test_set=test_a,
             submitted_by=team_b,
             file_format=TEXT_FILE,
-            hyp_file=os.path.join(TESTDATA_DIR, _file2),
+            hyp_file=str(Path(TESTDATA_DIR, _file2)),
         )
 
         Competition.objects.create(
