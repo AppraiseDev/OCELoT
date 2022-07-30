@@ -11,13 +11,14 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 import logging
 import os
+import pathlib
 from logging.handlers import (  # pylint: disable=ungrouped-imports
     RotatingFileHandler,
 )
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = str(pathlib.Path(__file__).parent.parent.resolve())
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -69,7 +70,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': str(pathlib.Path(BASE_DIR, 'db.sqlite3')),
         }
     }
 
@@ -77,7 +78,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 
 # Logging settings for this Django project.
 LOG_LEVEL = logging.DEBUG
-LOG_FILENAME = os.path.join(BASE_DIR, 'ocelot.log')
+LOG_FILENAME = str(pathlib.Path(BASE_DIR, 'ocelot.log'))
 LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
 LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
 LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
@@ -172,11 +173,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = str(pathlib.Path(BASE_DIR, 'static'))
 
 # Static files that are not tied to a particular app should be put there
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'assets'),
+    str(pathlib.Path(BASE_DIR, 'assets')),
 ]
 
 # Allow to specify absolute filesystem path to the directory that will hold user-uploaded files.
@@ -185,5 +186,5 @@ MEDIA_ROOT = os.environ.get('OCELOT_MEDIA_ROOT', '')
 # Project version
 # See point 4 from https://packaging.python.org/guides/single-sourcing-package-version/
 
-with open(os.path.join(BASE_DIR, 'VERSION')) as version_file:
+with open(str(pathlib.Path(BASE_DIR, 'VERSION'))) as version_file:
     VERSION = version_file.read().strip()
