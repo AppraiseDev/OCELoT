@@ -12,17 +12,13 @@ from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
 from django.db import models
-from sacrebleu.sacrebleu import corpus_bleu  # type: ignore
-from sacrebleu.sacrebleu import corpus_chrf  # type: ignore
-from sacrebleu.sacrebleu import process_to_text  # type: ignore
-from sacrebleu.sacrebleu import TOKENIZERS
+from sacrebleu import corpus_bleu  # type: ignore
+from sacrebleu import corpus_chrf  # type: ignore
 
 from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import process_to_text  # type: ignore
 from leaderboard.utils import process_xml_to_text
 from ocelot.settings import MEDIA_ROOT
-
-# Add support for character-based BLEU scores
-TOKENIZERS['char-based'] = lambda x: ' '.join((c for c in x))
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
@@ -361,7 +357,7 @@ def validate_token(value):
     """Validates token matches r'[a-f0-9]{10}'."""
     valid_token = re.compile(r'[a-f0-9]{10}')
     if not valid_token.match(value):
-        _msg = 'Team name must match regexp r"[a-f0-9]{10}"'
+        _msg = 'Token must match regexp r"[a-f0-9]{10}"'
         raise ValidationError(_msg)
 
 
@@ -1140,10 +1136,10 @@ class Submission(models.Model):
         target_language_code = self.test_set.target_language.code
         if target_language_code == 'ja':
             # We use char-based tokenizer as MeCab was slow/unstable
-            tokenize = 'char-based'
+            tokenize = 'char'
 
         elif target_language_code == 'km':
-            tokenize = 'char-based'
+            tokenize = 'char'
 
         elif target_language_code == 'zh':
             tokenize = 'zh'
@@ -1163,7 +1159,7 @@ class Submission(models.Model):
             bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
             self.score = bleu.score
 
-            chrf = corpus_chrf(hyp_stream, ref_stream)
+            chrf = corpus_chrf(hyp_stream, [ref_stream])
             self.score_chrf = chrf.score
 
         except Exception:
@@ -1192,7 +1188,7 @@ class Submission(models.Model):
         """Returns human-readable chrF score."""
         try:
             if self.score_chrf:
-                return round(self.score_chrf, 3)
+                return round(self.score_chrf, 1)
             return '---'
 
         except TypeError:

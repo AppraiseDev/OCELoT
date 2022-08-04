@@ -1,7 +1,11 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+import os.path
+import re
+
 import lxml.etree as ET
+from sacrebleu.utils import smart_open
 
 
 MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
@@ -41,6 +45,71 @@ def analyze_xml_file(xml_path):
             systems.add(system)
 
     return collections, src_langs, ref_langs, translators, systems
+
+
+# Taken from sacrebleu which removed this with v2.2
+#
+# https://github.com/mjpost/sacrebleu/blob/65a8a9eeccd8c0c7875e875e12edf10db33ab0ba/sacrebleu/utils.py#L277
+def process_to_text(rawfile, txtfile, field: int = None):
+    """Processes raw files to plain text files. Can handle SGML, XML, TSV files, and plain text.
+    Called after downloading datasets.
+    :param rawfile: the input file (possibly SGML)
+    :param txtfile: the plaintext file
+    :param field: For TSV files, which field to extract.
+    """
+
+    def _clean(s):
+        """
+        Removes trailing and leading spaces and collapses multiple consecutive internal spaces to a single one.
+        :param s: The string.
+        :return: A cleaned-up string.
+        """
+        return re.sub(r'\s+', ' ', s.strip())
+
+    if not os.path.exists(txtfile) or os.path.getsize(txtfile) == 0:
+        if rawfile.endswith('.sgm') or rawfile.endswith('.sgml'):
+            with smart_open(rawfile) as fin, smart_open(
+                txtfile, 'wt'
+            ) as fout:
+                for line in fin:
+                    if line.startswith('<seg '):
+                        print(
+                            _clean(
+                                re.sub(
+                                    r'<seg.*?>(.*)</seg>.*?', '\\1', line
+                                )
+                            ),
+                            file=fout,
+                        )
+        # IWSLT
+        elif rawfile.endswith('.xml'):
+            with smart_open(rawfile) as fin, smart_open(
+                txtfile, 'wt'
+            ) as fout:
+                for line in fin:
+                    if line.startswith('<seg '):
+                        print(
+                            _clean(
+                                re.sub(
+                                    r'<seg.*?>(.*)</seg>.*?', '\\1', line
+                                )
+                            ),
+                            file=fout,
+                        )
+        # MTNT
+        elif rawfile.endswith('.tsv'):
+            with smart_open(rawfile) as fin, smart_open(
+                txtfile, 'wt'
+            ) as fout:
+                for line in fin:
+                    print(line.rstrip().split('\t')[field], file=fout)
+        # PLAIN TEXT
+        else:
+            with smart_open(rawfile) as fin, smart_open(
+                txtfile, 'wt'
+            ) as fout:
+                for line in fin:
+                    print(line.rstrip(), file=fout)
 
 
 def process_xml_to_text(

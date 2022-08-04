@@ -80,7 +80,7 @@ def leaderboard(request, competition_id=None):
     )
 
     for test_set in test_sets:
-        order_flag = '-score'
+        order_flag = '-score_chrf'
         if not test_set.compute_scores:
             order_flag = '-id'
 
@@ -197,9 +197,13 @@ def signin(request):
                 request.session['ocelot_team_token'] = form.cleaned_data[
                     'token'
                 ]
+                _msg = 'You have successfully signed in.'
+                messages.success(request, _msg)
 
-            _msg = 'You have successfully signed in.'
-            messages.success(request, _msg)
+            else:
+                _msg = 'Your sign in attempt failed.'
+                messages.warning(request, _msg)
+
             return HttpResponseRedirect(reverse('frontpage-view'))
 
     else:
@@ -430,7 +434,7 @@ def teampage(request):
         'test_set__name',
         'test_set__source_language__code',
         'test_set__target_language__code',
-        '-score',
+        '-score_chrf',
     )
     for submission in submissions.order_by(*ordering):
         key = submission.test_set

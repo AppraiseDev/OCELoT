@@ -34,6 +34,8 @@ ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(
     ','
 )
 
+CSRF_TRUSTED_ORIGINS = ['https://{0}'.format(x) for x in ALLOWED_HOSTS]
+
 WSGI_APPLICATION = os.environ.get(
     'OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application'
 )
