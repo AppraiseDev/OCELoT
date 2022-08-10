@@ -144,8 +144,12 @@ def download_team_file(modeladmin, request, queryset):
             ],
         )
 
-        primary_submissions = team.submission_set.filter(is_primary=True, score__gte=0)
-        team_data['number_of_primary_submissions'] = len(primary_submissions)
+        primary_submissions = team.submission_set.filter(
+            is_primary=True, score__gte=0
+        )
+        team_data['number_of_primary_submissions'] = len(
+            primary_submissions
+        )
 
         submission_list = []
         for submission in primary_submissions:
@@ -160,8 +164,12 @@ def download_team_file(modeladmin, request, queryset):
                     'score_chrf',
                 ],
             )
-            submission_data['competition'] = submission.test_set.competition.name
-            submission_data['file_name'] = _make_submission_filename(submission)
+            submission_data[
+                'competition'
+            ] = submission.test_set.competition.name
+            submission_data['file_name'] = _make_submission_filename(
+                submission
+            )
             submission_data['test_set'] = submission.test_set.name
             language_pair = "{0}-{1}".format(
                 submission.test_set.source_language.code,
