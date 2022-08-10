@@ -156,7 +156,6 @@ def download_team_file(modeladmin, request, queryset):
             submission_data = model_to_dict(
                 submission,
                 fields=[
-                    'id',
                     'is_constrained',
                     'is_primary',
                     'is_removed',
@@ -170,6 +169,7 @@ def download_team_file(modeladmin, request, queryset):
             submission_data['file_name'] = _make_submission_filename(
                 submission
             )
+            submission_data['submission_id'] = submission.id
             submission_data['test_set'] = submission.test_set.name
             language_pair = "{0}-{1}".format(
                 submission.test_set.source_language.code,
