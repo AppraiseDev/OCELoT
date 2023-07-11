@@ -3,9 +3,9 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import os.path
 import re
+from typing import Optional
 
 import lxml.etree as ET
-from typing import Optional
 from sacrebleu.utils import smart_open
 
 
