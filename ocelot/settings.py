@@ -62,7 +62,6 @@ if all((DB_ENGINE, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)):
     }
 
 else:
-
     # Database
     # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 

@@ -7,7 +7,6 @@ import leaderboard.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('leaderboard', '0017_submission_is_constrained'),
     ]
