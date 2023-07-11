@@ -6,7 +6,7 @@ from difflib import SequenceMatcher
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404
-from django.shortcuts import HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from leaderboard.models import Submission
