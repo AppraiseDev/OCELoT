@@ -8,7 +8,6 @@ import leaderboard.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('leaderboard', '0011_auto_20200622_2334')]
 
     operations = [

@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import os.path
 import re
+from typing import Optional
 
 import lxml.etree as ET
 from sacrebleu.utils import smart_open
@@ -50,7 +51,7 @@ def analyze_xml_file(xml_path):
 # Taken from sacrebleu which removed this with v2.2
 #
 # https://github.com/mjpost/sacrebleu/blob/65a8a9eeccd8c0c7875e875e12edf10db33ab0ba/sacrebleu/utils.py#L277
-def process_to_text(rawfile, txtfile, field: int = None):
+def process_to_text(rawfile, txtfile, field: Optional[int] = None):
     """Processes raw files to plain text files. Can handle SGML, XML, TSV files, and plain text.
     Called after downloading datasets.
     :param rawfile: the input file (possibly SGML)

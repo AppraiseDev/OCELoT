@@ -7,7 +7,6 @@ import leaderboard.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('leaderboard', '0010_testset_is_active')]
 
     operations = [

@@ -5,7 +5,6 @@ from django.db import models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('leaderboard', '0007_submission_is_public')]
 
     operations = [
