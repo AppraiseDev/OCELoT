@@ -141,7 +141,7 @@ class SubmissionAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
         '_team_name',
-        'submitted_by__id',
+        'submitted_by',
         'test_set',
         '_source_language',
         '_target_language',
