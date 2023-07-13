@@ -1202,6 +1202,7 @@ class Submission(models.Model):
         """Returns test set target language."""
         return self.test_set.target_language
 
+    # TODO: check if this can be removed?
     def _team_name(self):
         """Returns team publication name if set, or the original name otherwise."""
         return self.submitted_by.publication_name or self.submitted_by.name

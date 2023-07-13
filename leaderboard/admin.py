@@ -140,13 +140,15 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        '_team_name',
+        'submitted_by__publication_name',
+        'submitted_by__name',
         'test_set',
         '_source_language',
         '_target_language',
         'file_format',
         '_score',
         '_chrf',
+        'date_created',
     ]
 
     list_filter = [
@@ -166,6 +168,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set__source_language__code',
         'test_set__target_language__code',
         '-score_chrf',
+        '-date_created',
     )
 
 
