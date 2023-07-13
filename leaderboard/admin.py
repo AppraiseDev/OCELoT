@@ -140,8 +140,8 @@ class SubmissionAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'submitted_by__publication_name',
-        'submitted_by__name',
+        '_team_name',
+        'submitted_by__id',
         'test_set',
         '_source_language',
         '_target_language',
