@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2023-07-13
+- Added default logic for `Team` submissions: we will choose the highest-scoring, or
+  the latest `Submission` for each distinct test set. This requires users to explicitly
+  withdraw from a language pair/test set if they don't want to participate in that one.
+- Added `is_primary` selection to `SubmissionForm`
+
 ## [Unreleased]
 
 ### Added

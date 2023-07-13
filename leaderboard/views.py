@@ -321,8 +321,7 @@ def submit(request):
                 # If is_primary has been selected and the submissions was
                 # successful, update new_submission.is_primary field.
                 if form.cleaned_data['is_primary']:
-                    new_submission.is_primary = True
-                    new_submission.save()
+                    new_submission.set_primary()  # This implicitly calls save()
             else:
                 _msg = (
                     'Unsuccessful submission of {0}. '
@@ -441,6 +440,7 @@ def teampage(request):
         'test_set__source_language__code',
         'test_set__target_language__code',
         '-score_chrf',
+        '-date_created',
     )
     for submission in submissions.order_by(*ordering):
         key = submission.test_set
@@ -453,6 +453,16 @@ def teampage(request):
 
         if submission.is_primary:
             primary[key] = submission
+
+    # If no primary system has been selected by the user yet, we will use
+    # the highest-scoring or the latest submission for any given test set.
+    # Based on our ordering defined above, this will be the first object
+    # in the data[key] list, for each of the distinct keys.
+    for key in data.keys():
+        if not key in primary:
+            highest_scoring_or_latest_submission_is_default = data[key][0]
+            highest_scoring_or_latest_submission_is_default.set_primary)()
+            primary[key] = highest_scoring_or_latest_submission_is_default
 
     data_triples = []  # (test set, primary submission, all submissions)
     for key in data.keys():
