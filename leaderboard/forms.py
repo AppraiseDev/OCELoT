@@ -149,7 +149,7 @@ class SubmissionForm(forms.ModelForm):
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
-        fields = ['test_set', 'file_format', 'hyp_file']
+        fields = ['test_set', 'file_format', 'hyp_file', 'is_primary']
         widgets = {
             'file_format': forms.Select(attrs={'class': 'form-control'}),
             'hyp_file': forms.FileInput(

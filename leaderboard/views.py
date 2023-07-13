@@ -317,6 +317,12 @@ def submit(request):
                     new_submission.hyp_file.name
                 )
                 messages.success(request, _msg)
+
+                # If is_primary has been selected and the submissions was
+                # successful, update new_submission.is_primary field.
+                if form.cleaned_data['is_primary']:
+                    new_submission.is_primary = True
+                    new_submission.save()
             else:
                 _msg = (
                     'Unsuccessful submission of {0}. '
