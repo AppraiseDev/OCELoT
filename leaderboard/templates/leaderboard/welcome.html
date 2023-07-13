@@ -8,9 +8,12 @@
             <a class="btn btn-danger btn-sm" role="button" href="{% url 'download-view' %}">Download test sets</a>
             {% if ocelot_team_token %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'teampage-view' %}">Team submissions</a>
-            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
             {% else %}
             <a class="btn btn-warning btn-sm" role="button" href="{% url 'signup-view' %}">Register your team</a>
+            {% endif %}
+            {% if ocelot_team_verified %}
+            <a class="btn btn-success btn-sm" role="button" href="{% url 'submit-view' %}">Create submission</a>
+            {% else %}
             <a class="btn btn-success btn-sm disabled" role="button" href="#">Create submission</a>
             {% endif %}
             <a class="btn btn-primary btn-sm" role="button" href="{% url 'updates-view' %}">Competition updates</a>

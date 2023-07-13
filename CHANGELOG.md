@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-13
+- Fixed page templates to use `ocelot_team_verified` for access to submission view. [[#56](https://github.com/AppraiseDev/OCELoT/issues/56)]
 - Fixed #tags and updated to #wmt23dev.
 - Submission page/view now only works for verified teams. [[#56](https://github.com/AppraiseDev/OCELoT/issues/56)]
 - Added support for sorting `Submission` objects by `submitted_by` and `date_created`. [[#96](https://github.com/AppraiseDev/OCELoT/issues/96)]
