@@ -461,7 +461,7 @@ def teampage(request):
     for key in data.keys():
         if not key in primary:
             highest_scoring_or_latest_submission_is_default = data[key][0]
-            highest_scoring_or_latest_submission_is_default.set_primary)()
+            highest_scoring_or_latest_submission_is_default.set_primary()
             primary[key] = highest_scoring_or_latest_submission_is_default
 
     data_triples = []  # (test set, primary submission, all submissions)
