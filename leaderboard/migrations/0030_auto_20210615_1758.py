@@ -6,7 +6,6 @@ import leaderboard.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('leaderboard', '0029_auto_20210611_0713'),
     ]

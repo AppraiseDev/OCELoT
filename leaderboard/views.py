@@ -6,7 +6,7 @@ from collections import OrderedDict
 from django.contrib import messages
 from django.db.models import Count
 from django.http import Http404
-from django.shortcuts import HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
