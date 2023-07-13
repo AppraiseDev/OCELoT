@@ -265,7 +265,7 @@ class SubmissionTests(TestCase):
                 'hyp_file': tst,
             }
             response = self.client.post('/submit', data, follow=True)
-        self.assertContains(response, 'has not been verified')
+        self.assertContains(response, 'needs to be verified')
         self.assertNotContains(response, 'successfully submitted')
 
     def test_submission_is_anonymous(self):
@@ -543,6 +543,8 @@ class XMLSubmissionTests(TestCase):
     def test_submission_in_xml_format_with_invalid_schema(self):
         """Checks that XML file with invalid XML Schema cannot be submitted."""
         self._set_ocelot_team_token()
+        self.team.is_verified = True
+        self.team.save()
 
         _file = 'xml/sample-hyp.invalid.xml'
         with open(
@@ -565,6 +567,8 @@ class XMLSubmissionTests(TestCase):
     def test_submission_in_xml_format_must_have_systems(self):
         """Checks that submissions in XML format without system translations are not allowed."""
         self._set_ocelot_team_token()
+        self.team.is_verified = True
+        self.team.save()
 
         # Create a copied temp file for testing to avoid reading an
         # automatically created '.txt' from the sample-src.xml
