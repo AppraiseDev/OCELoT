@@ -5,10 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-13
+- Fixed #tags and updated to #wmt23dev.
+- Submission page/view now only works for verified teams. [[#56](https://github.com/AppraiseDev/OCELoT/issues/56)]
+- Added support for sorting `Submission` objects by `submitted_by` and `date_created`. [[#96](https://github.com/AppraiseDev/OCELoT/issues/96)]
 - Added default logic for `Team` submissions: we will choose the highest-scoring, or
   the latest `Submission` for each distinct test set. This requires users to explicitly
-  withdraw from a language pair/test set if they don't want to participate in that one.
-- Added `is_primary` selection to `SubmissionForm`
+  withdraw from a language pair/test set if they don't want to participate in that one. [[#104](https://github.com/AppraiseDev/OCELoT/issues/104)]
+- Added `is_primary` selection to `SubmissionForm`. [[#104](https://github.com/AppraiseDev/OCELoT/issues/104)]
 
 ## [Unreleased]
 

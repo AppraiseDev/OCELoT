@@ -32,11 +32,18 @@ def _get_team_data(request):
     ocelot_team_name = None
     ocelot_team_email = None
     ocelot_team_token = request.session.get('ocelot_team_token')
+    ocelot_team_verified = False
     if ocelot_team_token:
         the_team = Team.objects.get(token=ocelot_team_token)
         ocelot_team_name = the_team.name
         ocelot_team_email = the_team.email
-    return (ocelot_team_name, ocelot_team_email, ocelot_team_token)
+        ocelot_team_verified = the_team.is_verified
+    return (
+        ocelot_team_name,
+        ocelot_team_email,
+        ocelot_team_token,
+        ocelot_team_verified,
+    )
 
 
 def _format_datetime_for_js(stamp):
@@ -118,6 +125,7 @@ def leaderboard(request, competition_id=None):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     context = {
@@ -127,6 +135,7 @@ def leaderboard(request, competition_id=None):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/competition.html', context=context)
 
@@ -163,6 +172,7 @@ def frontpage(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     context = {
@@ -171,6 +181,7 @@ def frontpage(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/frontpage.html', context=context)
 
@@ -249,10 +260,16 @@ def submit(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     if not ocelot_team_token:
         _msg = 'You need to be signed in to access this page.'
+        messages.warning(request, _msg)
+        return HttpResponseRedirect('/')
+
+    if not ocelot_team_verified:
+        _msg = 'Your team needs to be verified to access this page.'
         messages.warning(request, _msg)
         return HttpResponseRedirect('/')
 
@@ -346,6 +363,7 @@ def submit(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/submission.html', context=context)
 
@@ -357,6 +375,7 @@ def teampage(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     if not ocelot_team_token:
@@ -487,6 +506,7 @@ def teampage(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
         'publication_name_form': publication_name_form,
         'publication_desc_form': publication_desc_form,
         'publication_survey': publication_survey,
@@ -501,6 +521,7 @@ def updates(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     context = {
@@ -508,6 +529,7 @@ def updates(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/updates.html', context=context)
 
@@ -519,6 +541,7 @@ def download(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     context = {
@@ -526,6 +549,7 @@ def download(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/download.html', context=context)
 
@@ -537,6 +561,7 @@ def welcome(request):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     if not ocelot_team_token:
@@ -548,5 +573,6 @@ def welcome(request):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/welcome.html', context=context)
