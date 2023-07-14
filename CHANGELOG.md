@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2023-07-14
+- Added basic support for `TestSet` instances without reference(s).
+- Accept optional 'domain' attribute in XML submissions. [[#112](https://github.com/AppraiseDev/OCELoT/issues/112)]
+
 ## [0.7.0] - 2023-07-13
 - Fixed tests re: unverified teams' submission access. [[#56](https://github.com/AppraiseDev/OCELoT/issues/56)]
 - Fixed page templates to use `ocelot_team_verified` for access to submission view. [[#56](https://github.com/AppraiseDev/OCELoT/issues/56)]
