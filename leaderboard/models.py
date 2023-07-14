@@ -895,6 +895,13 @@ class Submission(models.Model):
         help_text='Is removed?',
     )
 
+    is_valid = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is valid?',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -1049,9 +1056,8 @@ class Submission(models.Model):
             list/str: A list of segments unless path_only and a file path
                 otherwise
         """
-        if (
-            not self.test_set.has_references()
-        ):  # Reference file may not exist
+        # Reference file may not exist
+        if not self.test_set.has_references():
             return
 
         if self.test_set.file_format == SGML_FILE:
@@ -1152,9 +1158,8 @@ class Submission(models.Model):
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
 
-        if (
-            not self.test_set.has_references()
-        ):  # Reference file may not exist
+        # Reference file may not exist
+        if not self.test_set.has_references():
             return
 
         # Do not compute scores if instructed not to do so
@@ -1257,6 +1262,9 @@ class Submission(models.Model):
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique
         )
+
+        self.is_valid = True
+        self.save()
 
     def save(
         self,

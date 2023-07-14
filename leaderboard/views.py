@@ -93,7 +93,7 @@ def leaderboard(request, competition_id=None):
 
         submissions = Submission.objects.filter(
             test_set=test_set,
-            score__gte=0,  # Ignore invalid submissions
+            is_valid=True,  # Ignore invalid submissions
             is_removed=False,  # Ignore any removed submissions
         ).order_by(order_flag,)[:MAX_SUBMISSION_DISPLAY_COUNT]
 
@@ -303,7 +303,7 @@ def submit(request):
             number_of_submissions = Submission.objects.filter(
                 submitted_by=current_team,
                 test_set=test_set,
-                score__gte=0,  # Ignore invalid submissions for limit check
+                is_valid=True,  # Ignore invalid submissions for limit check
             ).count()
 
             if number_of_submissions >= MAX_SUBMISSION_LIMIT:
@@ -441,7 +441,7 @@ def teampage(request):
     data = OrderedDict()
     primary = OrderedDict()
     submissions = Submission.objects.filter(
-        score__gte=0,  # Ignore invalid submissions
+        is_valid=True,  # Ignore invalid submissions
         submitted_by__token=ocelot_team_token,
     )
     ordering = (
