@@ -9,13 +9,13 @@ from django.utils import timezone
 from leaderboard.models import MAX_DESCRIPTION_LENGTH
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
-from leaderboard.models import XML_FILE
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
 from leaderboard.models import validate_institution_name
 from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
+from leaderboard.models import XML_FILE
 
 
 PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer
