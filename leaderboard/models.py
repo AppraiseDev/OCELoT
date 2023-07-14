@@ -30,8 +30,8 @@ TEXT_FILE = 'TEXT'  # supported extensions: .txt
 XML_FILE = 'XML'  # supported extensions: .xml
 
 FILE_FORMAT_CHOICES = (
-    ##    (SGML_FILE, 'SGML format'),
-    ##    (TEXT_FILE, 'Text format'),
+    (SGML_FILE, 'SGML format'),
+    (TEXT_FILE, 'Text format'),
     (XML_FILE, 'XML format'),
 )
 

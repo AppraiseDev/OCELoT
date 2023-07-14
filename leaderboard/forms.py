@@ -9,6 +9,7 @@ from django.utils import timezone
 from leaderboard.models import MAX_DESCRIPTION_LENGTH
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
+from leaderboard.models import XML_FILE
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
@@ -151,7 +152,10 @@ class SubmissionForm(forms.ModelForm):
         model = Submission
         fields = ['test_set', 'file_format', 'hyp_file', 'is_primary']
         widgets = {
-            'file_format': forms.Select(attrs={'class': 'form-control'}),
+            'file_format': forms.Select(
+                attrs={'class': 'form-control'},
+                choices=((XML_FILE, 'XML format'),),
+            ),
             'hyp_file': forms.FileInput(
                 attrs={'class': 'form-control form-control-file'}
             ),
