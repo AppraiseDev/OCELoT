@@ -171,6 +171,12 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
           <data type="string"/>
         </attribute>
       </optional>
+      <optional>
+        <attribute>
+          <name ns="">domain</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
       <ref name="Source"/>
       <zeroOrMore>
         <ref name="Reference"/>
