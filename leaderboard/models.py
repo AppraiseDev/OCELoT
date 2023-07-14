@@ -171,6 +171,12 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
           <data type="string"/>
         </attribute>
       </optional>
+      <optional>
+        <attribute>
+          <name ns="">domain</name>
+          <data type="string"/>
+        </attribute>
+      </optional>
       <ref name="Source"/>
       <zeroOrMore>
         <ref name="Reference"/>
@@ -251,6 +257,9 @@ def validate_xml_src_testset(xml_file):
 
 def validate_xml_ref_testset(xml_file):
     """Validate reference texts in XML file."""
+    if not xml_file:  # FileField evaluates as False when None
+        return
+
     if not xml_file.name.endswith('.xml'):
         return  # Skip validation for other formats
 
@@ -601,6 +610,9 @@ class TestSet(models.Model):
                     collection=self.collection,
                 )
 
+            if not self.has_references():
+                return
+
             # Extract reference texts; multiple references will be tab-separated
             ref_path = str(self.ref_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in ref_path:
@@ -618,6 +630,10 @@ class TestSet(models.Model):
                     reference=translator,
                     collection=self.collection,
                 )
+
+    def has_references(self):
+        """Returns True when self.ref_file is not None."""
+        return bool(self.ref_file)
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set files."""

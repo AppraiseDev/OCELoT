@@ -84,6 +84,7 @@ def submission(request, sub_id=None):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     # Submission must be public unless it's yours
@@ -120,6 +121,7 @@ def submission(request, sub_id=None):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'comparison/submission.html', context=context)
 
@@ -152,6 +154,7 @@ def compare_submissions(request, sub_a_id=None, sub_b_id=None):
         ocelot_team_name,
         ocelot_team_email,
         ocelot_team_token,
+        ocelot_team_verified,
     ) = _get_team_data(request)
 
     # Submissions that are not public cannot be compared
@@ -187,6 +190,7 @@ def compare_submissions(request, sub_a_id=None, sub_b_id=None):
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
+        'ocelot_team_verified': ocelot_team_verified,
         # 'comparison_options': [(0, '...'), (1, 'A>B'), (2, 'A<B'), (3, 'A=B')],
     }
     template = 'comparison/compare_submissions.html'

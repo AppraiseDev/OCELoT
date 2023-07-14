@@ -265,7 +265,7 @@ class SubmissionTests(TestCase):
                 'hyp_file': tst,
             }
             response = self.client.post('/submit', data, follow=True)
-        self.assertContains(response, 'has not been verified')
+        self.assertContains(response, 'needs to be verified')
         self.assertNotContains(response, 'successfully submitted')
 
     def test_submission_is_anonymous(self):
@@ -543,6 +543,8 @@ class XMLSubmissionTests(TestCase):
     def test_submission_in_xml_format_with_invalid_schema(self):
         """Checks that XML file with invalid XML Schema cannot be submitted."""
         self._set_ocelot_team_token()
+        self.team.is_verified = True
+        self.team.save()
 
         _file = 'xml/sample-hyp.invalid.xml'
         with open(
@@ -565,6 +567,8 @@ class XMLSubmissionTests(TestCase):
     def test_submission_in_xml_format_must_have_systems(self):
         """Checks that submissions in XML format without system translations are not allowed."""
         self._set_ocelot_team_token()
+        self.team.is_verified = True
+        self.team.save()
 
         # Create a copied temp file for testing to avoid reading an
         # automatically created '.txt' from the sample-src.xml
@@ -630,6 +634,7 @@ class TestSetTests(TestCase):
         self.assertEqual(tst.name, 'TestSetA')
         self.assertTrue(tst.src_file.name.endswith('.sgm'))
         self.assertTrue(tst.ref_file.name.endswith('.sgm'))
+        self.assertTrue(tst.has_references())
 
     def test_create_test_set_with_text_files(self):
         """Checks that a test set can be created from text files."""
@@ -648,6 +653,7 @@ class TestSetTests(TestCase):
         self.assertEqual(tst.name, 'TestSetB')
         self.assertTrue(tst.src_file.name.endswith('.txt'))
         self.assertTrue(tst.ref_file.name.endswith('.txt'))
+        self.assertTrue(tst.has_references())
 
     def test_create_test_set_with_xml_files(self):
         """Checks that a test set can be created from XML files."""
@@ -663,6 +669,7 @@ class TestSetTests(TestCase):
         self.assertEqual(tst.name, 'TestSetC')
         self.assertTrue(tst.src_file.name.endswith('.xml'))
         self.assertTrue(tst.ref_file.name.endswith('.xml'))
+        self.assertTrue(tst.has_references())
 
         # Check if text files has been created and are non empty
         src_txt_file = Path(tst.src_file.name.replace('.xml', '.txt'))
@@ -692,6 +699,7 @@ class TestSetTests(TestCase):
         self.assertTrue(tst.src_file.name.endswith('.xml'))
         self.assertTrue(tst.ref_file.name.endswith('.xml'))
         self.assertEqual(tst.collection, 'B')
+        self.assertTrue(tst.has_references())
 
         # Check if text files has been created and have only 12 segments from
         # the collection 'B'
@@ -711,6 +719,30 @@ class TestSetTests(TestCase):
             src_txt_file.unlink()
         if ref_txt_file.exists():
             ref_txt_file.unlink()
+
+    def test_create_test_set_without_reference(self):
+        """Checks that a test set can be created without a reference."""
+
+        TestSet.objects.create(
+            name='TestSetE',
+            file_format=XML_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'xml/sample-src.xml'),
+        )
+
+        tst = TestSet.objects.get(name='TestSetE')
+        self.assertEqual(tst.name, 'TestSetE')
+        self.assertTrue(tst.src_file.name.endswith('.xml'))
+        self.assertFalse(tst.ref_file)
+        self.assertFalse(tst.has_references())
+
+        # Check if text files has been created
+        src_txt_file = Path(tst.src_file.name.replace('.xml', '.txt'))
+        self.assertTrue(src_txt_file.exists())
+        self.assertTrue(src_txt_file.stat().st_size > 0)
+
+        # Clean up created files
+        if src_txt_file.exists():
+            src_txt_file.unlink()
 
 
 class CompetitionTests(TestCase):
