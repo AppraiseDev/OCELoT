@@ -96,7 +96,7 @@ def submission(request, sub_id=None):
     # A list of submissions which the current submission can be compared with
     _subs = Submission.objects.filter(
         test_set=sub.test_set,
-        score__gte=0,  # Ignore invalid submissions
+        is_valid=True,  # Ignore invalid submissions
     ).exclude(id=sub_id)
 
     compare_with = [

@@ -29,9 +29,14 @@ class UtilsTests(TestCase):
     """Tests for utils."""
 
     def tearDown(self):
-        txt_path = Path(TESTDATA_DIR + '/xml/sample-hyp.xml.temp.txt')
-        if txt_path.exists():
-            txt_path.unlink()
+        file_paths = (
+            '/xml/sample-hyp.xml.temp.txt',
+            '/xml/multi-src-ref.xml.temp.txt',
+        )
+        for file_path in file_paths:
+            txt_path = Path(TESTDATA_DIR + file_path)
+            if txt_path.exists():
+                txt_path.unlink()
 
     def test_analyze_xml_file_with_testset(self):
         """Checks if source and reference can be found in XML format."""
@@ -463,14 +468,16 @@ class XMLSubmissionTests(TestCase):
         if _tst_file.exists():
             _tst_file.unlink()
 
-    def _clean_text_file(self, input_file, add_test_dir=True):
+    def _clean_text_file(
+        self, input_file, add_test_dir=True, file_ext='.txt'
+    ):
         """Removes a temporary text file."""
         _file = (
             os.path.join(TESTDATA_DIR, input_file)
             if add_test_dir
             else input_file
         )
-        input_path = Path(_file.replace('.xml', '.txt'))
+        input_path = Path(_file.replace('.xml', file_ext))
         if input_path.exists():
             input_path.unlink()
 
@@ -591,7 +598,7 @@ class XMLSubmissionTests(TestCase):
         self.assertContains(response, 'No system found')
         self.assertNotContains(response, 'successfully submitted')
 
-        self._clean_text_file(hyp_file)
+        self._clean_text_file(hyp_file, file_ext='.xml')
 
     def test_submission_in_xml_format_to_xml_testset_with_collection(self):
         """Checks making a submission to XML testset with a defined collection."""

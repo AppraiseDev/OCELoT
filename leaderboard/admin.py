@@ -134,6 +134,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'is_primary',
         'is_public',
         'is_removed',
+        'is_valid',
         'score',
         'score_chrf',
     ]
@@ -161,6 +162,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'is_primary',
         'is_public',
         'is_removed',
+        'is_valid',
     ]
 
     ordering = (
@@ -192,7 +194,7 @@ def download_team_file(modeladmin, request, queryset):
         )
 
         primary_submissions = team.submission_set.filter(
-            is_primary=True, score__gte=0
+            is_primary=True, is_valid=True
         )
         team_data['number_of_primary_submissions'] = len(
             primary_submissions

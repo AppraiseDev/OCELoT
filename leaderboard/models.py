@@ -610,7 +610,7 @@ class TestSet(models.Model):
                     collection=self.collection,
                 )
 
-            if not self.has_references():
+            if not self.has_references():  # Reference file may not exist
                 return
 
             # Extract reference texts; multiple references will be tab-separated
@@ -638,6 +638,9 @@ class TestSet(models.Model):
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set files."""
         for current_file in (self.ref_file, self.src_file):
+            if not self.has_references():  # Reference file may not exist
+                continue
+
             current_path = str(current_file.name)
 
             if self.file_format == SGML_FILE:
@@ -892,6 +895,13 @@ class Submission(models.Model):
         help_text='Is removed?',
     )
 
+    is_valid = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is valid?',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -1046,6 +1056,10 @@ class Submission(models.Model):
             list/str: A list of segments unless path_only and a file path
                 otherwise
         """
+        # Reference file may not exist
+        if not self.test_set.has_references():
+            return
+
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -1143,6 +1157,10 @@ class Submission(models.Model):
 
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
+
+        # Reference file may not exist
+        if not self.test_set.has_references():
+            return
 
         # Do not compute scores if instructed not to do so
         if not self.test_set.compute_scores:
@@ -1253,6 +1271,7 @@ class Submission(models.Model):
         update_fields=None,
     ):
         """Compute sacreBLEU score on save()."""
+        self.is_valid = True
         super().save(force_insert, force_update, using, update_fields)
         if not self.score and self.id:
             self._compute_score()
