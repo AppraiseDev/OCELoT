@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-14
+- Updated `SubmissionForm` and made `file_format` widget readonly. This ensures that via the UI only XML files can be submitted. [[#101](https://github.com/AppraiseDev/OCELoT/issues/101)]
 - Fixed temporary file cleanup bugs in `leaderboard.tests`.
 - Added `is_valid` field to `Submission` object model.
 - More cleanup related to `TestSet` instances without reference file.

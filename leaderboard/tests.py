@@ -237,8 +237,8 @@ class SubmissionTests(TestCase):
         response = self.client.get('/submit')
         self.assertNotContains(response, comp.test_sets.first().name)
 
-    def test_successfull_submission(self):
-        """Checks that a successfull submission displays message about the success."""
+    def test_successful_submission(self):
+        """Checks that a successful submission displays message about the success."""
         self._set_ocelot_team_token()
 
         _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'

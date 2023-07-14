@@ -6,6 +6,7 @@ from datetime import datetime
 from django import forms
 from django.utils import timezone
 
+from leaderboard.models import FILE_FORMAT_CHOICES
 from leaderboard.models import MAX_DESCRIPTION_LENGTH
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
@@ -147,15 +148,23 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
+    file_format = forms.ChoiceField(
+        choices=FILE_FORMAT_CHOICES,
+        widget=forms.Select(
+            attrs={'class': 'form-control', 'disabled': 'disabled'}
+        ),
+    )
+
+    hyp_file = forms.FileField(
+        widget=forms.FileInput(
+            attrs={'class': 'form-control form-control-file'},
+        ),
+        help_text="XML file containing submission output",
+    )
+
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
         fields = ['test_set', 'file_format', 'hyp_file', 'is_primary']
-        widgets = {
-            'file_format': forms.Select(attrs={'class': 'form-control'}),
-            'hyp_file': forms.FileInput(
-                attrs={'class': 'form-control form-control-file'}
-            ),
-        }
 
 
 class TeamForm(forms.ModelForm):
