@@ -315,7 +315,7 @@ def submit(request):
 
             new_submission = form.save(commit=False)
             new_submission.name = form.cleaned_data['hyp_file'].name
-            new_submission.file_format = form.cleaned_data['file_format']
+            new_submission.file_format = XML_FILE
             new_submission.submitted_by = current_team
             new_submission.save()
 
