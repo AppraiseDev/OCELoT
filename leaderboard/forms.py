@@ -6,6 +6,7 @@ from datetime import datetime
 from django import forms
 from django.utils import timezone
 
+from leaderboard.models import FILE_FORMAT_CHOICES
 from leaderboard.models import MAX_DESCRIPTION_LENGTH
 from leaderboard.models import MAX_NAME_LENGTH
 from leaderboard.models import MAX_TOKEN_LENGTH
@@ -15,7 +16,6 @@ from leaderboard.models import TestSet
 from leaderboard.models import validate_institution_name
 from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
-from leaderboard.models import XML_FILE
 
 
 PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer
@@ -148,14 +148,17 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
+    file_format = forms.ChoiceField(
+        choices=FILE_FORMAT_CHOICES,
+        widget=forms.Select(
+            attrs={'class': 'form-control', 'disabled': 'disabled'}
+        ),
+    )
+
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
         fields = ['test_set', 'file_format', 'hyp_file', 'is_primary']
         widgets = {
-            'file_format': forms.Select(
-                attrs={'class': 'form-control'},
-                choices=((XML_FILE, 'XML format'),),
-            ),
             'hyp_file': forms.FileInput(
                 attrs={'class': 'form-control form-control-file'}
             ),
