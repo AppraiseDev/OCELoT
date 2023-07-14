@@ -148,13 +148,6 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'}),
     )
 
-    file_format = forms.ChoiceField(
-        choices=FILE_FORMAT_CHOICES,
-        widget=forms.Select(
-            attrs={'class': 'form-control', 'disabled': 'disabled'}
-        ),
-    )
-
     hyp_file = forms.FileField(
         widget=forms.FileInput(
             attrs={'class': 'form-control form-control-file'},
@@ -164,7 +157,7 @@ class SubmissionForm(forms.ModelForm):
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
-        fields = ['test_set', 'file_format', 'hyp_file', 'is_primary']
+        fields = ['test_set', 'hyp_file', 'is_primary']
 
 
 class TeamForm(forms.ModelForm):

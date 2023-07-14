@@ -933,7 +933,7 @@ class Submission(models.Model):
 
     file_format = models.CharField(
         choices=FILE_FORMAT_CHOICES,
-        default=TEXT_FILE,
+        default=XML_FILE,
         max_length=4,
     )
 
