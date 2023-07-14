@@ -1263,9 +1263,6 @@ class Submission(models.Model):
             exclude=exclude, validate_unique=validate_unique
         )
 
-        self.is_valid = True
-        self.save()
-
     def save(
         self,
         force_insert=False,
@@ -1274,6 +1271,7 @@ class Submission(models.Model):
         update_fields=None,
     ):
         """Compute sacreBLEU score on save()."""
+        self.is_valid = True
         super().save(force_insert, force_update, using, update_fields)
         if not self.score and self.id:
             self._compute_score()
