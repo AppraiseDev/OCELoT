@@ -19,7 +19,7 @@
         <seg id="14">Ekta Kapoor, on the other hand, has produced several television shows and films such as Dream Girl, Hum Paanch, Dolly Kitty Aur Woh Chamakte Sitare, Ye Hai Mohabbatein, Kahaani Ghar Ghar Kii and Kasturi among others.</seg>
       </p>
     </src>
-    <hyp system="test-team">
+    <hyp system="test-team" lang="ha">
       <p>
         <seg id="1">Jeetandra, Ekata Shobha da kuma Tusshar Kapoor sun tuna kasaita ciki</seg>
         <seg id="2">Jarumin Tusshar fina-finai Kapoor a ranar Lahadi ya yada wasu hotuna kuciyarsa cikin kasaita don murnar bikin zagayowar ranara duniya. ta</seg>
@@ -64,7 +64,7 @@
         <seg id="21">Out of this, 22.35 km will be underground while rest will be elevated.</seg>
       </p>
     </src>
-    <hyp system="test-team">
+    <hyp system="test-team" lang="ha">
       <p>
         <seg id="1">An gada gina ta farko a aikin jirgi mai tafiya a kasrkashin kasa na Delhi a kashin 4 na</seg>
         <seg id="2">Aikin jirgi gina mai tafiya a karkashin kasa na birni Delhi ya cimma wani mataki mai muhimmanci yayin da ya shiga wani kashi a aikin-4 yayin da a ka gina gada ta farko a kan mashigar yamma na Janakpurita R K Ashram Marg, A cewar wasu jami'ai Lahadi. ranar</seg>
@@ -119,7 +119,7 @@
         <seg id="24">The pandemic has killed more than 6,33,000 people worldwide since it surfaced in China late last year, with more than 15.5 million people infected, according to news agency AFP.</seg>
       </p>
     </src>
-    <hyp system="test-team">
+    <hyp system="test-team" lang="ha">
       <p>
         <seg id="1">Fiye cutar da Koronabirus dubu 13.85 ne a Indiya har zuwa yanzu, mutane 32,063 suka mutu, kashi 63.91% warke suka</seg>
         <seg id="2">Adadin 8,85,577 mutane ne suka warke kuma adadin kaso da suka warke ya kai kashi dari. cikin</seg>
