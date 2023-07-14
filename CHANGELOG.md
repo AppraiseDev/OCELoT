@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-14
+- More cleanup related to `TestSet` instances without reference file.
 - Updated `install-psql.sh` for PostgreSQL 14 and Debian.
 - Added download links for General MT and Biomedical shared tasks.
 - Added basic support for `TestSet` instances without reference(s).

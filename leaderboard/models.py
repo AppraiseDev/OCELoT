@@ -610,7 +610,7 @@ class TestSet(models.Model):
                     collection=self.collection,
                 )
 
-            if not self.has_references():
+            if not self.has_references():  # Reference file may not exist
                 return
 
             # Extract reference texts; multiple references will be tab-separated
@@ -638,6 +638,9 @@ class TestSet(models.Model):
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set files."""
         for current_file in (self.ref_file, self.src_file):
+            if not self.has_references():  # Reference file may not exist
+                continue
+
             current_path = str(current_file.name)
 
             if self.file_format == SGML_FILE:
@@ -1046,6 +1049,11 @@ class Submission(models.Model):
             list/str: A list of segments unless path_only and a file path
                 otherwise
         """
+        if (
+            not self.test_set.has_references()
+        ):  # Reference file may not exist
+            return
+
         if self.test_set.file_format == SGML_FILE:
             # By design, the reference only contains valid docids
             ref_sgml_path = self.test_set.ref_file.name
@@ -1143,6 +1151,11 @@ class Submission(models.Model):
 
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
+
+        if (
+            not self.test_set.has_references()
+        ):  # Reference file may not exist
+            return
 
         # Do not compute scores if instructed not to do so
         if not self.test_set.compute_scores:
