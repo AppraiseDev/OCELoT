@@ -468,7 +468,9 @@ class XMLSubmissionTests(TestCase):
         if _tst_file.exists():
             _tst_file.unlink()
 
-    def _clean_text_file(self, input_file, add_test_dir=True, file_ext='.txt'):
+    def _clean_text_file(
+        self, input_file, add_test_dir=True, file_ext='.txt'
+    ):
         """Removes a temporary text file."""
         _file = (
             os.path.join(TESTDATA_DIR, input_file)
