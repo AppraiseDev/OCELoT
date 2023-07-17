@@ -35,16 +35,17 @@
 
       <div class="container">
         <div>
-          <h2>Final submissions</h2>
-          <h4>Publication names</h4>
-          <p class="form-text">
-            Please think about how you want your team to be named in the
-            overview paper. The overview paper needs to show your institution
-            and also a short team name in the result tables.
-          </p>
-
           <form action="{% url 'teampage-view' %}" method="post">
             {% csrf_token %}
+
+            <h2>Final submissions</h2>
+            <h4>Publication names</h4>
+            <p class="form-text">
+              Please think about how you want your team to be named in the
+              overview paper. The overview paper needs to show your institution
+              and also a short team name in the result tables.
+            </p>
+
             <div class="form-group">
             {{ publication_name_form.as_p }}
             </div>
@@ -67,7 +68,7 @@
 
             <br/>
             <br/>
-    
+
             <div>
               <h4>Submission withdrawals</h4>
               <p class="form-text">
@@ -133,16 +134,11 @@
             </table>
 
             <input class="btn btn-primary" type="submit" value="Submit">
-          </form>
-        </div>
 
-        <br/>
-        <br/>
+            {% if contrastive_submissions %}
+            <br/>
+            <br/>        
 
-        {% if contrastive_submissions %}
-        <div>
-          <form action="{% url 'teampage-view' %}" method="post">
-            {% csrf_token %}
             <h4>Contrastive submissions</h4>
             <p class="form-text">
               If you want to designate a submission as a <emph>contrastive</emph> submission,
@@ -172,12 +168,9 @@
             </table>
 
             <input class="btn btn-primary" type="submit" value="Submit">
+            {% endif %}
           </form>
         </div>
-
-        <br/>
-        <br/>
-        {% endif %}
 
         <div>
           <h2>Your submissions</h2>
@@ -245,7 +238,7 @@
             {% endfor %}
           {% else %}
           <div>
-              <p>You have not yet created any submissions.</p>
+            <p>You have not yet created any submissions.</p>
           </div>
           {% endif %}
         </div>
