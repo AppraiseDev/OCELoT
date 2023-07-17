@@ -135,9 +135,9 @@
 
             <input class="btn btn-primary" type="submit" value="Submit">
 
-            {% if contrastive_submissions %}
+            {% if contrastive_submissions %}  
             <br/>
-            <br/>        
+            <br/>      
 
             <h4>Contrastive submissions</h4>
             <p class="form-text">
@@ -151,7 +151,7 @@
                 <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
                   <select class="form-control" id="id_contrastive" name="contrastive">
-                    <option value="None">---</option>
+                    <option value="">---</option>
                     {% for submission in submissions %}
                     <option value="{{ submission.id }}"{% if submission.is_contrastive %}selected="selected"{% endif %}{% if submission.is_primary %}disabled="disabled"{% endif %}>Submission #{{ submission.id }}</option>
                     {% endfor %}
@@ -159,7 +159,7 @@
                 </td>
                 <td>
                   <select class="form-control" id="id_constrained" name="constrained">
-                    <option value="None">---</option>
+                    <option value="">---</option>
                     <option value="0"{% if contrastive and not contrastive.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
                     <option value="1"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained</option>
                   </select>
@@ -170,10 +170,12 @@
 
             <input class="btn btn-primary" type="submit" value="Submit">
             {% endif %}
-          </form>
-        </div>
 
-        <div>
+          </form>
+
+          <br/>
+          <br/>
+
           <h2>Your submissions</h2>
           {% if data %}
             <p class="text-muted">
