@@ -1246,7 +1246,7 @@ class Submission(models.Model):
         hyp_segments = len(list(self.get_hyp_text()))
 
         if hyp_segments != src_segments:
-            raise ValidationError("hyp file length mismatch!!!")
+            raise ValidationError("Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})")
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML, XML or text file."""
@@ -1264,7 +1264,8 @@ class Submission(models.Model):
             
             try:
                 self._validate_hyp_length()
-            except Exception:
+            except OSError:  # Ignore file loading errors during testing
+                # TODO: this should be fixed after WMT23 submission week
                 pass
 
         elif self.file_format == TEXT_FILE:
