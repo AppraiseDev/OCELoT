@@ -159,6 +159,7 @@
                 </td>
                 <td>
                   <select class="form-control" id="id_constrained" name="constrained">
+                    <option value="None">---</option>
                     <option value="0"{% if contrastive and not contrastive.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
                     <option value="1"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained</option>
                   </select>
