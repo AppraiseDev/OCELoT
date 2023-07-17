@@ -20,11 +20,11 @@ from leaderboard.models import validate_token
 
 PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer
 model equipped with our recent technique of problem obfuscation
-\\citep{obfuscation:2021}. The best improvement was achieved thanks to doubly
+\\citep{obfuscation:2023}. The best improvement was achieved thanks to doubly
 obfuscating both source and target side and mixing in our manually obfuscated
 set of examples.
 
-@inproceedings{obfuscation:2021,
+@inproceedings{obfuscation:2023,
   title  = {Amazing Obfuscation of NMT Problems},
   author = ...
 }"""
