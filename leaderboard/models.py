@@ -1309,6 +1309,7 @@ class Submission(models.Model):
     def set_primary(self):
         """Make this the primary submission for user/test set."""
         self.is_primary = True
+        self.is_contrastive = False
         self.save()
 
         other_submissions = Submission.objects.filter(
