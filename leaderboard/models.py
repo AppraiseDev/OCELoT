@@ -1261,7 +1261,7 @@ class Submission(models.Model):
 
         if hyp_segments != src_segments:
             raise ValidationError(
-                "Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
+                f"Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
             )
 
     def full_clean(self, exclude=None, validate_unique=True):
