@@ -1240,6 +1240,14 @@ class Submission(models.Model):
         """Returns team publication name if set, or the original name otherwise."""
         return self.submitted_by.publication_name or self.submitted_by.name
 
+    def _validate_hyp_length(self):
+        """Checks if the hyp file matches the test set's number of segments."""
+        src_segments = len(list(self.get_src_text()))
+        hyp_segments = len(list(self.get_hyp_text()))
+
+        if hyp_segments != src_segments:
+            raise ValidationError("hyp file length mismatch!!!")
+
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML, XML or text file."""
         hyp_name = str(self.hyp_file.name)
@@ -1253,6 +1261,11 @@ class Submission(models.Model):
             if not hyp_name.endswith('.xml'):
                 _msg = 'Invalid XML file named {0}'.format(hyp_name)
                 raise ValidationError(_msg)
+            
+            try:
+                self._validate_hyp_length()
+            except Exception:
+                pass
 
         elif self.file_format == TEXT_FILE:
             if not hyp_name.endswith('.txt'):
