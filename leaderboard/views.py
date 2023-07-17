@@ -418,6 +418,17 @@ def teampage(request):
             _msg = 'You have successfully updated publication information. Thank you!'
             messages.success(request, _msg)
 
+        withdrawn_data = zip(
+            request.POST.getlist('testset'),
+            request.POST.getlist('withdrawn'),
+        )
+        for testset_id, withdrawn in withdrawn_data:
+            for submission in Submission.objects.filter(
+                test_set__id=testset_id
+            ):
+                submission.is_withdrawn = withdrawn
+                submission.save()
+
         primary_ids_and_constrainedness = zip(
             request.POST.getlist('primary'),
             request.POST.getlist('constrained'),
@@ -432,7 +443,10 @@ def teampage(request):
             request.POST.getlist('contrastive'),
             request.POST.getlist('constrained'),
         )
-        for contrastive_id, constrained in contrastive_ids_and_constrainedness:
+        for (
+            contrastive_id,
+            constrained,
+        ) in contrastive_ids_and_constrainedness:
             if not contrastive_id:
                 continue
 
@@ -486,17 +500,33 @@ def teampage(request):
     # in the data[key] list, for each of the distinct keys.
     for key in data.keys():
         if not key in primary:
-            highest_scoring_or_latest_submission_is_default = data[key][0]
-            highest_scoring_or_latest_submission_is_default.set_primary()
-            primary[key] = highest_scoring_or_latest_submission_is_default
+            not_withdrawn = [x for x in data[key] if not x.is_withdrawn]
+            if len(not_withdrawn):
+                highest_scoring_or_latest_submission_is_default = (
+                    not_withdrawn[0]
+                )
+                highest_scoring_or_latest_submission_is_default.set_primary()
+                primary[
+                    key
+                ] = highest_scoring_or_latest_submission_is_default
+            else:
+                primary[key] = None
 
-
-    contrastive_submissions = True
+    primary_submissions = False
+    contrastive_submissions = False
     data_triples = []  # (test set, primary, contrastive, all submissions)
+    withdrawn_data = []
     for key in data.keys():
-        data_triples.append((key, primary[key], contrastive[key], data[key]))
-        if len(data[key]) < 2:
-            contrastive_submissions = False
+        data_triples.append(
+            (key, primary[key], contrastive[key], data[key])
+        )
+        withdrawn_data.append(
+            (key, any([x.is_withdrawn for x in data[key]]))
+        )
+        if len([x for x in data[key] if not x.is_withdrawn]) > 0:
+            primary_submissions = True
+        if len([x for x in data[key] if not x.is_withdrawn]) > 1:
+            contrastive_submissions = True
 
     # Details needed for the post-submission/publication survey
     publication_survey = {
@@ -519,9 +549,11 @@ def teampage(request):
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
         'ocelot_team_verified': ocelot_team_verified,
+        'primary_submissions': primary_submissions,
         'publication_name_form': publication_name_form,
         'publication_desc_form': publication_desc_form,
         'publication_survey': publication_survey,
+        'withdrawn_data': withdrawn_data,
     }
     return render(request, 'leaderboard/teampage.html', context=context)
 

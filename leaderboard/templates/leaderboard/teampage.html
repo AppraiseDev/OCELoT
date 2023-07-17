@@ -79,8 +79,25 @@
                 please contact us by sending an email to <code>{tomkocmi,rogrundk}@microsoft.com</code>.
                 <!-- please let us know here so that your files can be ignored. -->
               </p>
+
+              <table class="table table-sm table-borderless w-auto form-group">
+                {% for testset, withdrawn in withdrawn_data %}
+                <tr>
+                  <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}<input type="hidden" id="id_testset" name="testset" value="{{ testset.id }}" /></td>
+                  <td>
+                    <select class="form-control" id="id_withdrawn" name="withdrawn">
+                      <option value="0"{% if not withdrawn %}selected="selected"{% endif %}>Participate</option>
+                      <option value="1"{% if withdrawn %}selected="selected"{% endif %}>Withdraw</option>
+                    </select>
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+  
+              <input class="btn btn-primary" type="submit" value="Submit">
             </div>
 
+            {% if primary_submissions %}
             <br/>
             <br/>
 
@@ -138,6 +155,7 @@
             </table>
 
             <input class="btn btn-primary" type="submit" value="Submit">
+            {% endif %}
 
             {% if contrastive_submissions %}  
             <br/>
@@ -207,9 +225,8 @@
                   <tr>
                     <td>#{{submission.id}}</td>
                     <td>
-                      <a href="{% url 'submission-view' sub_id=submission.id %}">
-                        {{submission.name}}
-                      </a>
+                      <a href="{% url 'submission-view' sub_id=submission.id %}">{{submission.name}}</a>
+                      
                       {% if submission.is_primary %}
                       <span class="badge badge-primary" style="vertical-align: text-bottom;">Primary</span>
                       {% endif %}
