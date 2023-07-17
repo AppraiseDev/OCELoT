@@ -97,7 +97,7 @@
             {% endif %}
 
             <table class="table table-sm table-borderless w-auto form-group">
-              {% for testset, primary, submissions in data %}
+              {% for testset, primary, contrastive, submissions in data %}
               <tr>
                 <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
@@ -150,20 +150,21 @@
             </p>
 
             <table class="table table-sm table-borderless w-auto form-group">
-              {% for testset, primary, submissions in data %}
+              {% for testset, primary, contrastive, submissions in data %}
               <tr>
                 <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
                   <select class="form-control" id="id_contrastive" name="contrastive">
+                    <option value="None">---</option>
                     {% for submission in submissions %}
-                    <option value="{{ submission.id }}"{% if submission.is_primary %}disabled="disabled"{% endif %}>Submission #{{ submission.id }}</option>
+                    <option value="{{ submission.id }}"{% if submission.is_contrastive %}selected="selected"{% endif %}{% if submission.is_primary %}disabled="disabled"{% endif %}>Submission #{{ submission.id }}</option>
                     {% endfor %}
                   </select>
                 </td>
                 <td>
                   <select class="form-control" id="id_constrained" name="constrained">
-                    <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
-                    <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                    <option value="0"{% if contrastive and not contrastive.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="1"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained</option>
                   </select>
                 </td>
               </tr>
@@ -188,7 +189,7 @@
               <br/>
               BLEU and ChrF are sacreBLEU scores.
             </p>
-            {% for testset, primary, submissions in data %}
+            {% for testset, primary, contrastive, submissions in data %}
             <h4>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h4>
             <div class="table-responsive">
               <table class="table table-striped table-sm">

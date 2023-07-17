@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-17
+- Added support for contrastive submissions to `teampage()` view.
 - Added `set_contrastive()` to `Submission` object model.
 - Added `is_contrastive` and `is_withdrawn` field to `Submission` object model.
 - Updated `Submission.file_format` default value to `XML_FILE`, now with database migration.

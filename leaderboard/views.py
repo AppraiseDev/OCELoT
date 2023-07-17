@@ -440,6 +440,7 @@ def teampage(request):
 
     data = OrderedDict()
     primary = OrderedDict()
+    contrastive = OrderedDict()
     submissions = Submission.objects.filter(
         is_valid=True,  # Ignore invalid submissions
         submitted_by__token=ocelot_team_token,
@@ -460,6 +461,12 @@ def teampage(request):
         if submission.is_primary:
             primary[key] = submission
 
+        if not key in contrastive.keys():
+            contrastive[key] = None
+
+        if submission.is_contrastive:
+            contrastive[key] = submission
+
     # If no primary system has been selected by the user yet, we will use
     # the highest-scoring or the latest submission for any given test set.
     # Based on our ordering defined above, this will be the first object
@@ -472,9 +479,9 @@ def teampage(request):
 
 
     contrastive_submissions = True
-    data_triples = []  # (test set, primary submission, all submissions)
+    data_triples = []  # (test set, primary, contrastive, all submissions)
     for key in data.keys():
-        data_triples.append((key, primary[key], data[key]))
+        data_triples.append((key, primary[key], contrastive[key], data[key]))
         if len(data[key]) < 2:
             contrastive_submissions = False
 
