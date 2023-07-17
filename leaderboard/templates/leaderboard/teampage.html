@@ -35,16 +35,17 @@
 
       <div class="container">
         <div>
-          <h2>Final submissions</h2>
-          <h4>Publication names</h4>
-          <p class="form-text">
-            Please think about how you want your team to be named in the
-            overview paper. The overview paper needs to show your institution
-            and also a short team name in the result tables.
-          </p>
-
           <form action="{% url 'teampage-view' %}" method="post">
             {% csrf_token %}
+
+            <h2>Publication details</h2>
+            <h4>Publication names</h4>
+            <p class="form-text">
+              Please think about how you want your team to be named in the
+              overview paper. The overview paper needs to show your institution
+              and also a short team name in the result tables.
+            </p>
+
             <div class="form-group">
             {{ publication_name_form.as_p }}
             </div>
@@ -58,12 +59,56 @@
               please specify the authors and title, e.g. <code>John Doe, Jack Smith:
               TurtleMT at Translation Task</code>.
               Feel free to provide an <em>anticipated</em> paper title if the
-              paper is yet to be written. Or simply say <code>WMT21</code> if
+              paper is yet to be written. Or simply say <code>WMT23</code> if
               you still have no idea what your system paper will be called.
             </p>
             <div class="form-group">
             {{ publication_desc_form.as_p }}
             </div>
+
+            <input class="btn btn-primary" type="submit" value="Submit">
+
+            <br/>
+            <br/>
+
+            <div>
+              <h2>Final submissions</h2>
+              <h4>Submission summar</h4>
+              <p>
+                Based on your current selection you will submit {{ data_primary|length }} primary
+                and {{ count_contrastive }} contrastive submissions. You have withdrawn from
+                {{ count_withdrawn }} test set{{ count_withdrawn|pluralize }}.
+              </p>
+
+              <br/>
+              <br/>
+
+              <h4>Submission withdrawals</h4>
+              <p class="form-text">
+                If you have decided to withdraw from the competition for any of the test sets,
+                please let us know here so that your files can be ignored.
+              </p>
+
+              <table class="table table-sm table-borderless w-auto form-group">
+                {% for testset, withdrawn in data_withdrawn %}
+                <tr>
+                  <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}<input type="hidden" id="id_testset" name="testset" value="{{ testset.id }}" /></td>
+                  <td>
+                    <select class="form-control" id="id_withdrawn" name="withdrawn">
+                      <option value="0"{% if not withdrawn %}selected="selected"{% endif %}>Participate</option>
+                      <option value="1"{% if withdrawn %}selected="selected"{% endif %}>Withdraw</option>
+                    </select>
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+  
+              <input class="btn btn-primary" type="submit" value="Submit">
+            </div>
+
+            {% if data_primary %}
+            <br/>
+            <br/>
 
             <h4>Primary submissions</h4>
             <p class="form-text">
@@ -83,9 +128,9 @@
             {% endif %}
 
             <table class="table table-sm table-borderless w-auto form-group">
-              {% for testset, primary, submissions in data %}
+              {% for testset, primary, contrastive, submissions in data_primary %}
               <tr>
-                <td class="pr-3">{{ testset }}</td>
+                <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
                   <select class="form-control" id="id_primary" name="primary">
                     {% for submission in submissions %}
@@ -102,14 +147,14 @@
               {% if publication_survey.active %}
               {% if primary %}
               {% with testset.source_language.code|add:'-'|add:testset.target_language.code as langpair %}
-                <td>
+                <td style="vertical-align: middle;">
                     <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLSf7TTiYXY23-Rn47akxfd3jUisokOS8u-lv22ZNuO8igyV3YQ/viewform?entry.1616043926={{ publication_survey.username|escape }}&entry.63843270={{ publication_survey.shortname|escape }}&entry.2119951195={{ publication_survey.paper|escape }}&entry.1181486413={{ langpair }}&entry.896647915=%23{{ primary.id }}&entry.1971753910={{ publication_survey.paragraph|escape }}" target="_blank">
                     Complete the form with details for submission #{{ primary.id }}
-                  </a>
+                    </a>
                 </td>
               {% endwith %}
               {% else %}
-                <td>
+                <td style="vertical-align: middle;">
                   <span class="text-muted">Please choose the primary submission for this test set</span>
                 </td>
               {% endif %}
@@ -118,25 +163,50 @@
               {% endfor %}
             </table>
 
-            <!--
+            <input class="btn btn-primary" type="submit" value="Submit">
+            {% endif %}
+
+            {% if data_contrastive %}  
+            <br/>
+            <br/>      
+
+            <h4>Contrastive submissions</h4>
             <p class="form-text">
-              Please remember that if you participate in the shared task, then
-              you must provide a defined amount of evaluation per language pair
-              submitted. The amount of manual evaluation will be 10 hours per
-              language pair, per team. You can provide evaluation of any of the
-              task's languages, regardless of which language pair you submitted
-              systems to. More details can be found on
-              <a href="http://statmt.org/wmt21/translation-task.html">http://statmt.org/wmt21/translation-task.html</a>.
+              Optionally, choose your contrastive submission for each test set and
+              specify whether it comes from a constrained or unconstrained system.
             </p>
-            -->
-            <input class="btn btn-secondary btn-sm" type="submit" value="Submit">
+
+            <table class="table table-sm table-borderless w-auto form-group">
+              {% for testset, primary, contrastive, submissions in data_contrastive %}
+              <tr>
+                <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
+                <td>
+                  <select class="form-control" id="id_contrastive" name="contrastive">
+                    <option value="">---</option>
+                    {% for submission in submissions %}
+                    <option value="{{ submission.id }}"{% if submission.is_contrastive %}selected="selected"{% endif %}{% if submission.is_primary %}disabled="disabled"{% endif %}>Submission #{{ submission.id }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control" id="id_constrained" name="constrained">
+                    <option value="">---</option>
+                    <option value="0"{% if contrastive and not contrastive.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="1"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                  </select>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+
+            <input class="btn btn-primary" type="submit" value="Submit">
+            {% endif %}
+
           </form>
-        </div>
 
-        <br/>
-        <br/>
+          <br/>
+          <br/>
 
-        <div>
           <h2>Your submissions</h2>
           {% if data %}
             <p class="text-muted">
@@ -146,8 +216,8 @@
               <br/>
               BLEU and ChrF are sacreBLEU scores.
             </p>
-            {% for testset, primary, submissions in data %}
-            <h3>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h3>
+            {% for testset, primary, contrastive, submissions in data %}
+            <h4>{{testset}} ({{submissions|length}}/{{MAX_SUBMISSION_LIMIT}})</h4>
             <div class="table-responsive">
               <table class="table table-striped table-sm">
                 <thead class="thead-dark">
@@ -164,17 +234,22 @@
                   <tr>
                     <td>#{{submission.id}}</td>
                     <td>
-                      <a href="{% url 'submission-view' sub_id=submission.id %}">
-                        {{submission.name}}
-                      </a>
+                      <a href="{% url 'submission-view' sub_id=submission.id %}">{{submission.name}}</a>
+                      
                       {% if submission.is_primary %}
-                      <span class="badge badge-primary">Primary</span>
+                      <span class="badge badge-primary" style="vertical-align: text-bottom;">Primary</span>
                       {% endif %}
                       {% if submission.is_constrained %}
-                      <span class="badge badge-info">Constrained</span>
+                      <span class="badge badge-info" style="vertical-align: text-bottom;">Constrained</span>
                       {% endif %}
-                      {% if submission.is_removed %}
-                      <span class="badge badge-danger">Removed</span>
+                      {% if submission.is_contrastive %}
+                      <span class="badge badge-secondary" style="vertical-align: text-bottom;">Contrastive</span>
+                      {% endif %}
+                      {% if not submission.is_valid %}
+                      <span class="badge badge-danger" style="vertical-align: text-bottom;">Invalid</span>
+                      {% endif %}
+                      {% if submission.is_withdrawn %}
+                      <span class="badge badge-light" style="vertical-align: text-bottom;">Withdrawn</span>
                       {% endif %}
                     </td>
                     {% if submission.score and submission.test_set.compute_scores %}
@@ -196,7 +271,7 @@
             {% endfor %}
           {% else %}
           <div>
-              <p>You have not yet created any submissions.</p>
+            <p>You have not yet created any submissions.</p>
           </div>
           {% endif %}
         </div>

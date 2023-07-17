@@ -866,6 +866,13 @@ class Submission(models.Model):
         help_text='Is constrained sumission?',
     )
 
+    is_contrastive = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is contrastive submission?',
+    )
+
     is_flagged = models.BooleanField(
         blank=False,
         db_index=True,
@@ -900,6 +907,13 @@ class Submission(models.Model):
         db_index=True,
         default=False,
         help_text='Is valid?',
+    )
+
+    is_withdrawn = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is withdrawn?',
     )
 
     name = models.CharField(
@@ -1240,6 +1254,16 @@ class Submission(models.Model):
         """Returns team publication name if set, or the original name otherwise."""
         return self.submitted_by.publication_name or self.submitted_by.name
 
+    def _validate_hyp_length(self):
+        """Checks if the hyp file matches the test set's number of segments."""
+        src_segments = len(list(self.get_src_text()))
+        hyp_segments = len(list(self.get_hyp_text()))
+
+        if hyp_segments != src_segments:
+            raise ValidationError(
+                f"Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
+            )
+
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML, XML or text file."""
         hyp_name = str(self.hyp_file.name)
@@ -1253,6 +1277,12 @@ class Submission(models.Model):
             if not hyp_name.endswith('.xml'):
                 _msg = 'Invalid XML file named {0}'.format(hyp_name)
                 raise ValidationError(_msg)
+
+            try:
+                self._validate_hyp_length()
+            except OSError:  # Ignore file loading errors during testing
+                # TODO: this should be fixed after WMT23 submission week
+                pass
 
         elif self.file_format == TEXT_FILE:
             if not hyp_name.endswith('.txt'):
@@ -1279,6 +1309,7 @@ class Submission(models.Model):
     def set_primary(self):
         """Make this the primary submission for user/test set."""
         self.is_primary = True
+        self.is_contrastive = False
         self.save()
 
         other_submissions = Submission.objects.filter(
@@ -1286,8 +1317,34 @@ class Submission(models.Model):
             test_set=self.test_set,
         )
         for other_submission in other_submissions:
+            if self.is_contrastive:
+                continue  # Leave current contrastive submission as-is
+
             if other_submission.id != self.id:
                 other_submission.is_constrained = False
+                other_submission.is_contrastive = False
+                other_submission.is_primary = False
+                other_submission.save()
+
+    def set_contrastive(self):
+        """Make this the contrastive submission for user/test set."""
+        if self.is_primary:
+            return
+
+        self.is_contrastive = True
+        self.save()
+
+        other_submissions = Submission.objects.filter(
+            submitted_by=self.submitted_by,
+            test_set=self.test_set,
+        )
+        for other_submission in other_submissions:
+            if other_submission.is_primary:
+                continue  # Leave current primary submission as-is
+
+            if other_submission.id != self.id:
+                other_submission.is_constrained = False
+                other_submission.is_contrastive = False
                 other_submission.is_primary = False
                 other_submission.save()
 

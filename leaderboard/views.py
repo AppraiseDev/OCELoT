@@ -418,6 +418,17 @@ def teampage(request):
             _msg = 'You have successfully updated publication information. Thank you!'
             messages.success(request, _msg)
 
+        withdrawn_data = zip(
+            request.POST.getlist('testset'),
+            request.POST.getlist('withdrawn'),
+        )
+        for testset_id, withdrawn in withdrawn_data:
+            for submission in Submission.objects.filter(
+                test_set__id=testset_id
+            ):
+                submission.is_withdrawn = withdrawn
+                submission.save()
+
         primary_ids_and_constrainedness = zip(
             request.POST.getlist('primary'),
             request.POST.getlist('constrained'),
@@ -427,6 +438,22 @@ def teampage(request):
             if submission.submitted_by.token == ocelot_team_token:
                 submission.is_constrained = bool(int(constrained))
                 submission.set_primary()  # This implicitly calls save()
+
+        contrastive_ids_and_constrainedness = zip(
+            request.POST.getlist('contrastive'),
+            request.POST.getlist('constrained'),
+        )
+        for (
+            contrastive_id,
+            constrained,
+        ) in contrastive_ids_and_constrainedness:
+            if not contrastive_id:
+                continue
+
+            submission = Submission.objects.get(id=int(contrastive_id))
+            if submission.submitted_by.token == ocelot_team_token:
+                submission.is_constrained = bool(int(constrained))
+                submission.set_contrastive()  # This implicitly calls save()
 
     else:
         context = {
@@ -440,6 +467,7 @@ def teampage(request):
 
     data = OrderedDict()
     primary = OrderedDict()
+    contrastive = OrderedDict()
     submissions = Submission.objects.filter(
         is_valid=True,  # Ignore invalid submissions
         submitted_by__token=ocelot_team_token,
@@ -457,11 +485,14 @@ def teampage(request):
             data[key] = []
         data[key].append(submission)
 
-        if not key in primary.keys():
-            primary[key] = None
-
         if submission.is_primary:
             primary[key] = submission
+
+        if not key in contrastive.keys():
+            contrastive[key] = None
+
+        if submission.is_contrastive:
+            contrastive[key] = submission
 
     # If no primary system has been selected by the user yet, we will use
     # the highest-scoring or the latest submission for any given test set.
@@ -469,13 +500,43 @@ def teampage(request):
     # in the data[key] list, for each of the distinct keys.
     for key in data.keys():
         if not key in primary:
-            highest_scoring_or_latest_submission_is_default = data[key][0]
-            highest_scoring_or_latest_submission_is_default.set_primary()
-            primary[key] = highest_scoring_or_latest_submission_is_default
+            not_withdrawn = [x for x in data[key] if not x.is_withdrawn]
+            if len(not_withdrawn):
+                highest_scoring_or_latest_submission_is_default = (
+                    not_withdrawn[0]
+                )
+                highest_scoring_or_latest_submission_is_default.set_primary()
+                primary[
+                    key
+                ] = highest_scoring_or_latest_submission_is_default
+            else:
+                primary[key] = None
 
-    data_triples = []  # (test set, primary submission, all submissions)
+    data_all = []  # (test set, primary, contrastive, all submissions)
+    data_contrastive = []
+    data_primary = []
+    data_withdrawn = []
     for key in data.keys():
-        data_triples.append((key, primary[key], data[key]))
+        # This collects all submissions for the current team
+        data_all.append((key, primary[key], contrastive[key], data[key]))
+
+        # Any test set without withdrawn submissions may show
+        # primary and, possibly, contrastive selectors
+        if not any([x.is_withdrawn for x in data[key]]):
+            data_primary.append(
+                (key, primary[key], contrastive[key], data[key])
+            )
+
+            # Only render contrastive selector if >= 2 submissions
+            if len(data[key]) >= 2:
+                data_contrastive.append(
+                    (key, primary[key], contrastive[key], data[key])
+                )
+
+        # This collects the general withdrawal status per test set
+        data_withdrawn.append(
+            (key, any([x.is_withdrawn for x in data[key]]))
+        )
 
     # Details needed for the post-submission/publication survey
     publication_survey = {
@@ -491,7 +552,12 @@ def teampage(request):
     }
 
     context = {
-        'data': data_triples,
+        'count_contrastive': len([x for x in data_contrastive if x[2]]),
+        'count_withdrawn': len([x for x in data_withdrawn if x[1]]),
+        'data': data_all,
+        'data_contrastive': data_contrastive,
+        'data_primary': data_primary,
+        'data_withdrawn': data_withdrawn,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
