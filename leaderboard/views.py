@@ -470,9 +470,13 @@ def teampage(request):
             highest_scoring_or_latest_submission_is_default.set_primary()
             primary[key] = highest_scoring_or_latest_submission_is_default
 
+
+    contrastive_submissions = True
     data_triples = []  # (test set, primary submission, all submissions)
     for key in data.keys():
         data_triples.append((key, primary[key], data[key]))
+        if len(data[key]) < 2:
+            contrastive_submissions = False
 
     # Details needed for the post-submission/publication survey
     publication_survey = {
@@ -488,6 +492,7 @@ def teampage(request):
     }
 
     context = {
+        'contrastive_submissions': contrastive_submissions,
         'data': data_triples,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
         'ocelot_team_name': ocelot_team_name,

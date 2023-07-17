@@ -139,16 +139,44 @@
         <br/>
         <br/>
 
+        {% if contrastive_submissions %}
         <div>
-          <h4>Contrastive submissions</h4>
-          <p class="form-text">
-            If you want to designate a submission as a <emph>contrastive</emph> submission,
-            please contact us by sending an email to <code>{tomkocmi,rogrundk}@microsoft.com</code>.
-          </p>
+          <form action="{% url 'teampage-view' %}" method="post">
+            {% csrf_token %}
+            <h4>Contrastive submissions</h4>
+            <p class="form-text">
+              If you want to designate a submission as a <emph>contrastive</emph> submission,
+              please contact us by sending an email to <code>{tomkocmi,rogrundk}@microsoft.com</code>.
+            </p>
+
+            <table class="table table-sm table-borderless w-auto form-group">
+              {% for testset, primary, submissions in data %}
+              <tr>
+                <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
+                <td>
+                  <select class="form-control" id="id_contrastive" name="contrastive">
+                    {% for submission in submissions %}
+                    <option value="{{ submission.id }}"{% if submission.is_primary %}disabled="disabled"{% endif %}>Submission #{{ submission.id }}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control" id="id_constrained" name="constrained">
+                    <option value="0"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="1"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                  </select>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+
+            <input class="btn btn-primary" type="submit" value="Submit">
+          </form>
         </div>
 
         <br/>
         <br/>
+        {% endif %}
 
         <div>
           <h2>Your submissions</h2>
@@ -182,19 +210,19 @@
                         {{submission.name}}
                       </a>
                       {% if submission.is_primary %}
-                      <span class="badge badge-primary">Primary</span>
+                      <span class="badge badge-primary" style="vertical-align: text-bottom;">Primary</span>
                       {% endif %}
                       {% if submission.is_constrained %}
-                      <span class="badge badge-info">Constrained</span>
+                      <span class="badge badge-info" style="vertical-align: text-bottom;">Constrained</span>
                       {% endif %}
                       {% if submission.is_contrastive %}
-                      <span class="badge badge-secondary">Contrastive</span>
+                      <span class="badge badge-secondary" style="vertical-align: text-bottom;">Contrastive</span>
                       {% endif %}
                       {% if not submission.is_valid %}
-                      <span class="badge badge-danger">Invalid</span>
+                      <span class="badge badge-danger" style="vertical-align: text-bottom;">Invalid</span>
                       {% endif %}
                       {% if submission.is_withdrawn %}
-                      <span class="badge badge-light">Withdrawn</span>
+                      <span class="badge badge-light" style="vertical-align: text-bottom;">Withdrawn</span>
                       {% endif %}
                     </td>
                     {% if submission.score and submission.test_set.compute_scores %}

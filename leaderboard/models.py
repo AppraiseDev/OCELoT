@@ -1316,8 +1316,34 @@ class Submission(models.Model):
             test_set=self.test_set,
         )
         for other_submission in other_submissions:
+            if self.is_contrastive:
+                continue  # Leave current contrastive submission as-is
+
             if other_submission.id != self.id:
                 other_submission.is_constrained = False
+                other_submission.is_contrastive = False
+                other_submission.is_primary = False
+                other_submission.save()
+
+    def set_contrastive(self):
+        """Make this the contrastive submission for user/test set."""
+        if self.is_primary:
+            return
+
+        self.is_contrastive = True
+        self.save()
+
+        other_submissions = Submission.objects.filter(
+            submitted_by=self.submitted_by,
+            test_set=self.test_set,
+        )
+        for other_submission in other_submissions:
+            if other_submission.is_primary:
+                continue  # Leave current primary submission as-is
+
+            if other_submission.id != self.id:
+                other_submission.is_constrained = False
+                other_submission.is_contrastive = False
                 other_submission.is_primary = False
                 other_submission.save()
 
