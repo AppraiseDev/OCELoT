@@ -512,21 +512,22 @@ def teampage(request):
             else:
                 primary[key] = None
 
-    primary_submissions = False
-    contrastive_submissions = False
-    data_triples = []  # (test set, primary, contrastive, all submissions)
-    withdrawn_data = []
+    data_all = []  # (test set, primary, contrastive, all submissions)
+    data_contrastive = []
+    data_primary = []
+    data_withdrawn = []
     for key in data.keys():
-        data_triples.append(
-            (key, primary[key], contrastive[key], data[key])
-        )
-        withdrawn_data.append(
+        data_all.append((key, primary[key], contrastive[key], data[key]))
+        if not any([x.is_withdrawn for x in data[key]]):
+            data_primary.append(
+                (key, primary[key], contrastive[key], data[key])
+            )
+            data_contrastive.append(
+                (key, primary[key], contrastive[key], data[key])
+            )
+        data_withdrawn.append(
             (key, any([x.is_withdrawn for x in data[key]]))
         )
-        if len([x for x in data[key] if not x.is_withdrawn]) > 0:
-            primary_submissions = True
-        if len([x for x in data[key] if not x.is_withdrawn]) > 1:
-            contrastive_submissions = True
 
     # Details needed for the post-submission/publication survey
     publication_survey = {
@@ -542,18 +543,18 @@ def teampage(request):
     }
 
     context = {
-        'contrastive_submissions': contrastive_submissions,
-        'data': data_triples,
+        'data': data_all,
+        'data_contrastive': data_contrastive,
+        'data_primary': data_primary,
+        'data_withdrawn': data_withdrawn,
         'MAX_SUBMISSION_LIMIT': MAX_SUBMISSION_LIMIT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,
         'ocelot_team_token': ocelot_team_token,
         'ocelot_team_verified': ocelot_team_verified,
-        'primary_submissions': primary_submissions,
         'publication_name_form': publication_name_form,
         'publication_desc_form': publication_desc_form,
         'publication_survey': publication_survey,
-        'withdrawn_data': withdrawn_data,
     }
     return render(request, 'leaderboard/teampage.html', context=context)
 

@@ -76,12 +76,11 @@
               <h4>Submission withdrawals</h4>
               <p class="form-text">
                 If you have decided to withdraw from the competition for any of the test sets,
-                please contact us by sending an email to <code>{tomkocmi,rogrundk}@microsoft.com</code>.
-                <!-- please let us know here so that your files can be ignored. -->
+                please let us know here so that your files can be ignored.
               </p>
 
               <table class="table table-sm table-borderless w-auto form-group">
-                {% for testset, withdrawn in withdrawn_data %}
+                {% for testset, withdrawn in data_withdrawn %}
                 <tr>
                   <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}<input type="hidden" id="id_testset" name="testset" value="{{ testset.id }}" /></td>
                   <td>
@@ -97,7 +96,7 @@
               <input class="btn btn-primary" type="submit" value="Submit">
             </div>
 
-            {% if primary_submissions %}
+            {% if data_primary %}
             <br/>
             <br/>
 
@@ -119,7 +118,7 @@
             {% endif %}
 
             <table class="table table-sm table-borderless w-auto form-group">
-              {% for testset, primary, contrastive, submissions in data %}
+              {% for testset, primary, contrastive, submissions in data_primary %}
               <tr>
                 <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
@@ -157,7 +156,7 @@
             <input class="btn btn-primary" type="submit" value="Submit">
             {% endif %}
 
-            {% if contrastive_submissions %}  
+            {% if data_contrastive %}  
             <br/>
             <br/>      
 
@@ -168,7 +167,7 @@
             </p>
 
             <table class="table table-sm table-borderless w-auto form-group">
-              {% for testset, primary, contrastive, submissions in data %}
+              {% for testset, primary, contrastive, submissions in data_contrastive %}
               <tr>
                 <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}</td>
                 <td>
