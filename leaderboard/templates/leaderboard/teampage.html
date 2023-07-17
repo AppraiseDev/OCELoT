@@ -85,7 +85,7 @@
             <table class="table table-sm table-borderless w-auto form-group">
               {% for testset, primary, submissions in data %}
               <tr>
-                <td class="pr-3">{{ testset }}</td>
+                <td class="pr-3" style="vertical-align: middle;">{{ testset }}</td>
                 <td>
                   <select class="form-control" id="id_primary" name="primary">
                     {% for submission in submissions %}
@@ -102,14 +102,14 @@
               {% if publication_survey.active %}
               {% if primary %}
               {% with testset.source_language.code|add:'-'|add:testset.target_language.code as langpair %}
-                <td>
+                <td style="vertical-align: middle;">
                     <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLSf7TTiYXY23-Rn47akxfd3jUisokOS8u-lv22ZNuO8igyV3YQ/viewform?entry.1616043926={{ publication_survey.username|escape }}&entry.63843270={{ publication_survey.shortname|escape }}&entry.2119951195={{ publication_survey.paper|escape }}&entry.1181486413={{ langpair }}&entry.896647915=%23{{ primary.id }}&entry.1971753910={{ publication_survey.paragraph|escape }}" target="_blank">
                     Complete the form with details for submission #{{ primary.id }}
-                  </a>
+                    </a>
                 </td>
               {% endwith %}
               {% else %}
-                <td>
+                <td style="vertical-align: middle;">
                   <span class="text-muted">Please choose the primary submission for this test set</span>
                 </td>
               {% endif %}

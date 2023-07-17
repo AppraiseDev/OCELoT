@@ -457,9 +457,6 @@ def teampage(request):
             data[key] = []
         data[key].append(submission)
 
-        if not key in primary.keys():
-            primary[key] = None
-
         if submission.is_primary:
             primary[key] = submission
 
