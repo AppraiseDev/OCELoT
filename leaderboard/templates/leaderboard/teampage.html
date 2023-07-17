@@ -71,40 +71,40 @@
             <br/>
             <br/>
 
-            <div>
-              <h2>Final submissions</h2>
-              <h4>Submission summary</h4>
-              <p>
-                Based on your current selection you will submit {{ data_primary|length }} primary
-                and {{ count_contrastive }} contrastive submissions. You have withdrawn from
-                {{ count_withdrawn }} test set{{ count_withdrawn|pluralize }}.
-              </p>
+            <h2>Final submissions</h2>
+            <h4>Submission summary</h4>
+            <p>
+              Based on your current selection you will submit {{ data_primary|length }} primary
+              and {{ count_contrastive }} contrastive submissions. You have withdrawn from
+              {{ count_withdrawn }} test set{{ count_withdrawn|pluralize }}.
+            </p>
 
-              <br/>
-              <br/>
+            {% if data_withdrawn %}
+            <br/>
+            <br/>
 
-              <h4>Submission withdrawals</h4>
-              <p class="form-text">
-                If you have decided to withdraw from the competition for any of the test sets,
-                please let us know here so that your files can be ignored.
-              </p>
+            <h4>Submission withdrawals</h4>
+            <p class="form-text">
+              If you have decided to withdraw from the competition for any of the test sets,
+              please let us know here so that your files can be ignored.
+            </p>
 
-              <table class="table table-sm table-borderless w-auto form-group">
-                {% for testset, withdrawn in data_withdrawn %}
-                <tr>
-                  <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}<input type="hidden" id="id_testset" name="testset" value="{{ testset.id }}" /></td>
-                  <td>
-                    <select class="form-control" id="id_withdrawn" name="withdrawn">
-                      <option value="0"{% if not withdrawn %}selected="selected"{% endif %}>Participate</option>
-                      <option value="1"{% if withdrawn %}selected="selected"{% endif %}>Withdraw</option>
-                    </select>
-                  </td>
-                </tr>
-                {% endfor %}
-              </table>
-  
-              <input class="btn btn-primary" type="submit" value="Submit">
-            </div>
+            <table class="table table-sm table-borderless w-auto form-group">
+              {% for testset, withdrawn in data_withdrawn %}
+              <tr>
+                <td class="pr-3" style="padding-left: 20px; vertical-align: middle;">{{ testset }}<input type="hidden" id="id_testset" name="testset" value="{{ testset.id }}" /></td>
+                <td>
+                  <select class="form-control" id="id_withdrawn" name="withdrawn">
+                    <option value="0"{% if not withdrawn %}selected="selected"{% endif %}>Participate</option>
+                    <option value="1"{% if withdrawn %}selected="selected"{% endif %}>Withdraw</option>
+                  </select>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+
+            <input class="btn btn-primary" type="submit" value="Submit">
+            {% endif %}
 
             {% if data_primary %}
             <br/>
