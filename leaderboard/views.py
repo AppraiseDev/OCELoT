@@ -532,7 +532,7 @@ def teampage(request):
                 data_contrastive.append(
                     (key, primary[key], contrastive[key], data[key])
                 )
-        
+
         # This collects the general withdrawal status per test set
         data_withdrawn.append(
             (key, any([x.is_withdrawn for x in data[key]]))
