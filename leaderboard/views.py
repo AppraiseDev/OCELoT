@@ -517,14 +517,23 @@ def teampage(request):
     data_primary = []
     data_withdrawn = []
     for key in data.keys():
+        # This collects all submissions for the current team
         data_all.append((key, primary[key], contrastive[key], data[key]))
+
+        # Any test set without withdrawn submissions may show
+        # primary and, possibly, contrastive selectors
         if not any([x.is_withdrawn for x in data[key]]):
             data_primary.append(
                 (key, primary[key], contrastive[key], data[key])
             )
-            data_contrastive.append(
-                (key, primary[key], contrastive[key], data[key])
-            )
+
+            # Only render contrastive selector if >= 2 submissions
+            if len(data[key]) >= 2:
+                data_contrastive.append(
+                    (key, primary[key], contrastive[key], data[key])
+                )
+        
+        # This collects the general withdrawal status per test set
         data_withdrawn.append(
             (key, any([x.is_withdrawn for x in data[key]]))
         )
@@ -543,6 +552,7 @@ def teampage(request):
     }
 
     context = {
+        'count_withdrawn': len([x for x in data_withdrawn if x[1]]),
         'data': data_all,
         'data_contrastive': data_contrastive,
         'data_primary': data_primary,

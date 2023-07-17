@@ -73,6 +73,16 @@
 
             <div>
               <h2>Final submissions</h2>
+              <h4>Submission summar</h4>
+              <p>
+                Based on your current selection you will submit {{ data_primary|length }} primary
+                and {{ data_contrastive|length }} contrastive submissions. You have withdrawn from
+                {{ count_withdrawn }} test set{{ count_withdrawn|pluralize }}.
+              </p>
+
+              <br/>
+              <br/>
+
               <h4>Submission withdrawals</h4>
               <p class="form-text">
                 If you have decided to withdraw from the competition for any of the test sets,

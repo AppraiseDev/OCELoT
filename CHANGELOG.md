@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.7.0] - 2023-07-17
+- Added submission summary to team page.
 - Implemented logic for contrastive submissions. [[#62](https://github.com/AppraiseDev/OCELoT/issues/62)]
 - Added support for contrastive submissions to `teampage()` view.
 - Added `set_contrastive()` to `Submission` object model.
