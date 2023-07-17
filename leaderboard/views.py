@@ -433,6 +433,9 @@ def teampage(request):
             request.POST.getlist('constrained'),
         )
         for contrastive_id, constrained in contrastive_ids_and_constrainedness:
+            if not contrastive_id:
+                continue
+
             submission = Submission.objects.get(id=int(contrastive_id))
             if submission.submitted_by.token == ocelot_team_token:
                 submission.is_constrained = bool(int(constrained))
