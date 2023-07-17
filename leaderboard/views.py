@@ -428,6 +428,16 @@ def teampage(request):
                 submission.is_constrained = bool(int(constrained))
                 submission.set_primary()  # This implicitly calls save()
 
+        contrastive_ids_and_constrainedness = zip(
+            request.POST.getlist('contrastive'),
+            request.POST.getlist('constrained'),
+        )
+        for contrastive_id, constrained in contrastive_ids_and_constrainedness:
+            submission = Submission.objects.get(id=int(contrastive_id))
+            if submission.submitted_by.token == ocelot_team_token:
+                submission.is_constrained = bool(int(constrained))
+                submission.set_contrastive()  # This implicitly calls save()
+
     else:
         context = {
             'publication_name': current_team.publication_name,
