@@ -552,6 +552,7 @@ def teampage(request):
     }
 
     context = {
+        'count_contrastive': len([x for x in data_contrastive if x[2]]),
         'count_withdrawn': len([x for x in data_withdrawn if x[1]]),
         'data': data_all,
         'data_contrastive': data_contrastive,
