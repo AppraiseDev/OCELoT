@@ -866,6 +866,13 @@ class Submission(models.Model):
         help_text='Is constrained sumission?',
     )
 
+    is_contrastive = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is contrastive submission?',
+    )
+
     is_flagged = models.BooleanField(
         blank=False,
         db_index=True,
@@ -900,6 +907,13 @@ class Submission(models.Model):
         db_index=True,
         default=False,
         help_text='Is valid?',
+    )
+
+    is_withdrawn = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is withdrawn?',
     )
 
     name = models.CharField(
@@ -1246,7 +1260,9 @@ class Submission(models.Model):
         hyp_segments = len(list(self.get_hyp_text()))
 
         if hyp_segments != src_segments:
-            raise ValidationError("Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})")
+            raise ValidationError(
+                "Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
+            )
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML, XML or text file."""
@@ -1261,7 +1277,7 @@ class Submission(models.Model):
             if not hyp_name.endswith('.xml'):
                 _msg = 'Invalid XML file named {0}'.format(hyp_name)
                 raise ValidationError(_msg)
-            
+
             try:
                 self._validate_hyp_length()
             except OSError:  # Ignore file loading errors during testing

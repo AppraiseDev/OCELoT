@@ -130,11 +130,13 @@ class SubmissionAdmin(admin.ModelAdmin):
         'hyp_file',
         'submitted_by',
         'is_constrained',
+        'is_contrastive',
         'is_flagged',
         'is_primary',
         'is_public',
         'is_removed',
         'is_valid',
+        'is_withdrawn',
         'score',
         'score_chrf',
     ]
@@ -158,11 +160,14 @@ class SubmissionAdmin(admin.ModelAdmin):
         'test_set__target_language',
         'submitted_by__publication_name',
         'file_format',
+        'is_constrained',
+        'is_contrastive',
         'is_flagged',
         'is_primary',
         'is_public',
         'is_removed',
         'is_valid',
+        'is_withdrawn',
     ]
 
     ordering = (
