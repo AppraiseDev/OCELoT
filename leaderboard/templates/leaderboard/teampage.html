@@ -148,9 +148,11 @@
               {% if primary %}
               {% with testset.source_language.code|add:'-'|add:testset.target_language.code as langpair %}
                 <td style="vertical-align: middle;">
+                    <!--
                     <a class="active" href="https://docs.google.com/forms/d/e/1FAIpQLSf7TTiYXY23-Rn47akxfd3jUisokOS8u-lv22ZNuO8igyV3YQ/viewform?entry.1616043926={{ publication_survey.username|escape }}&entry.63843270={{ publication_survey.shortname|escape }}&entry.2119951195={{ publication_survey.paper|escape }}&entry.1181486413={{ langpair }}&entry.896647915=%23{{ primary.id }}&entry.1971753910={{ publication_survey.paragraph|escape }}" target="_blank">
                     Complete the form with details for submission #{{ primary.id }}
                     </a>
+                    -->
                 </td>
               {% endwith %}
               {% else %}
@@ -166,9 +168,9 @@
             <input class="btn btn-primary" type="submit" value="Submit">
             {% endif %}
 
-            {% if data_contrastive %}  
+            {% if data_contrastive %}
             <br/>
-            <br/>      
+            <br/>
 
             <h4>Contrastive submissions</h4>
             <p class="form-text">
@@ -235,7 +237,7 @@
                     <td>#{{submission.id}}</td>
                     <td>
                       <a href="{% url 'submission-view' sub_id=submission.id %}">{{submission.name}}</a>
-                      
+
                       {% if submission.is_primary %}
                       <span class="badge badge-primary" style="vertical-align: text-bottom;">Primary</span>
                       {% endif %}
