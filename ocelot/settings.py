@@ -27,9 +27,7 @@ DEBUG = os.environ.get('OCELOT_DEBUG', True)
 ADMINS = os.environ.get('OCELOT_ADMINS', ())
 MANAGERS = ADMINS
 
-SECRET_KEY = os.environ.get(
-    'OCELOT_SECRET_KEY'
-)  # Throw if no SECRET_KEY set!
+SECRET_KEY = os.environ.get('OCELOT_SECRET_KEY')  # Throw if no SECRET_KEY set!
 ALLOWED_HOSTS = os.environ.get('OCELOT_ALLOWED_HOSTS', '127.0.0.1').split(
     ','
 )
@@ -65,10 +63,12 @@ else:
     # Database
     # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+    DB_SQLITE3 = os.environ.get('OCELOT_DB_SQLITE3',
+                                os.path.join(BASE_DIR, 'db.sqlite3'))
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': DB_SQLITE3,
         }
     }
 
