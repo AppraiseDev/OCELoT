@@ -184,6 +184,23 @@ def download_team_file(modeladmin, request, queryset):
     del modeladmin  # unused
     del request  # unused
 
+    team_json = _create_team_json(queryset)
+
+    tmp_file = NamedTemporaryFile(delete=False)
+    with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
+        zip_file.writestr('teams.json', team_json)
+
+    tmp_file.seek(0)
+    response = FileResponse(
+        open(tmp_file.name, 'rb'),
+        as_attachment=True,
+        content_type='application/x-zip-compressed',
+        filename='teams.zip',
+    )
+    return response
+
+def _create_team_json(queryset):
+    """Creates JSON file with team information"""
     team_list = []
     for team in queryset:
         team_data = model_to_dict(
@@ -201,9 +218,7 @@ def download_team_file(modeladmin, request, queryset):
         primary_submissions = team.submission_set.filter(
             is_primary=True, is_valid=True
         )
-        team_data['number_of_primary_submissions'] = len(
-            primary_submissions
-        )
+        team_data['number_of_primary_submissions'] = len(primary_submissions)
 
         submission_list = []
         for submission in primary_submissions:
@@ -217,12 +232,8 @@ def download_team_file(modeladmin, request, queryset):
                     'score_chrf',
                 ],
             )
-            submission_data[
-                'competition'
-            ] = submission.test_set.competition.name
-            submission_data['file_name'] = _make_submission_filename(
-                submission
-            )
+            submission_data['competition'] = submission.test_set.competition.name
+            submission_data['file_name'] = _make_submission_filename(submission)
             submission_data['submission_id'] = submission.id
             submission_data['test_set'] = submission.test_set.name
             language_pair = "{0}-{1}".format(
@@ -235,19 +246,7 @@ def download_team_file(modeladmin, request, queryset):
 
         team_list.append(team_data)
     team_json = json.dumps(list(team_list), indent=2, sort_keys=True)
-
-    tmp_file = NamedTemporaryFile(delete=False)
-    with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
-        zip_file.writestr('teams.json', team_json)
-
-    tmp_file.seek(0)
-    response = FileResponse(
-        open(tmp_file.name, 'rb'),
-        as_attachment=True,
-        content_type='application/x-zip-compressed',
-        filename='teams.zip',
-    )
-    return response
+    return team_json
 
 
 download_team_file.short_description = (  # type: ignore

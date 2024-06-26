@@ -1,6 +1,7 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+import json
 import os
 from datetime import datetime
 from datetime import timedelta
@@ -10,6 +11,7 @@ from shutil import copyfile
 from django.test import TestCase
 from django.utils import timezone
 
+from leaderboard.admin import _create_team_json
 from leaderboard.models import Competition
 from leaderboard.models import Language
 from leaderboard.models import SGML_FILE
@@ -895,3 +897,28 @@ class LeaderboardTests(TestCase):
         for sub in subs:
             self.assertContains(response, str(sub))
         self.assertNotContains(response, 'No submissions')
+
+class AdminActionsTests(LeaderboardTests):
+    """Tests for admin actions in the admin panel."""
+
+    def test_download_team_file(self):
+        """Checks that admin can download team files."""
+        # Set primary submission
+        subm = Submission.objects.first()
+        subm.is_primary = True
+        subm.save()
+        # Get team JSON file
+        team_file = _create_team_json(Team.objects.all())
+        team_json = json.loads(team_file)
+
+        # Check if the number of teams in the JSON file is the same as in the database
+        self.assertEqual(len(team_json), Team.objects.count())
+        # Check if the first submission has one primary submission
+        self.assertEqual(len(team_json[0]['primary_submissions']), 1)
+        # Check if the second submission has no primary submissions
+        self.assertEqual(len(team_json[1]['primary_submissions']), 0)
+
+        for data in team_json:
+            for key in ["name", "institution_name", "publication_name"]:
+                self.assertTrue(key in data)
+
