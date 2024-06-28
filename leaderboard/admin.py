@@ -130,6 +130,7 @@ class SubmissionAdmin(admin.ModelAdmin):
         'hyp_file',
         'submitted_by',
         'is_constrained',
+        'is_open_source',
         'is_contrastive',
         'is_flagged',
         'is_primary',

@@ -863,7 +863,14 @@ class Submission(models.Model):
         blank=False,
         db_index=True,
         default=False,
-        help_text='Is constrained sumission?',
+        help_text='Is constrained submission?',
+    )
+
+    is_open_source = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=False,
+        help_text='Is open-source submission?',
     )
 
     is_contrastive = models.BooleanField(
@@ -1315,13 +1322,10 @@ class Submission(models.Model):
         other_submissions = Submission.objects.filter(
             submitted_by=self.submitted_by,
             test_set=self.test_set,
+            is_contrastive=False,  # Leave current contrastive submission as-is
         )
         for other_submission in other_submissions:
-            if self.is_contrastive:
-                continue  # Leave current contrastive submission as-is
-
             if other_submission.id != self.id:
-                other_submission.is_constrained = False
                 other_submission.is_contrastive = False
                 other_submission.is_primary = False
                 other_submission.save()
@@ -1337,13 +1341,10 @@ class Submission(models.Model):
         other_submissions = Submission.objects.filter(
             submitted_by=self.submitted_by,
             test_set=self.test_set,
+            is_primary=False,  # Leave current primary submission as-is
         )
         for other_submission in other_submissions:
-            if other_submission.is_primary:
-                continue  # Leave current primary submission as-is
-
             if other_submission.id != self.id:
-                other_submission.is_constrained = False
                 other_submission.is_contrastive = False
                 other_submission.is_primary = False
                 other_submission.save()

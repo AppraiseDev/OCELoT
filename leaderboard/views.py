@@ -384,12 +384,8 @@ def teampage(request):
 
         publication_name_form = PublicationNameForm(request.POST)
         if publication_name_form.is_valid():
-            publication_name = publication_name_form.cleaned_data[
-                'publication_name'
-            ]
-            institution_name = publication_name_form.cleaned_data[
-                'institution_name'
-            ]
+            publication_name = publication_name_form.cleaned_data['publication_name']
+            institution_name = publication_name_form.cleaned_data['institution_name']
             if (
                 publication_name != current_team.publication_name
                 or institution_name != current_team.institution_name
@@ -431,28 +427,43 @@ def teampage(request):
 
         primary_ids_and_constrainedness = zip(
             request.POST.getlist('primary'),
-            request.POST.getlist('constrained'),
+            request.POST.getlist('primary_constrained'),
         )
         for primary_id, constrained in primary_ids_and_constrainedness:
             submission = Submission.objects.get(id=int(primary_id))
             if submission.submitted_by.token == ocelot_team_token:
-                submission.is_constrained = bool(int(constrained))
+                # TODO: refactorize
+                if constrained == "closed":
+                    submission.is_constrained = False
+                    submission.is_open_source = False
+                elif constrained == "open":
+                    submission.is_constrained = False
+                    submission.is_open_source = True
+                elif constrained == "constrained":
+                    submission.is_constrained = True
+                    submission.is_open_source = True
                 submission.set_primary()  # This implicitly calls save()
 
         contrastive_ids_and_constrainedness = zip(
             request.POST.getlist('contrastive'),
-            request.POST.getlist('constrained'),
+            request.POST.getlist('contrastive_constrained'),
         )
-        for (
-            contrastive_id,
-            constrained,
-        ) in contrastive_ids_and_constrainedness:
+        for (contrastive_id, constrained) in contrastive_ids_and_constrainedness:
             if not contrastive_id:
                 continue
 
             submission = Submission.objects.get(id=int(contrastive_id))
             if submission.submitted_by.token == ocelot_team_token:
-                submission.is_constrained = bool(int(constrained))
+                # TODO: refactorize
+                if constrained == "closed":
+                    submission.is_constrained = False
+                    submission.is_open_source = False
+                elif constrained == "open":
+                    submission.is_constrained = False
+                    submission.is_open_source = True
+                elif constrained == "constrained":
+                    submission.is_constrained = True
+                    submission.is_open_source = True
                 submission.set_contrastive()  # This implicitly calls save()
 
     else:
