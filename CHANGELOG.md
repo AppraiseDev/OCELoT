@@ -5,9 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-
-## [0.8.0] - 2024-06-20
+## [0.8.1] - 2024-06-28
 - Updated `#wmt23dev` to `#wmt24dev` and other WMT23 mentions.
+- Added `is_open_source` to `Submission`.
+- Added two unconstrained submission types on the team page: open-source and closed systems.
 
 ## [0.7.0] - 2023-07-17
 - Added submission summary to team page.
