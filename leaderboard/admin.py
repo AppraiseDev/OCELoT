@@ -227,6 +227,7 @@ def _create_team_json(queryset):
                 submission,
                 fields=[
                     'is_constrained',
+                    'is_open_source',
                     'is_primary',
                     'is_removed',
                     'score',
