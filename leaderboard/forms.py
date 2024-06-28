@@ -53,7 +53,7 @@ class PublicationNameForm(forms.Form):
         widget=forms.TextInput(
             attrs={'class': 'form-control', 'placeholder': 'TEAM-ONE'}
         ),
-        label='Short team name',
+        label='Short team name to be used in the overview paper',
     )
 
 
