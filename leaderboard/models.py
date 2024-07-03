@@ -1192,10 +1192,8 @@ class Submission(models.Model):
         if target_language_code == 'ja':
             # We use char-based tokenizer as MeCab was slow/unstable
             tokenize = 'char'
-
         elif target_language_code == 'km':
             tokenize = 'char'
-
         elif target_language_code == 'zh':
             tokenize = 'zh'
 
@@ -1227,6 +1225,8 @@ class Submission(models.Model):
             self.score_chrf = None
 
         finally:
+            if not self.score:  # temporary fix to check if this may prevent infinite loop
+                self.score = -2
             self.save()
 
     def _score(self):
