@@ -38,6 +38,9 @@ WSGI_APPLICATION = os.environ.get(
     'OCELOT_WSGI_APPLICATION', 'ocelot.wsgi.application'
 )
 
+# Specify default type for automatic primary keys
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # Try to load database settings, otherwise use defaults.
 DB_ENGINE = os.environ.get('OCELOT_DB_ENGINE')
 DB_NAME = os.environ.get('OCELOT_DB_NAME')

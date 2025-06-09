@@ -2,7 +2,7 @@
 
 ## Basic setup
 
-1. Install Python 3.5+.
+1. Install Python 3.10+
 2. Clone the repository:
 
         git clone https://github.com/AppraiseDev/OCELoT
@@ -16,8 +16,12 @@
    requirements:
 
         virtualenv venv -p python3
-        source venv/bin/activate
+        source ./venv/bin/activate
         pip install -r requirements.txt
+
+   If needed, install PostgreSQL Development Package:
+
+        sudo apt-get install libpq-dev  # for Ubuntu, check for other systems
 
 5. Create database, the first super user, and collect static files:
 
