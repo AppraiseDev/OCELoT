@@ -6,6 +6,8 @@ import xml
 from pathlib import Path
 from uuid import uuid4
 
+import json
+import jsonschema
 import lxml.etree as ET
 import xmlschema
 from bs4 import BeautifulSoup
@@ -18,21 +20,25 @@ from sacrebleu import corpus_chrf  # type: ignore
 from leaderboard.utils import analyze_xml_file
 from leaderboard.utils import process_to_text  # type: ignore
 from leaderboard.utils import process_xml_to_text
+from leaderboard.utils import analyze_jsonl_file, process_jsonl_to_text
 from ocelot.settings import MEDIA_ROOT
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
 MAX_NAME_LENGTH = 200
 MAX_DESCRIPTION_LENGTH = 2000
 MAX_TOKEN_LENGTH = 10
+MAX_FORMAT_LENGTH = 5  # SGML, XML, TEXT, JSONL
 
 SGML_FILE = 'SGML'  # supported extensions: .sgm
 TEXT_FILE = 'TEXT'  # supported extensions: .txt
 XML_FILE = 'XML'  # supported extensions: .xml
+JSONL_FILE = 'JSONL'  # supported extensions: .jsonl
 
 FILE_FORMAT_CHOICES = (
     (SGML_FILE, 'SGML format'),
     (TEXT_FILE, 'Text format'),
     (XML_FILE, 'XML format'),
+    (JSONL_FILE, 'JSONL format'),
 )
 
 SGML_XSD_SCHEMA = """<?xml version="1.0"?>
@@ -219,6 +225,57 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
 </grammar>
 """
 
+JSONL_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id":   { "type": "string" },
+        "src_text":     { "type": "string" },
+        "doc_id":       { "type": "string" },
+        "orig_lang":    { "type": "string" },
+        "src_lang":     { "type": "string" },
+        "collection_id":{ "type": "string" },
+        "domain":       { "type": "string" },
+        "segment_id":   { "type": ["string","integer"] },
+        "hyps": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "system":   { "type": "string" },
+                    "tgt_lang": { "type": "string" },
+                    "text":     { "type": "string" }
+                },
+                "required": ["system","tgt_lang","text"],
+                "additionalProperties": False
+            }
+        },
+        "refs": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "translator": { "type": "string" },
+                    "tgt_lang":   { "type": "string" },
+                    "text":       { "type": "string" }
+                },
+                "required": ["translator","tgt_lang","text"],
+                "additionalProperties": False
+            }
+        }
+    },
+    "required": [
+        "dataset_id","src_text","doc_id","orig_lang",
+        "src_lang","collection_id","domain","segment_id"
+    ],
+    "anyOf": [
+        { "required": ["hyps"] },
+        { "required": ["refs"] }
+    ],
+    "additionalProperties": False
+}
+
 
 def validate_sgml_schema(hyp_file):
     """Validates SGML file based on XSD schema."""
@@ -323,11 +380,124 @@ def validate_xml_schema(xml_file):
             xml_file,
         )
         if relaxng:
-            for _err in relaxng.error_log[
-                :1
-            ]:  # Display only the first error
+            # Display only the first error
+            for _err in relaxng.error_log[:1]:
                 _msg += " Line %s: %s\n" % (_err.line, _err.message)
         raise ValidationError(_msg)
+
+
+def validate_jsonl_schema(json_file):
+    """Validates JSONL file based on JSONL_SCHEMA."""
+    # Skip validation for non‐JSONL uploads
+    if not json_file.name.endswith('.jsonl'):
+        return
+
+    try:
+        # Ensure we start at the beginning of the file
+        json_file.seek(0)
+        for lineno, line in enumerate(json_file, start=1):
+            text = line.strip()
+            if not text:
+                continue  # skip blank lines
+            try:
+                obj = json.loads(text)
+            except json.JSONDecodeError as e:
+                raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
+            try:
+                jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
+            except jsonschema.ValidationError as e:
+                # Report the first schema violation
+                raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+    finally:
+        # Reset file pointer so further processing can read it again
+        json_file.seek(0)
+
+
+def validate_jsonl_src_testset(json_file):
+    """Validate source texts in JSONL test set."""
+    if not json_file.name.endswith('.jsonl'):
+        return
+    json_file.seek(0)
+    src_langs = set()
+    for lineno, line in enumerate(json_file, start=1):
+        text = line.strip()
+        if not text:
+            continue
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as e:
+            raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
+        lang = obj.get('src_lang')
+        if lang is None:
+            raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
+        src_langs.add(lang)
+    if not src_langs:
+        raise ValidationError(f'No source language found in JSONL file {json_file.name}')
+    if len(src_langs) > 1:
+        raise ValidationError(f'JSONL files with 2+ source languages are not supported: {src_langs}')
+    json_file.seek(0)
+
+
+def validate_jsonl_ref_testset(json_file):
+    """Validate reference texts in JSONL test set."""
+    if not json_file:  # FileField evaluates as False when None
+        return
+    if not json_file.name.endswith('.jsonl'):
+        return
+
+    json_file.seek(0)
+    ref_langs = set()
+    for lineno, line in enumerate(json_file, start=1):
+        text = line.strip()
+        if not text:
+            continue
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as e:
+            raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
+        refs = obj.get('refs')
+        if not refs:
+            raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
+        for ref in refs:
+            lang = ref.get('tgt_lang')
+            if lang is None:
+                raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
+            ref_langs.add(lang)
+    if not ref_langs:
+        raise ValidationError(f'No reference languages found in JSONL file {json_file.name}')
+    if len(ref_langs) > 2:
+        raise ValidationError(f'JSONL files with 2+ reference languages are not supported: {ref_langs}')
+    json_file.seek(0)
+
+
+def validate_jsonl_submission(json_file):
+    """Validate submissions in JSONL format."""
+    if not json_file.name.endswith('.jsonl'):
+        return
+    # First validate basic schema
+    validate_jsonl_schema(json_file)
+    # Then ensure exactly one system in all hyps
+    json_file.seek(0)
+    systems = set()
+    for lineno, line in enumerate(json_file, start=1):
+        text = line.strip()
+        if not text:
+            continue
+        obj = json.loads(text)
+        hyps = obj.get('hyps') or []
+        if not hyps:
+            raise ValidationError(f'No hyps array at line {lineno} in JSONL submission')
+        for hyp in hyps:
+            sys_name = hyp.get('system')
+            if not sys_name:
+                raise ValidationError(f'Missing system in hyp at line {lineno}')
+            systems.add(sys_name)
+    print(f"Found systems in JSONL: {systems}")
+    if not systems:
+        raise ValidationError(f'No system found in the JSONL file {json_file.name}')
+    if len(systems) > 1:
+        raise ValidationError('JSONL submissions with multiple systems are not supported')
+    json_file.seek(0)
 
 
 def validate_team_name(value):
@@ -518,23 +688,29 @@ class TestSet(models.Model):
     file_format = models.CharField(
         choices=FILE_FORMAT_CHOICES,
         default=XML_FILE,
-        max_length=4,
+        max_length=MAX_FORMAT_LENGTH,
     )
 
     src_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='SGML, XML or text file containing test set source',
+        help_text='XML, JSONL or text file containing test set source',
         null=True,
-        validators=[validate_xml_src_testset],
+        validators=[
+            validate_xml_src_testset,
+            validate_jsonl_src_testset,
+        ],
     )
 
     ref_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='SGML, XML or text file containing test set reference(s)',
+        help_text='XML, JSONL or text file containing test set reference(s)',
         null=True,
-        validators=[validate_xml_ref_testset],
+        validators=[
+            validate_xml_ref_testset,
+            validate_jsonl_ref_testset,
+        ],
     )
 
     competition = models.ForeignKey(
@@ -578,9 +754,9 @@ class TestSet(models.Model):
 
     def _create_text_files(self):
         """
-        Creates test set text files from SGML or XML files.
+        Creates test set text files from SGML, XML or JSONL files.
         If files are already in text format, do nothing.
-        For XML format, it extracts data only from the collection if defined.
+        For XML/JSONL formats, it extracts data only from the collection if defined.
         """
         if self.file_format == TEXT_FILE:
             return
@@ -631,6 +807,46 @@ class TestSet(models.Model):
                     collection=self.collection,
                 )
 
+        elif self.file_format == JSONL_FILE:
+            # Extract source text
+            src_path = str(self.src_file.name)
+            if MEDIA_ROOT and MEDIA_ROOT not in src_path:
+                src_path = f"{MEDIA_ROOT}{src_path}"
+            txt_src = src_path.replace('.jsonl', '.txt')
+
+            # use the shared JSONL‐to‐text processor
+            process_jsonl_to_text(
+                jsonl_path=src_path,
+                txt_path=txt_src,
+                source=True,
+                collection=self.collection,
+            )
+
+            if not self.has_references():
+                return
+
+            # Extract reference texts
+            ref_path = str(self.ref_file.name)
+            if MEDIA_ROOT and MEDIA_ROOT not in ref_path:
+                ref_path = f"{MEDIA_ROOT}{ref_path}"
+            txt_ref = ref_path.replace('.jsonl', '.txt')
+
+            # pick first translator for reference extraction
+            _, _, _, translators, _ = analyze_jsonl_file(ref_path)
+            translator = sorted(translators)[0] if translators else None
+
+            process_jsonl_to_text(
+                jsonl_path=ref_path,
+                txt_path=txt_ref,
+                reference=translator,
+                collection=self.collection,
+            )
+
+            return
+
+        # if we reach here, file_format was neither TEXT, SGML, XML nor JSONL…
+        return
+
     def has_references(self):
         """Returns True when self.ref_file is not None."""
         return bool(self.ref_file)
@@ -659,6 +875,13 @@ class TestSet(models.Model):
 
                 # TODO: Validate that a collection (if requested) is present in
                 # the XML file. Do it here or in validate_xml_submission()
+            
+            elif self.file_format == JSONL_FILE:
+                if not current_path.endswith('.jsonl'):
+                    _msg = 'Invalid JSONL file name {0}'.format(
+                        current_path
+                    )
+                    raise ValidationError(_msg)
 
             elif self.file_format == TEXT_FILE:
                 if not current_path.endswith('.txt'):
@@ -834,6 +1057,9 @@ def _get_submission_upload_path(instance, filename):
     elif instance.file_format == XML_FILE:
         file_extension = 'xml'
 
+    elif instance.file_format == JSONL_FILE:
+        file_extension = 'jsonl'
+
     elif instance.file_format == TEXT_FILE:
         file_extension = 'txt'
 
@@ -955,14 +1181,18 @@ class Submission(models.Model):
     file_format = models.CharField(
         choices=FILE_FORMAT_CHOICES,
         default=XML_FILE,
-        max_length=4,
+        max_length=MAX_FORMAT_LENGTH,
     )
 
     hyp_file = models.FileField(
         upload_to=_get_submission_upload_path,
-        help_text='SGML, XML or text file containing submission output',
+        help_text='XML, JSONL or text file containing submission output',
         null=True,
-        validators=[validate_sgml_schema, validate_xml_submission],
+        validators=[
+            validate_sgml_schema,
+            validate_xml_submission,
+            validate_jsonl_submission,
+        ],
     )
 
     test_set = models.ForeignKey(TestSet, on_delete=models.PROTECT)
@@ -1056,6 +1286,24 @@ class Submission(models.Model):
                         collection=self.test_set.collection,
                     )
 
+        elif self.file_format == JSONL_FILE:
+            # Prefix the JSONL file name with MEDIA_ROOT if needed
+            if MEDIA_ROOT and MEDIA_ROOT not in hyp_path:
+                hyp_path = f"{MEDIA_ROOT}{hyp_path}"
+
+            hyp_text_path = hyp_path.replace('.jsonl', '.txt')
+            if not Path(hyp_text_path).exists():
+                # reuse the shared JSONL‐to‐text processor
+                # first extract the single system name from the file
+                _, _, _, _, sys_names = analyze_jsonl_file(hyp_path)
+                system = sorted(sys_names)[0] if sys_names else None
+                process_jsonl_to_text(
+                    jsonl_path=hyp_path,
+                    txt_path=hyp_text_path,
+                    system=system,
+                    collection=self.test_set.collection,
+                )
+
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
@@ -1091,6 +1339,10 @@ class Submission(models.Model):
             ref_xml_path = self.test_set.ref_file.name
             ref_text_path = ref_xml_path.replace('.xml', '.txt')
 
+        elif self.test_set.file_format == JSONL_FILE:
+            ref_jsonl_path = self.test_set.ref_file.name
+            ref_text_path = ref_jsonl_path.replace('.jsonl', '.txt')
+
         elif self.test_set.file_format == TEXT_FILE:
             ref_text_path = self.test_set.ref_file.name
 
@@ -1112,6 +1364,10 @@ class Submission(models.Model):
             # By design, the reference only contains valid docids
             src_xml_path = self.test_set.src_file.name
             src_text_path = src_xml_path.replace('.xml', '.txt')
+
+        elif self.test_set.file_format == JSONL_FILE:
+            src_jsonl_path = self.test_set.src_file.name
+            src_text_path = src_jsonl_path.replace('.jsonl', '.txt')
 
         elif self.test_set.file_format == TEXT_FILE:
             src_text_path = self.test_set.src_file.name
@@ -1284,10 +1540,19 @@ class Submission(models.Model):
             if not hyp_name.endswith('.xml'):
                 _msg = 'Invalid XML file named {0}'.format(hyp_name)
                 raise ValidationError(_msg)
-
             try:
                 self._validate_hyp_length()
-            except OSError:  # Ignore file loading errors during testing
+            except OSError:
+                # TODO: this should be fixed after WMT23 submission week
+                pass
+
+        elif self.file_format == JSONL_FILE:
+            if not hyp_name.endswith('.jsonl'):
+                _msg = 'Invalid JSONL file named {0}'.format(hyp_name)
+                raise ValidationError(_msg)
+            try:
+                self._validate_hyp_length()
+            except OSError:
                 # TODO: this should be fixed after WMT23 submission week
                 pass
 

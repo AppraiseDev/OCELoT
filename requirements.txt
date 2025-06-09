@@ -6,3 +6,4 @@ psycopg2
 sacrebleu
 sqlparse
 xmlschema
+jsonschema

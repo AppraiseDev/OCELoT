@@ -16,6 +16,7 @@ from leaderboard.models import TestSet
 from leaderboard.models import validate_institution_name
 from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
+from .models import XML_FILE, JSONL_FILE
 
 
 PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer
@@ -152,12 +153,30 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.FileInput(
             attrs={'class': 'form-control form-control-file'},
         ),
-        help_text="XML file containing submission output",
+        help_text="XML or JSONL file containing submission output",
     )
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
         model = Submission
         fields = ['test_set', 'hyp_file', 'is_primary']
+
+    # Override the base clean() to detect the uploaded file’s extension
+    # and set `instance.file_format` accordingly *before* model‐level
+    # validation runs. Without this, Django would default to XML_FILE
+    # and still invoke the XML validators on a JSONL upload, causing
+    # misleading “Invalid XML” errors.
+    def clean(self):
+        cleaned = super().clean()
+        hyp = cleaned.get('hyp_file')
+        if hyp:
+            name = hyp.name.lower()
+            if name.endswith('.xml'):
+                self.instance.file_format = XML_FILE
+            elif name.endswith('.jsonl'):
+                self.instance.file_format = JSONL_FILE
+            else:
+                raise forms.ValidationError(f'Unsupported extension on {name}')
+        return cleaned
 
 
 class TeamForm(forms.ModelForm):

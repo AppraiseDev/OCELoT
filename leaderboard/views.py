@@ -20,7 +20,7 @@ from leaderboard.models import Competition
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
-from leaderboard.models import XML_FILE
+from leaderboard.models import XML_FILE, JSONL_FILE
 
 
 MAX_SUBMISSION_DISPLAY_COUNT = 10
@@ -314,14 +314,27 @@ def submit(request):
                 return HttpResponseRedirect('/')
 
             new_submission = form.save(commit=False)
-            new_submission.name = form.cleaned_data['hyp_file'].name
-            new_submission.file_format = XML_FILE
+            fname = form.cleaned_data['hyp_file'].name.lower()
+            new_submission.name = fname
+
+            # decide format by extension
+            if fname.endswith('.xml'):
+                new_submission.file_format = XML_FILE
+            elif fname.endswith('.jsonl'):
+                new_submission.file_format = JSONL_FILE
+            else:
+                messages.error(request, f'Unsupported extension on {fname}')
+                return HttpResponseRedirect(request.path)
             new_submission.submitted_by = current_team
+
+            #print(f"Submitting {new_submission.hyp_file.name} ({new_submission.file_format}) "
+            #      f"for {new_submission.test_set.name} by {new_submission.submitted_by.name}")
             new_submission.save()
 
             if new_submission.score != -1:
-                _msg = 'You have successfully submitted {0}'.format(
-                    new_submission.hyp_file.name
+                _msg = 'You have successfully submitted {0} in {1} format'.format(
+                    new_submission.hyp_file.name,
+                    new_submission.file_format,
                 )
                 messages.success(request, _msg)
 
@@ -341,8 +354,7 @@ def submit(request):
 
             return HttpResponseRedirect(reverse('teampage-view'))
         else:
-            # TODO: add logging message with form.errors
-            pass
+            messages.warning(request, 'There was an error with your submission.')
 
     else:
         # Set the default file format without modifying the Submission model

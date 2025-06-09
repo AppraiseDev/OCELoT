@@ -4,6 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 import os.path
 import re
 from typing import Optional
+import json
 
 import lxml.etree as ET
 from sacrebleu.utils import smart_open
@@ -45,6 +46,44 @@ def analyze_xml_file(xml_path):
         if system:
             systems.add(system)
 
+    return collections, src_langs, ref_langs, translators, systems
+
+
+def analyze_jsonl_file(jsonl_path):
+    """
+    Return all collection IDs, source languages, reference languages,
+    translators and system names found in a JSONL file.
+    """
+    collections, src_langs, ref_langs, translators, systems = (
+        set(), set(), set(), set(), set()
+    )
+    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            obj = json.loads(line)
+            # collection_id
+            cid = obj.get('collection_id')
+            if cid:
+                collections.add(cid)
+            # src_lang
+            sl = obj.get('src_lang')
+            if sl:
+                src_langs.add(sl)
+            # references
+            for ref in obj.get('refs', []):
+                tl = ref.get('tgt_lang')
+                tr = ref.get('translator')
+                if tl:
+                    ref_langs.add(tl)
+                if tr:
+                    translators.add(tr)
+            # hypotheses
+            for hyp in obj.get('hyps', []):
+                sysn = hyp.get('system')
+                if sysn:
+                    systems.add(sysn)
     return collections, src_langs, ref_langs, translators, systems
 
 
@@ -129,7 +168,8 @@ def process_xml_to_text(
 
     if [source, reference, system].count(None) != 2:
         raise ValueError(
-            'Exactly one of source, reference or system must be provided'
+            f'Exactly one of source, reference or system must be provided, but got: '
+            f'source={source}, reference={reference}, system={system}'
         )
 
     tree = ET.parse(xml_path)
@@ -197,4 +237,77 @@ def process_xml_to_text(
     with open(txt_path, 'w') as txt_file:
         for sent in out_sents:
             txt_file.write("{}\n".format(sent))
+    return True
+
+
+def process_jsonl_to_text(
+    jsonl_path,
+    txt_path,
+    source=None,
+    reference=None,
+    system=None,
+    collection=None,
+):
+    """
+    Extract source, reference(s) or system texts from a JSONL file.
+    Segments from other collections are ignored if `collection` is given.
+    Multiple references are not supported.
+    """
+    # Must specify exactly one of source, reference or system
+    if [source, reference, system].count(None) != 2:
+        raise ValueError(
+            f'Exactly one of source, reference or system must be provided, but got: '
+            f'source={source}, reference={reference}, system={system}'
+        )
+
+    # Read and collect JSONL entries
+    entries = []
+    with smart_open(jsonl_path, 'rt', encoding='utf-8') as fin:
+        for line in fin:
+            line = line.strip()
+            if not line:
+                continue
+            obj = json.loads(line)
+            # Filter by collection if requested
+            if collection and obj.get('collection_id') != collection:
+                continue
+            sid = obj.get('segment_id')
+            try:
+                sid = int(sid)
+            except Exception:
+                pass
+            entries.append((sid, obj))
+    #print(f"Found {len(entries)} entries in {jsonl_path}")
+
+    # If no entries matched, write empty file and bail
+    if not entries:
+        with smart_open(txt_path, 'wt', encoding='utf-8'):
+            pass
+        return False
+
+    # Build output sentences
+    out_sents = []
+    for _, obj in entries:
+        if source:
+            sent = obj.get('src_text', MISSING_TRANSLATION_MESSAGE)
+        elif reference:
+            sent = MISSING_TRANSLATION_MESSAGE
+            for ref in obj.get('refs', []):
+                if ref.get('translator') == reference:
+                    sent = ref.get('text', MISSING_TRANSLATION_MESSAGE)
+                    break
+        else:  # system
+            sent = MISSING_TRANSLATION_MESSAGE
+            for hyp in obj.get('hyps', []):
+                if hyp.get('system') == system:
+                    sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
+                    break
+        out_sents.append(sent)
+
+    # Write to txt file
+    with smart_open(txt_path, 'wt', encoding='utf-8') as fout:
+        for s in out_sents:
+            fout.write(f"{s}\n")
+
+    #print(f"Processed {len(out_sents)} sentences from {jsonl_path} to {txt_path}")
     return True
