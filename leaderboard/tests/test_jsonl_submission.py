@@ -67,6 +67,15 @@ class JSONLSubmissionTests(TestCase):
             ),
             competition=self.comp,
         )
+        # JSONL testset with optional languages and no references
+        self.testset_opt = TestSet.objects.create(
+            is_active=True,
+            name='TestSetOptionalLangJSONL',
+            file_format=JSONL_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'jsonl/wmt-src.jsonl'),
+            ref_file=None,
+            competition=self.comp,
+        )
 
         self.team = Team.objects.create(
             is_active=True, 
@@ -174,32 +183,28 @@ class JSONLSubmissionTests(TestCase):
         media_file = Path(MEDIA_ROOT) / sub.hyp_file.name
         self.assertTrue(media_file.exists(), f"{media_file} does not exist")
 
-#    def test_submission_in_jsonl_format_must_have_systems(self):
-#        """Checks that submissions in JSONL format without system translations are not allowed."""
-#        self._set_ocelot_team_token()
-#        self.team.is_verified = True
-#        self.team.save()
-#
-#        # Create a copied temp file for testing to avoid reading an
-#        # automatically created '.txt' from the sample-src.xml
-#        src_file = 'jsonl/sample-src.jsonl'
-#        hyp_file = src_file.replace('-src.jsonl', '-hyp-no-systems.jsonl')
-#        src_path = Path(TESTDATA_DIR) / src_file
-#        hyp_path = Path(TESTDATA_DIR) / hyp_file
-#
-#        # Copy file
-#        hyp_path.write_text(src_path.read_text())
-#
-#        with open(hyp_path, encoding='utf8') as xml:
-#            data = {
-#                'test_set': '1',
-#                'file_format': 'JSONL',
-#                'hyp_file': xml,
-#            }
-#            response = self.client.post('/submit', data, follow=True)
-#
-#        #print(f"Response content: {response.content.decode('utf-8')}", file=sys.stderr)
-#        self.assertContains(response, 'No system found')
-#        self.assertNotContains(response, 'successfully submitted')
-#
-#        self._clean_text_file(hyp_file, file_ext='.jsonl')
+    def test_submissions_to_optional_languages_testset(self):
+        """Checks submissions for a multi-language (optional languages) JSONL test set."""
+        # Use JSONL test set with optional languages and no references
+        testset_opt = self.testset_opt
+        self.assertIsNone(testset_opt.source_language)
+        self.assertIsNone(testset_opt.target_language)
+
+        # Verify source text file is extracted
+        src_txt = Path(testset_opt.src_file.name.replace('.jsonl', '.txt'))
+        self.assertTrue(src_txt.exists())
+        self.assertTrue(src_txt.stat().st_size > 0)
+
+        # Create submissions using wmt-hyp-a and wmt-hyp-b
+        sub_b = self._make_submission('jsonl/wmt-hyp-b.jsonl', test_set=testset_opt)
+
+        # Since there are no references, no scores should be computed
+        self.assertIsNone(sub_b.score)
+        self.assertIsNone(sub_b.score_chrf)
+
+        # Check that hyp files have been uploaded to submissions folder
+        media_file_b = Path(MEDIA_ROOT) / sub_b.hyp_file.name
+        self.assertTrue(media_file_b.exists(), f"{media_file_b} does not exist")
+
+        # Clean up created text files
+        src_txt.unlink()

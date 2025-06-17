@@ -192,3 +192,26 @@ class TestSetTests(TestCase):
         # Clean up created files
         if src_txt_file.exists():
             src_txt_file.unlink()
+
+    def test_create_test_set_with_optional_languages_jsonl(self):
+        """Checks that a test set can be created without source/target languages using JSONL format."""
+        # Create test set without specific source/target languages
+        tst = TestSet.objects.create(
+            name='TestSetOptionalLang',
+            file_format=JSONL_FILE,
+            src_file=os.path.join(TESTDATA_DIR, 'jsonl/wmt-src.jsonl'),
+        )
+        self.assertEqual(tst.name, 'TestSetOptionalLang')
+        # source and target languages should be None
+        self.assertIsNone(tst.source_language)
+        self.assertIsNone(tst.target_language)
+        self.assertTrue(tst.src_file.name.endswith('.jsonl'))
+        self.assertFalse(tst.ref_file)
+        self.assertFalse(tst.has_references())
+
+        # Check if source text file has been created and is non-empty
+        src_txt = Path(tst.src_file.name.replace('.jsonl', '.txt'))
+        self.assertTrue(src_txt.exists())
+        self.assertTrue(src_txt.stat().st_size > 0)
+        # Clean up created text file
+        src_txt.unlink()
