@@ -7,9 +7,11 @@ from datetime import datetime
 from pathlib import Path
 from shutil import copyfile
 
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from .common import (
-    TestCase, timezone, TESTDATA_DIR, Language, Competition, 
-    TestSet, Team, Submission, JSONL_FILE, MEDIA_ROOT
+    TestCase, timezone, TESTDATA_DIR, Language, Competition,
+    TestSet, Team, Submission, JSONL_FILE, TEXT_FILE, MEDIA_ROOT
 )
 
 
@@ -78,7 +80,7 @@ class JSONLSubmissionTests(TestCase):
         )
 
         self.team = Team.objects.create(
-            is_active=True, 
+            is_active=True,
             is_verified=True,
             name='Team JSONL',
             email='jsonl@team.com'
@@ -104,13 +106,20 @@ class JSONLSubmissionTests(TestCase):
                 p.unlink()
 
     def _make_submission(self, file_name, file_format=JSONL_FILE, test_set=None):
+        path = os.path.join(TESTDATA_DIR, file_name)
+        with open(path, 'rb') as f:
+            upload = SimpleUploadedFile(
+                name=os.path.basename(path),
+                content=f.read(),
+                content_type='application/json',
+            )
         return Submission.objects.create(
             name=file_name,
             original_name=file_name,
             test_set=test_set or self.testset,
             submitted_by=self.team,
             file_format=file_format,
-            hyp_file=os.path.join(TESTDATA_DIR, file_name),
+            hyp_file=upload,
         )
 
     def _clean_text_file(
@@ -136,7 +145,7 @@ class JSONLSubmissionTests(TestCase):
         """Text‐format submission against JSONL testset yields scores."""
         src_txt = 'jsonl/sample-hyp.ha.txt'
         # assume this file exists in testdata/jsonl/
-        sub = self._make_submission(src_txt, file_format= '\t' not in src_txt and '' or JSONL_FILE)
+        sub = self._make_submission(src_txt, file_format=TEXT_FILE)
         # scores should be positive
         self.assertGreater(sub.score, 0)
         self.assertGreater(sub.score_chrf, 0)
@@ -153,10 +162,10 @@ class JSONLSubmissionTests(TestCase):
         sub = self._make_submission(hyp)
         self.assertEqual(round(sub.score, 3), 81.141)
         self.assertEqual(round(sub.score_chrf, 3), 89.180)
-        # check that a .txt was created
-        txt = Path(TESTDATA_DIR) / hyp.replace('.jsonl', '.txt')
-        self.assertTrue(txt.exists())
-        self.assertTrue(txt.stat().st_size > 0)
+        # check that a .txt was created under MEDIA_ROOT
+        media_txt = Path(MEDIA_ROOT) / sub.hyp_file.name.replace('.jsonl', '.txt')
+        self.assertTrue(media_txt.exists(), f"{media_txt} does not exist")
+        self.assertTrue(media_txt.stat().st_size > 0)
 
     def test_submission_in_jsonl_format_to_jsonl_multiref_testset(self):
         """JSONL submission to multiref JSONL testset uses only first ref."""
