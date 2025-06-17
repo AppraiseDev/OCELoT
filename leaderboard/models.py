@@ -746,8 +746,8 @@ class TestSet(models.Model):
         )
 
     def __str__(self):
-        source_code = self.source_language.code if self.source_language else 'multi'
-        target_code = self.target_language.code if self.target_language else 'multi'
+        source_code = self.source_language.code if self.source_language else '*'
+        target_code = self.target_language.code if self.target_language else '*'
         return '{0} test set ({1}-{2})'.format(
             self.name,
             source_code,
