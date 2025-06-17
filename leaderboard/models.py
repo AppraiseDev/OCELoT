@@ -936,7 +936,7 @@ class Team(models.Model):
     is_verified = models.BooleanField(
         blank=False,
         db_index=True,
-        default=False,
+        default=True,  # make the team verified by default, changed from WMT25
         help_text='Is verified?',
     )
 
