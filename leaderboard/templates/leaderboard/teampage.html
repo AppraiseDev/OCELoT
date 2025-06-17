@@ -39,6 +39,7 @@
             {% csrf_token %}
 
             <h2>Publication details</h2>
+            <hr>
             <h4>Publication names</h4>
             <p class="form-text">
               Please think about how you want your team to be named in the
@@ -53,14 +54,12 @@
             <h4>Description paper</h4>
             <p class="form-text">
               The overview paper needs to cite a paper with the full details of
-              your system.  If the paper already exists, please specify its URL
-              (or DOI, or a full citation in the worst case).
+              your system.
               If you are submitting the paper to this year's proceedings,
               please specify the authors and title, e.g. <code>John Doe, Jack Smith:
               TurtleMT at Translation Task</code>.
               Feel free to provide an <em>anticipated</em> paper title if the
-              paper is yet to be written. Or simply say <code>WMT23</code> if
-              you still have no idea what your system paper will be called.
+              paper is yet to be written.
             </p>
             <div class="form-group">
             {{ publication_desc_form.as_p }}
@@ -70,8 +69,10 @@
 
             <br/>
             <br/>
+            <br/>
 
             <h2>Final submissions</h2>
+            <hr>
             <h4>Submission summary</h4>
             <p>
               Based on your current selection you will submit {{ data_primary|length }} primary
@@ -80,8 +81,6 @@
             </p>
 
             {% if data_withdrawn %}
-            <br/>
-            <br/>
 
             <h4>Submission withdrawals</h4>
             <p class="form-text">
@@ -148,8 +147,8 @@
               {% if publication_survey.active %}
               {% if primary %}
                 <td style="vertical-align: middle;">
-                    <a class="active" href="https://docs.google.com/forms/" target="_blank">
-                    Complete the form with details for submission #{{ primary.id }}
+                    <a class="active" href="https://forms.gle/rYCdt9MtRgGM3SJX8" target="_blank">
+                    Complete the form for submission #{{ primary.id }}
                     </a>
                 </td>
               {% else %}
@@ -168,7 +167,6 @@
             {% endif %}
 
             {% if data_contrastive %}
-            <br/>
 
             <h4>Contrastive submissions</h4>
             <p class="form-text">
@@ -209,6 +207,7 @@
           <br/>
 
           <h2>Your submissions</h2>
+          <hr>
           {% if data %}
             <p class="text-muted">
               Click on the column header to sort the table. Hold down the
