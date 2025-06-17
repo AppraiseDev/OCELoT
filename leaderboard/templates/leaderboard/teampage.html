@@ -139,9 +139,13 @@
                 </td>
                 <td>
                   <select class="form-control" id="id_constrained" name="primary_constrained">
+                    <!-- only constrained/unconstrained options are back in WMT25 -->
+                    <!--
                     <option value="closed"{% if not primary.is_constrained and not primary.is_open_source %}selected="selected"{% endif %}>Unconstrained (closed system)</option>
                     <option value="open"{% if not primary.is_constrained and primary.is_open_source %}selected="selected"{% endif %}>Unconstrained (open system)</option>
-                    <option value="constrained"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                    -->
+                    <option value="closed"{% if not primary.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="constrained"{% if primary.is_constrained %}selected="selected"{% endif %}>Constrained (open weights)</option>
                   </select>
                 </td>
               {% if publication_survey.active %}
@@ -189,9 +193,13 @@
                 <td>
                   <select class="form-control" id="id_constrained" name="contrastive_constrained">
                     <option value="">---</option>
+                    <!-- only constrained/unconstrained options are back in WMT25 -->
+                    <!--
                     <option value="closed"{% if contrastive and not contrastive.is_constrained and not contrastive.is_open_source %}selected="selected"{% endif %}>Unconstrained (closed system)</option>
                     <option value="open"{% if contrastive and not contrastive.is_constrained and contrastive.is_open_source %}selected="selected"{% endif %}>Unconstrained (open system)</option>
-                    <option value="constrained"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained</option>
+                    -->
+                    <option value="closed"{% if contrastive and not contrastive.is_constrained %}selected="selected"{% endif %}>Unconstrained</option>
+                    <option value="constrained"{% if contrastive and contrastive.is_constrained %}selected="selected"{% endif %}>Constrained (open weights)</option>
                   </select>
                 </td>
               </tr>
@@ -244,8 +252,10 @@
                       {% endif %}
                       {% if submission.is_constrained %}
                       <span class="badge badge-info" style="vertical-align: text-bottom;">Constrained</span>
+                      <!--
                       {% elif submission.is_open_source %}
                       <span class="badge badge-info" style="vertical-align: text-bottom;">Open-source</span>
+                      -->
                       {% elif submission.is_primary or submission.is_contrastive %}
                       <span class="badge badge-warning" style="vertical-align: text-bottom;">Unconstrained</span>
                       {% endif %}
