@@ -248,7 +248,7 @@ JSONL_SCHEMA = {
                     "text":     { "type": "string" }
                 },
                 "required": ["system","tgt_lang","text"],
-                "additionalProperties": False
+                "additionalProperties": True
             }
         },
         "refs": {
@@ -261,13 +261,12 @@ JSONL_SCHEMA = {
                     "text":       { "type": "string" }
                 },
                 "required": ["translator","tgt_lang","text"],
-                "additionalProperties": False
+                "additionalProperties": True
             }
         }
     },
     "required": [
-        "dataset_id","src_text","doc_id","orig_lang",
-        "src_lang","collection_id","domain"
+        "dataset_id","src_text","doc_id","orig_lang","src_lang"
     ],
     "anyOf": [
         { "required": ["hyps"] },
@@ -488,7 +487,6 @@ def validate_jsonl_submission(json_file):
             if not sys_name:
                 raise ValidationError(f'Missing system in hyp at line {lineno}')
             systems.add(sys_name)
-    print(f"Found systems in JSONL: {systems}")
     if not systems:
         raise ValidationError(f'No system found in the JSONL file {json_file.name}')
     if len(systems) > 1:

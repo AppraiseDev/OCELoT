@@ -11,8 +11,9 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from .common import (
     TestCase, timezone, TESTDATA_DIR, Language, Competition,
-    TestSet, Team, Submission, JSONL_FILE, TEXT_FILE, MEDIA_ROOT
+    TestSet, Team, Submission, TEXT_FILE, JSONL_FILE, MEDIA_ROOT
 )
+from leaderboard.models import ValidationError
 
 
 class JSONLSubmissionTests(TestCase):
@@ -100,27 +101,29 @@ class JSONLSubmissionTests(TestCase):
             'jsonl/sample-hyp_norefs.txt',
             'jsonl/sample-hyp_norefs.jsonl',
             'jsonl/sample-hyp-no-systems.jsonl',
+            'jsonl/wmt-hyp-b.txt',
+            'jsonl/wmt-hyp-short.jsonl',
+            'jsonl/wmt-hyp-short.txt',
         ):
             p = Path(TESTDATA_DIR) / fname
             if p.exists():
                 p.unlink()
 
     def _make_submission(self, file_name, file_format=JSONL_FILE, test_set=None):
-        path = os.path.join(TESTDATA_DIR, file_name)
-        with open(path, 'rb') as f:
-            upload = SimpleUploadedFile(
-                name=os.path.basename(path),
-                content=f.read(),
-                content_type='application/json',
-            )
-        return Submission.objects.create(
+        # Create submission instance and run validations on hyp_file
+        hyp_path = os.path.join(TESTDATA_DIR, file_name)
+        sub = Submission(
             name=file_name,
             original_name=file_name,
             test_set=test_set or self.testset,
             submitted_by=self.team,
             file_format=file_format,
-            hyp_file=upload,
+            hyp_file=hyp_path,
         )
+        # Validate using model full_clean to trigger field validators
+        sub.full_clean()
+        sub.save()
+        return sub
 
     def _clean_text_file(
         self, input_file, add_test_dir=True, file_ext='.txt'
@@ -217,3 +220,30 @@ class JSONLSubmissionTests(TestCase):
 
         # Clean up created text files
         src_txt.unlink()
+
+    def test_submission_without_hyps_rejected(self):
+        """Checks that JSONL submission without hyps is rejected."""
+        # Using a JSONL file without hyps field (reference file) to simulate missing hyps
+        with self.assertRaises(ValidationError) as cm:
+            self._make_submission(
+                'jsonl/wmt-src.jsonl', test_set=self.testset_opt
+            )
+        # Verify the correct validation message is included
+        expected = 'No hyps array at line 1 in JSONL submission'
+        self.assertIn(expected, str(cm.exception))
+
+    def test_submission_with_short_hyps_rejected(self):
+        """Checks that JSONL submission with fewer hyps lines than source is rejected."""
+        # Create a short hyp file with only one segment
+        src = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-a.jsonl'
+        dst = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-short.jsonl'
+        lines = src.read_text(encoding='utf8').splitlines()[:1]
+        dst.write_text('\n'.join(lines) + '\n', encoding='utf8')
+        # Attempt submission and expect length mismatch error
+        with self.assertRaises(ValidationError) as cm:
+            self._make_submission('jsonl/wmt-hyp-short.jsonl', test_set=self.testset_opt)
+        # Validate error message
+        msg = str(cm.exception)
+        self.assertIn('Submission invalid: hyp length', msg)
+        # Clean up short hyp file
+        dst.unlink()
