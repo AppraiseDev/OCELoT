@@ -65,7 +65,7 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_testset(self):
         """Checks if source and reference can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-src-ref.jsonl'
-        _, src_langs, ref_langs, translators, _ = analyze_jsonl_file(
+        _, src_langs, ref_langs, translators, _, _ = analyze_jsonl_file(
             jsonl_path
         )
 
@@ -76,7 +76,7 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_multi_reference_testset(self):
         """Checks if multiple references can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-src-multirefs.jsonl'
-        _, src_langs, ref_langs, translators, _ = analyze_jsonl_file(
+        _, src_langs, ref_langs, translators, _, _ = analyze_jsonl_file(
             jsonl_path
         )
 
@@ -87,10 +87,20 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_hypothesis(self):
         """Checks if systems can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-hyp.jsonl'
-        _, src_langs, _, _, systems = analyze_jsonl_file(jsonl_path)
+        _, src_langs, _, _, systems, _ = analyze_jsonl_file(jsonl_path)
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))
+
+    def test_analyze_jsonl_file_with_multiple_languages(self):
+        """Checks if multiple source languages can be found in JSONL format."""
+        jsonl_path = TESTDATA_DIR + '/jsonl/wmt-hyp-a.jsonl'
+        _, src_langs, ref_langs, _, _, tgt_langs = analyze_jsonl_file(jsonl_path)
+
+        self.assertSetEqual(src_langs, set(['Czech', 'English']))
+        self.assertSetEqual(ref_langs, set([]))
+        self.assertSetEqual(tgt_langs, set('zh-Hans ar-EG de uk sr-Cyrl lt cs tr bn id sr-Latn et mas'.split(' ')))
+
 
     #################################################################
     # Tests for process_xyz_to_text functions

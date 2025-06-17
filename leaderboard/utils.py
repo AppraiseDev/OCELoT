@@ -54,8 +54,8 @@ def analyze_jsonl_file(jsonl_path):
     Return all collection IDs, source languages, reference languages,
     translators and system names found in a JSONL file.
     """
-    collections, src_langs, ref_langs, translators, systems = (
-        set(), set(), set(), set(), set()
+    collections, src_langs, ref_langs, translators, systems, tgt_langs = (
+        set(), set(), set(), set(), set(), set()
     )
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -82,9 +82,12 @@ def analyze_jsonl_file(jsonl_path):
             # hypotheses
             for hyp in obj.get('hyps', []):
                 sysn = hyp.get('system')
+                hl = hyp.get('tgt_lang')
+                if hl:
+                    tgt_langs.add(hl)
                 if sysn:
                     systems.add(sysn)
-    return collections, src_langs, ref_langs, translators, systems
+    return collections, src_langs, ref_langs, translators, systems, tgt_langs
 
 
 # Taken from sacrebleu which removed this with v2.2
