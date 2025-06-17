@@ -54,9 +54,16 @@ def analyze_jsonl_file(jsonl_path):
     Return all collection IDs, source languages, reference languages,
     translators and system names found in a JSONL file.
     """
-    collections, src_langs, ref_langs, translators, systems, tgt_langs = (
-        set(), set(), set(), set(), set(), set()
-    )
+    output = {
+        "collections": set(),
+        "src_langs": set(),
+        "tgt_langs": set(),
+        "ref_langs": set(),
+        "translators": set(),
+        "hyp_langs": set(),
+        "systems": set(),
+    }
+    # Read the JSONL file and extract the required information
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
@@ -66,28 +73,32 @@ def analyze_jsonl_file(jsonl_path):
             # collection_id
             cid = obj.get('collection_id')
             if cid:
-                collections.add(cid)
+                output['collections'].add(cid)
             # src_lang
             sl = obj.get('src_lang')
             if sl:
-                src_langs.add(sl)
+                output['src_langs'].add(sl)
+            # tgt_lang
+            tl = obj.get('tgt_lang')
+            if tl:
+                output['tgt_langs'].add(tl)
             # references
             for ref in obj.get('refs', []):
                 tl = ref.get('tgt_lang')
                 tr = ref.get('translator')
                 if tl:
-                    ref_langs.add(tl)
+                    output['ref_langs'].add(tl)
                 if tr:
-                    translators.add(tr)
+                    output['translators'].add(tr)
             # hypotheses
             for hyp in obj.get('hyps', []):
                 sysn = hyp.get('system')
                 hl = hyp.get('tgt_lang')
                 if hl:
-                    tgt_langs.add(hl)
+                    output['hyp_langs'].add(hl)
                 if sysn:
-                    systems.add(sysn)
-    return collections, src_langs, ref_langs, translators, systems, tgt_langs
+                    output['systems'].add(sysn)
+    return output
 
 
 # Taken from sacrebleu which removed this with v2.2

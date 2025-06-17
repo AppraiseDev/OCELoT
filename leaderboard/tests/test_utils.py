@@ -65,9 +65,10 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_testset(self):
         """Checks if source and reference can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-src-ref.jsonl'
-        _, src_langs, ref_langs, translators, _, _ = analyze_jsonl_file(
-            jsonl_path
-        )
+        output = analyze_jsonl_file(jsonl_path)
+        src_langs = output.get('src_langs')
+        ref_langs = output.get('ref_langs')
+        translators = output.get('translators')
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -76,9 +77,10 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_multi_reference_testset(self):
         """Checks if multiple references can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-src-multirefs.jsonl'
-        _, src_langs, ref_langs, translators, _, _ = analyze_jsonl_file(
-            jsonl_path
-        )
+        output = analyze_jsonl_file(jsonl_path)
+        src_langs = output.get('src_langs')
+        ref_langs = output.get('ref_langs')
+        translators = output.get('translators')
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(ref_langs, set(['ha']))
@@ -87,7 +89,9 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_hypothesis(self):
         """Checks if systems can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/sample-hyp.jsonl'
-        _, src_langs, _, _, systems, _ = analyze_jsonl_file(jsonl_path)
+        output = analyze_jsonl_file(jsonl_path)
+        src_langs = output.get('src_langs')
+        systems = output.get('systems')
 
         self.assertSetEqual(src_langs, set(['en']))
         self.assertSetEqual(systems, set(['test-team']))
@@ -95,11 +99,29 @@ class UtilsTests(TestCase):
     def test_analyze_jsonl_file_with_multiple_languages(self):
         """Checks if multiple source languages can be found in JSONL format."""
         jsonl_path = TESTDATA_DIR + '/jsonl/wmt-hyp-a.jsonl'
-        _, src_langs, ref_langs, _, _, tgt_langs = analyze_jsonl_file(jsonl_path)
+        output = analyze_jsonl_file(jsonl_path)
+        src_langs = output.get('src_langs')
+        ref_langs = output.get('ref_langs')
+        tgt_langs = output.get('tgt_langs')
 
         self.assertSetEqual(src_langs, set(['Czech', 'English']))
         self.assertSetEqual(ref_langs, set([]))
-        self.assertSetEqual(tgt_langs, set('zh-Hans ar-EG de uk sr-Cyrl lt cs tr bn id sr-Latn et mas'.split(' ')))
+        expected_langs = [
+            'Ukrainian',
+            'Turkish',
+            'Lithuanian',
+            'Chinese (Simplified)',
+            'Serbian (Cyrillics)',
+            'Arabic (Egyptian)',
+            'Estonian',
+            'Czech',
+            'German',
+            'Maasai',
+            'Bengali',
+            'Serbian (Latin script)',
+            'Indonesian',
+        ]
+        self.assertSetEqual(tgt_langs, set(expected_langs))
 
 
     #################################################################

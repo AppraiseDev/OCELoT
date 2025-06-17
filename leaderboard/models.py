@@ -832,7 +832,7 @@ class TestSet(models.Model):
             txt_ref = ref_path.replace('.jsonl', '.txt')
 
             # pick first translator for reference extraction
-            _, _, _, translators, _, _ = analyze_jsonl_file(ref_path)
+            translators = analyze_jsonl_file(ref_path).get('translators', [])
             translator = sorted(translators)[0] if translators else None
 
             process_jsonl_to_text(
@@ -1295,7 +1295,7 @@ class Submission(models.Model):
             if not Path(hyp_text_path).exists():
                 # reuse the shared JSONL‐to‐text processor
                 # first extract the single system name from the file
-                _, _, _, _, sys_names, _ = analyze_jsonl_file(hyp_path)
+                sys_names = analyze_jsonl_file(hyp_path).get('systems', [])
                 system = sorted(sys_names)[0] if sys_names else None
                 process_jsonl_to_text(
                     jsonl_path=hyp_path,
