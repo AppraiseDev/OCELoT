@@ -65,7 +65,7 @@ def download_submission_files(modeladmin, request, queryset):
 
 
 download_submission_files.short_description = (  # type: ignore
-    "Download XML, SGML or text files for selected submissions"
+    "Download submission files for selected submissions"
 )
 
 
@@ -77,25 +77,25 @@ def download_testset_files(modeladmin, request, queryset):
     tmp_file = NamedTemporaryFile(delete=False)
     with ZipFile(tmp_file, 'w', ZIP_DEFLATED) as zip_file:
         for test_set in queryset:
-            for the_file in (test_set.src_file, test_set.ref_file):
+            # Include source file always
+            files = [ ('src', test_set.src_file) ]
+            # Include reference file only if present
+            if test_set.ref_file:
+                files.append(('ref', test_set.ref_file))
+            for file_type, the_file in files:
+                # Skip if no file associated
+                if not the_file or not getattr(the_file, 'name', None):
+                    continue
                 file_extension = the_file.name.split('.')[-1]
-
-                file_type = 'src'
-                if the_file == test_set.ref_file:
-                    file_type = 'ref'
-
                 source_code = test_set.source_language.code if test_set.source_language else 'multi'
                 target_code = test_set.target_language.code if test_set.target_language else 'multi'
-
                 new_filename = 'testsets/{0}.{1}-{2}.{3}.{4}'.format(
                     test_set.name,
                     source_code,
                     target_code,
                     file_type,
                     file_extension,
-                )
-                new_filename.replace(' ', '_').lower()
-
+                ).replace(' ', '_').lower()
                 zip_file.writestr(
                     Path(new_filename).name,
                     the_file.open('rb').read(),
@@ -112,7 +112,7 @@ def download_testset_files(modeladmin, request, queryset):
 
 
 download_testset_files.short_description = (  # type: ignore
-    "Download XML, SGML or text files for selected test sets"
+    "Download submitted files for selected test sets"
 )
 
 
@@ -127,7 +127,8 @@ class LanguageAdmin(admin.ModelAdmin):
 class SubmissionAdmin(admin.ModelAdmin):
     """Model admin for Submission objects."""
 
-    actions = [download_submission_files, download_testset_files]
+    # Only allow downloading submission files
+    actions = [download_submission_files]
 
     fields = [
         'name',
@@ -305,6 +306,7 @@ class TeamAdmin(admin.ModelAdmin):
 class TestSetAdmin(admin.ModelAdmin):
     """Model admin for TestSet objects."""
 
+    actions = [download_testset_files]
     fields = [
         'name',
         'source_language',
