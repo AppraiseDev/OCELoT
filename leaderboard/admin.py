@@ -26,10 +26,13 @@ def _make_submission_filename(submission):
 
     file_extension = submission.hyp_file.name.split('.')[-1]
 
+    source_code = submission.test_set.source_language.code if submission.test_set.source_language else 'multi'
+    target_code = submission.test_set.target_language.code if submission.test_set.target_language else 'multi'
+
     filename = 'submissions/{0}.{1}-{2}.{3}.{4}.{5}'.format(
         submission.test_set.name,
-        submission.test_set.source_language.code,
-        submission.test_set.target_language.code,
+        source_code,
+        target_code,
         publication_name,
         submission.id,
         file_extension,
@@ -81,10 +84,13 @@ def download_testset_files(modeladmin, request, queryset):
                 if the_file == test_set.ref_file:
                     file_type = 'ref'
 
+                source_code = test_set.source_language.code if test_set.source_language else 'multi'
+                target_code = test_set.target_language.code if test_set.target_language else 'multi'
+
                 new_filename = 'testsets/{0}.{1}-{2}.{3}.{4}'.format(
                     test_set.name,
-                    test_set.source_language.code,
-                    test_set.target_language.code,
+                    source_code,
+                    target_code,
                     file_type,
                     file_extension,
                 )
@@ -238,10 +244,13 @@ def _create_team_json(queryset):
             submission_data['file_name'] = _make_submission_filename(submission)
             submission_data['submission_id'] = submission.id
             submission_data['test_set'] = submission.test_set.name
-            language_pair = "{0}-{1}".format(
-                submission.test_set.source_language.code,
-                submission.test_set.target_language.code,
-            )
+            if submission.test_set.source_language and submission.test_set.target_language:
+                language_pair = "{0}-{1}".format(
+                    submission.test_set.source_language.code,
+                    submission.test_set.target_language.code,
+                )
+            else:
+                language_pair = "multi-lingual"
             submission_data['language_pair'] = language_pair
             submission_list.append(submission_data)
         team_data['primary_submissions'] = submission_list

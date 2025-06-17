@@ -227,7 +227,7 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
 
 JSONL_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "WMT JSONL entry",
+    "title": "WMT25 JSONL entry",
     "type": "object",
     "properties": {
         "dataset_id":   { "type": "string" },
@@ -267,13 +267,13 @@ JSONL_SCHEMA = {
     },
     "required": [
         "dataset_id","src_text","doc_id","orig_lang",
-        "src_lang","collection_id","domain","segment_id"
+        "src_lang","collection_id","domain"
     ],
     "anyOf": [
         { "required": ["hyps"] },
         { "required": ["refs"] }
     ],
-    "additionalProperties": False
+    "additionalProperties": True
 }
 
 
@@ -433,8 +433,6 @@ def validate_jsonl_src_testset(json_file):
         src_langs.add(lang)
     if not src_langs:
         raise ValidationError(f'No source language found in JSONL file {json_file.name}')
-    if len(src_langs) > 1:
-        raise ValidationError(f'JSONL files with 2+ source languages are not supported: {src_langs}')
     json_file.seek(0)
 
 
@@ -465,8 +463,6 @@ def validate_jsonl_ref_testset(json_file):
             ref_langs.add(lang)
     if not ref_langs:
         raise ValidationError(f'No reference languages found in JSONL file {json_file.name}')
-    if len(ref_langs) > 2:
-        raise ValidationError(f'JSONL files with 2+ reference languages are not supported: {ref_langs}')
     json_file.seek(0)
 
 
@@ -676,6 +672,8 @@ class TestSet(models.Model):
         on_delete=models.PROTECT,
         related_name='source_language_set',
         null=True,
+        blank=True,
+        help_text='Source language (optional for multi-language test sets)',
     )
 
     target_language = models.ForeignKey(
@@ -683,6 +681,8 @@ class TestSet(models.Model):
         on_delete=models.PROTECT,
         related_name='target_language_set',
         null=True,
+        blank=True,
+        help_text='Target language (optional for multi-language test sets)',
     )
 
     file_format = models.CharField(
@@ -736,20 +736,24 @@ class TestSet(models.Model):
     )
 
     def __repr__(self):
+        source_code = self.source_language.code if self.source_language else 'multi'
+        target_code = self.target_language.code if self.target_language else 'multi'
         return 'TestSet(name={0}, source={1}, target={2}, src={3}, ref={4}, collection={5})'.format(
             self.name,
-            self.source_language.code,
-            self.target_language.code,
+            source_code,
+            target_code,
             self.src_file.name,
             self.ref_file.name,
             self.collection,
         )
 
     def __str__(self):
+        source_code = self.source_language.code if self.source_language else 'multi'
+        target_code = self.target_language.code if self.target_language else 'multi'
         return '{0} test set ({1}-{2})'.format(
             self.name,
-            self.source_language.code,
-            self.target_language.code,
+            source_code,
+            target_code,
         )
 
     def _create_text_files(self):
@@ -1063,10 +1067,13 @@ def _get_submission_upload_path(instance, filename):
     elif instance.file_format == TEXT_FILE:
         file_extension = 'txt'
 
+    source_code = instance.test_set.source_language.code if instance.test_set.source_language else 'multi'
+    target_code = instance.test_set.target_language.code if instance.test_set.target_language else 'multi'
+    
     new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.{5}'.format(
         instance.test_set.name,
-        instance.test_set.source_language.code,
-        instance.test_set.target_language.code,
+        source_code,
+        target_code,
         instance.submitted_by.name,
         submissions_count + 1,
         file_extension,
@@ -1444,14 +1451,15 @@ class Submission(models.Model):
             return
 
         tokenize = '13a'
-        target_language_code = self.test_set.target_language.code
-        if target_language_code == 'ja':
-            # We use char-based tokenizer as MeCab was slow/unstable
-            tokenize = 'char'
-        elif target_language_code == 'km':
-            tokenize = 'char'
-        elif target_language_code == 'zh':
-            tokenize = 'zh'
+        if self.test_set.target_language:
+            target_language_code = self.test_set.target_language.code
+            if target_language_code == 'ja':
+                # We use char-based tokenizer as MeCab was slow/unstable
+                tokenize = 'char'
+            elif target_language_code == 'km':
+                tokenize = 'char'
+            elif target_language_code == 'zh':
+                tokenize = 'zh'
 
         # _msg = 'language: {0}, tokenize: {1}'.format(
         # target_language_code, tokenize
@@ -1506,11 +1514,11 @@ class Submission(models.Model):
             return '---'
 
     def _source_language(self):
-        """Returns test set source language."""
+        """Returns test set source language or None for multi-language test sets."""
         return self.test_set.source_language
 
     def _target_language(self):
-        """Returns test set target language."""
+        """Returns test set target language or None for multi-language test sets."""
         return self.test_set.target_language
 
     def _team_name(self):

@@ -354,7 +354,7 @@ def submit(request):
 
             return HttpResponseRedirect(reverse('teampage-view'))
         else:
-            messages.warning(request, 'There was an error with your submission.')
+            messages.warning(request, 'There was an error with your submission (see below).')
 
     else:
         # Set the default file format without modifying the Submission model
