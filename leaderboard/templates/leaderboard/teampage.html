@@ -252,10 +252,6 @@
                       {% endif %}
                       {% if submission.is_constrained %}
                       <span class="badge badge-info" style="vertical-align: text-bottom;">Constrained</span>
-                      <!--
-                      {% elif submission.is_open_source %}
-                      <span class="badge badge-info" style="vertical-align: text-bottom;">Open-source</span>
-                      -->
                       {% elif submission.is_primary or submission.is_contrastive %}
                       <span class="badge badge-warning" style="vertical-align: text-bottom;">Unconstrained</span>
                       {% endif %}
