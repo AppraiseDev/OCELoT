@@ -4,7 +4,8 @@ setup:
 	python manage.py migrate
 
 test:
-	python manage.py test
+	python manage.py check
+	OCELOT_SECRET_KEY="not-so-secret-key" python manage.py test
 
 run:
 	python manage.py runserver
