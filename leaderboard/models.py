@@ -9,7 +9,10 @@ from uuid import uuid4
 import json
 import jsonschema
 import lxml.etree as ET
-import xmlschema
+import logging  # noqa: F401
+
+# Logger for leaderboard models
+logger = logging.getLogger(__name__)  # noqa: F821
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
@@ -389,6 +392,7 @@ def validate_jsonl_schema(json_file):
     """Validates JSONL file based on JSONL_SCHEMA."""
     # Skip validation for non‐JSONL uploads
     if not json_file.name.endswith('.jsonl'):
+        #logger.debug(f"JSONL schema validation skipped for {json_file.name}")
         return
 
     try:
@@ -489,8 +493,6 @@ def validate_jsonl_submission(json_file):
             systems.add(sys_name)
     if not systems:
         raise ValidationError(f'No system found in the JSONL file {json_file.name}')
-    if len(systems) > 1:
-        raise ValidationError('JSONL submissions with multiple systems are not supported')
     json_file.seek(0)
 
 
@@ -774,7 +776,7 @@ class TestSet(models.Model):
             # Extract source text
             src_path = str(self.src_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in src_path:
-                src_path = '{0}{1}'.format(MEDIA_ROOT, src_path)
+                src_path = str(Path(MEDIA_ROOT) / src_path)
 
             txt_path = src_path.replace('.xml', '.txt')
 
@@ -794,7 +796,7 @@ class TestSet(models.Model):
             # Extract reference texts; multiple references will be tab-separated
             ref_path = str(self.ref_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in ref_path:
-                ref_path = '{0}{1}'.format(MEDIA_ROOT, ref_path)
+                ref_path = str(Path(MEDIA_ROOT) / ref_path)
             txt_path = ref_path.replace('.xml', '.txt')
 
             if not Path(txt_path).exists():
@@ -813,7 +815,7 @@ class TestSet(models.Model):
             # Extract source text
             src_path = str(self.src_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in src_path:
-                src_path = f"{MEDIA_ROOT}{src_path}"
+                src_path = str(Path(MEDIA_ROOT) / src_path)
             txt_src = src_path.replace('.jsonl', '.txt')
 
             # use the shared JSONL‐to‐text processor
@@ -830,7 +832,7 @@ class TestSet(models.Model):
             # Extract reference texts
             ref_path = str(self.ref_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in ref_path:
-                ref_path = f"{MEDIA_ROOT}{ref_path}"
+                ref_path = str(Path(MEDIA_ROOT) / ref_path)
             txt_ref = ref_path.replace('.jsonl', '.txt')
 
             # pick first translator for reference extraction
@@ -843,8 +845,6 @@ class TestSet(models.Model):
                 reference=translator,
                 collection=self.collection,
             )
-
-            return
 
         # if we reach here, file_format was neither TEXT, SGML, XML nor JSONL…
         return
@@ -1244,7 +1244,13 @@ class Submission(models.Model):
                 otherwise
         """
 
-        hyp_path = self.hyp_file.name
+        # Resolve the actual file system path of the hyp_file
+        try:
+            # Primary: use Django's field path (includes upload_to subdir)
+            hyp_path = self.hyp_file.path
+        except (ValueError, NotImplementedError, AttributeError):
+            # Fallback: resolve via storage, preserves 'submissions/' prefix
+            hyp_path = self.hyp_file.storage.path(self.hyp_file.name)
 
         if self.file_format == SGML_FILE:
             if self.test_set.file_format == SGML_FILE:
@@ -1271,10 +1277,7 @@ class Submission(models.Model):
                 process_to_text(hyp_filtered_path, hyp_text_path)
 
         elif self.file_format == XML_FILE:
-            # Prefix the XML file name with MEDIA_ROOT if needed
-            if MEDIA_ROOT and MEDIA_ROOT not in hyp_path:
-                hyp_path = '{0}{1}'.format(MEDIA_ROOT, hyp_path)
-
+            # Use resolved path
             hyp_text_path = hyp_path.replace('.xml', '.txt')
             if not Path(hyp_text_path).exists():
                 _, _, _, _, sys_names = analyze_xml_file(hyp_path)
@@ -1292,32 +1295,28 @@ class Submission(models.Model):
                     )
 
         elif self.file_format == JSONL_FILE:
-            # Prefix the JSONL file name with MEDIA_ROOT if needed
-            if MEDIA_ROOT and MEDIA_ROOT not in hyp_path:
-                hyp_path = f"{MEDIA_ROOT}{hyp_path}"
-
+            # Use resolved hyp_path
             hyp_text_path = hyp_path.replace('.jsonl', '.txt')
             if not Path(hyp_text_path).exists():
-                # reuse the shared JSONL‐to‐text processor
-                # first extract the single system name from the file
-                sys_names = analyze_jsonl_file(hyp_path).get('systems', [])
-                system = sorted(sys_names)[0] if sys_names else None
-                process_jsonl_to_text(
-                    jsonl_path=hyp_path,
-                    txt_path=hyp_text_path,
-                    system=system,
-                    collection=self.test_set.collection,
-                )
+                output = analyze_jsonl_file(hyp_path)
+                sys_names = output.get('systems', [])
+
+                if len(sys_names) > 0:
+                    # use the shared JSONL‐to‐text processor
+                    process_jsonl_to_text(
+                        jsonl_path=hyp_path,
+                        txt_path=hyp_text_path,
+                        system=sys_names.pop(),  # take the first system
+                        collection=self.test_set.collection,
+                    )
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path
 
-        if MEDIA_ROOT and MEDIA_ROOT not in hyp_text_path:
-            hyp_text_path = '{0}{1}'.format(MEDIA_ROOT, hyp_text_path)
-
         if path_only:
             return hyp_text_path
-        return (x for x in open(hyp_text_path, encoding='utf-8'))
+        return (r for r in open(hyp_text_path, encoding='utf-8'))
+
 
     def get_ref_text(self, path_only=False):
         """Returns a list of reference segments.
@@ -1352,7 +1351,7 @@ class Submission(models.Model):
             ref_text_path = self.test_set.ref_file.name
 
         if MEDIA_ROOT:
-            ref_text_path = '{0}{1}'.format(MEDIA_ROOT, ref_text_path)
+            ref_text_path = str(Path(MEDIA_ROOT) / ref_text_path)
 
         if path_only:
             return ref_text_path
@@ -1361,12 +1360,10 @@ class Submission(models.Model):
     def get_src_text(self):
         """Returns a list of source segments."""
         if self.test_set.file_format == SGML_FILE:
-            # By design, the reference only contains valid docids
             src_sgml_path = self.test_set.src_file.name
             src_text_path = src_sgml_path.replace('.sgm', '.txt')
 
         elif self.test_set.file_format == XML_FILE:
-            # By design, the reference only contains valid docids
             src_xml_path = self.test_set.src_file.name
             src_text_path = src_xml_path.replace('.xml', '.txt')
 
@@ -1378,7 +1375,7 @@ class Submission(models.Model):
             src_text_path = self.test_set.src_file.name
 
         if MEDIA_ROOT:
-            src_text_path = '{0}{1}'.format(MEDIA_ROOT, src_text_path)
+            src_text_path = str(Path(MEDIA_ROOT) / src_text_path)
 
         src_stream = (r for r in open(src_text_path, encoding='utf-8'))
         return src_stream
@@ -1534,7 +1531,7 @@ class Submission(models.Model):
             )
 
     def full_clean(self, exclude=None, validate_unique=True):
-        """Validates submission SGML, XML or text file."""
+        """Validates submission SGML, XML, JSONL or text file."""
         hyp_name = str(self.hyp_file.name)
 
         if self.file_format == SGML_FILE:
@@ -1548,7 +1545,8 @@ class Submission(models.Model):
                 raise ValidationError(_msg)
             try:
                 self._validate_hyp_length()
-            except OSError:
+            except OSError as e:
+                # logger.warning(f"Failed to validate XML file: {hyp_name}, error: {e}")
                 # TODO: this should be fixed after WMT23 submission week
                 pass
 
@@ -1558,7 +1556,8 @@ class Submission(models.Model):
                 raise ValidationError(_msg)
             try:
                 self._validate_hyp_length()
-            except OSError:
+            except OSError as e:
+                # logger.warning(f"Failed to validate JSONL file: {hyp_name}, error: {e}")
                 # TODO: this should be fixed after WMT23 submission week
                 pass
 

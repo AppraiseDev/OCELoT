@@ -291,7 +291,6 @@ def process_jsonl_to_text(
             except Exception:
                 pass
             entries.append((sid, obj))
-    #print(f"Found {len(entries)} entries in {jsonl_path}")
 
     # If no entries matched, write empty file and bail
     if not entries:
@@ -322,6 +321,4 @@ def process_jsonl_to_text(
     with smart_open(txt_path, 'wt', encoding='utf-8') as fout:
         for s in out_sents:
             fout.write(f"{s}\n")
-
-    #print(f"Processed {len(out_sents)} sentences from {jsonl_path} to {txt_path}")
     return True
