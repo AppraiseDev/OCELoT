@@ -104,6 +104,8 @@ class JSONLSubmissionTests(TestCase):
             'jsonl/wmt-hyp-b.txt',
             'jsonl/wmt-hyp-short.jsonl',
             'jsonl/wmt-hyp-short.txt',
+            'jsonl/wmt-hyp-long.jsonl',
+            'jsonl/wmt-hyp-long.txt',
         ):
             p = Path(TESTDATA_DIR) / fname
             if p.exists():
@@ -237,7 +239,7 @@ class JSONLSubmissionTests(TestCase):
         # Create a short hyp file with only one segment
         src = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-a.jsonl'
         dst = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-short.jsonl'
-        lines = src.read_text(encoding='utf8').splitlines()[:1]
+        lines = src.read_text(encoding='utf8').splitlines()[:2]
         dst.write_text('\n'.join(lines) + '\n', encoding='utf8')
         # Attempt submission and expect length mismatch error
         with self.assertRaises(ValidationError) as cm:
@@ -246,4 +248,21 @@ class JSONLSubmissionTests(TestCase):
         msg = str(cm.exception)
         self.assertIn('Submission invalid: hyp length', msg)
         # Clean up short hyp file
+        dst.unlink()
+
+    def test_submission_with_long_hyps_rejected(self):
+        """Checks that JSONL submission with more hyps lines than source is rejected."""
+        # Create a long hyp file by duplicating all lines
+        src = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-a.jsonl'
+        dst = Path(TESTDATA_DIR) / 'jsonl/wmt-hyp-long.jsonl'
+        lines = src.read_text(encoding='utf8').splitlines()
+        # Duplicate lines to exceed source segments
+        long_lines = lines + lines
+        dst.write_text('\n'.join(long_lines) + '\n', encoding='utf8')
+        # Attempt submission and expect length mismatch error
+        with self.assertRaises(ValidationError) as cm:
+            self._make_submission('jsonl/wmt-hyp-long.jsonl', test_set=self.testset_opt)
+        # Check error message for hyp length mismatch
+        self.assertIn('Submission invalid: hyp length', str(cm.exception))
+        # Clean up long hyp file
         dst.unlink()
