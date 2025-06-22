@@ -232,8 +232,10 @@
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    {% if testset.compute_scores %}
                     <th>BLEU</th>
                     <th>chrF</th>
+                    {% endif %}
                     <th>Date</th>
                   </tr>
                 </thead>
@@ -262,15 +264,17 @@
                       <span class="badge badge-light" style="vertical-align: text-bottom;">Withdrawn</span>
                       {% endif %}
                     </td>
-                    {% if submission.score and submission.test_set.compute_scores %}
+                    {% if testset.compute_scores %}
+                    {% if submission.score %}
                     <td>{{submission.score|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
                     {% endif %}
-                    {% if submission.score_chrf and submission.test_set.compute_scores %}
+                    {% if submission.score_chrf %}
                     <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
+                    {% endif %}
                     {% endif %}
                     <td>{{submission.date_created}}</td>
                   </tr>
