@@ -326,12 +326,9 @@ def submit(request):
                 messages.error(request, f'Unsupported extension on {fname}')
                 return HttpResponseRedirect(request.path)
             new_submission.submitted_by = current_team
-
-            #print(f"Submitting {new_submission.hyp_file.name} ({new_submission.file_format}) "
-            #      f"for {new_submission.test_set.name} by {new_submission.submitted_by.name}")
             new_submission.save()
 
-            if new_submission.score != -1:
+            if new_submission.is_valid:
                 _msg = 'You have successfully submitted {0} in {1} format'.format(
                     new_submission.hyp_file.name,
                     new_submission.file_format,
@@ -346,7 +343,7 @@ def submit(request):
                 _msg = (
                     'Unsuccessful submission of {0}. '
                     'Please check the format of the submitted file. '
-                    'Does the submitted file have a .xml extension?'.format(
+                    'Does the submitted file have the required extension and the correct number of segments?'.format(
                         new_submission.hyp_file.name
                     )
                 )

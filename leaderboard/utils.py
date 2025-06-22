@@ -266,6 +266,8 @@ def process_jsonl_to_text(
     Extract source, reference(s) or system texts from a JSONL file.
     Segments from other collections are ignored if `collection` is given.
     Multiple references are not supported.
+    If system is a string, it will be used to filter hypotheses.
+    If system is True, the first system found in the JSONL file will be used.
     """
     # Must specify exactly one of source, reference or system
     if [source, reference, system].count(None) != 2:
@@ -312,6 +314,9 @@ def process_jsonl_to_text(
         else:  # system
             sent = MISSING_TRANSLATION_MESSAGE
             for hyp in obj.get('hyps', []):
+                # if system is Boolean, not a string, take first system
+                if isinstance(system, bool) and system:
+                    system = hyp.get('system')
                 if hyp.get('system') == system:
                     sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
                     break

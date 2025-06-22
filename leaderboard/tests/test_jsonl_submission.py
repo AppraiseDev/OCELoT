@@ -246,7 +246,7 @@ class JSONLSubmissionTests(TestCase):
             self._make_submission('jsonl/wmt-hyp-short.jsonl', test_set=self.testset_opt)
         # Validate error message
         msg = str(cm.exception)
-        self.assertIn('Submission invalid: hyp length', msg)
+        self.assertIn('Submission invalid: hyp', msg)
         # Clean up short hyp file
         dst.unlink()
 
@@ -263,6 +263,20 @@ class JSONLSubmissionTests(TestCase):
         with self.assertRaises(ValidationError) as cm:
             self._make_submission('jsonl/wmt-hyp-long.jsonl', test_set=self.testset_opt)
         # Check error message for hyp length mismatch
-        self.assertIn('Submission invalid: hyp length', str(cm.exception))
+        self.assertIn('Submission invalid: hyp', str(cm.exception))
         # Clean up long hyp file
         dst.unlink()
+
+    def test_successful_jsonl_submission(self):
+        """Checks that a successful submission displays message about the success."""
+        self._set_ocelot_team_token()
+
+        # Simulate a submission request
+        _file = 'jsonl/wmt-hyp-b.jsonl'
+        with open(os.path.join(TESTDATA_DIR, _file), encoding='utf8') as f:
+            data = {
+                'test_set': self.testset_opt.id,
+                'hyp_file': f,
+            }
+            response = self.client.post('/submit', data, follow=True)
+        self.assertContains(response, 'successfully submitted')

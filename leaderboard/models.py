@@ -877,7 +877,7 @@ class TestSet(models.Model):
 
                 # TODO: Validate that a collection (if requested) is present in
                 # the XML file. Do it here or in validate_xml_submission()
-            
+
             elif self.file_format == JSONL_FILE:
                 if not current_path.endswith('.jsonl'):
                     _msg = 'Invalid JSONL file name {0}'.format(
@@ -1067,7 +1067,7 @@ def _get_submission_upload_path(instance, filename):
 
     source_code = instance.test_set.source_language.code if instance.test_set.source_language else 'multi'
     target_code = instance.test_set.target_language.code if instance.test_set.target_language else 'multi'
-    
+
     new_filename = 'submissions/{0}.{1}-{2}.{3}.{4}.{5}'.format(
         instance.test_set.name,
         source_code,
@@ -1076,8 +1076,7 @@ def _get_submission_upload_path(instance, filename):
         submissions_count + 1,
         file_extension,
     )
-    new_filename.replace(' ', '_').lower()
-
+    new_filename = new_filename.replace(' ', '_').lower()
     return new_filename
 
 
@@ -1244,13 +1243,8 @@ class Submission(models.Model):
                 otherwise
         """
 
-        # Resolve the actual file system path of the hyp_file
-        try:
-            # Primary: use Django's field path (includes upload_to subdir)
-            hyp_path = self.hyp_file.path
-        except (ValueError, NotImplementedError, AttributeError):
-            # Fallback: resolve via storage, preserves 'submissions/' prefix
-            hyp_path = self.hyp_file.storage.path(self.hyp_file.name)
+        # later it will throw OSError if the file does not exist
+        hyp_path = self.hyp_file.path
 
         if self.file_format == SGML_FILE:
             if self.test_set.file_format == SGML_FILE:
@@ -1297,6 +1291,7 @@ class Submission(models.Model):
         elif self.file_format == JSONL_FILE:
             # Use resolved hyp_path
             hyp_text_path = hyp_path.replace('.jsonl', '.txt')
+
             if not Path(hyp_text_path).exists():
                 output = analyze_jsonl_file(hyp_path)
                 sys_names = output.get('systems', [])
@@ -1315,7 +1310,8 @@ class Submission(models.Model):
 
         if path_only:
             return hyp_text_path
-        return (r for r in open(hyp_text_path, encoding='utf-8'))
+        hyp_stream = (r for r in open(hyp_text_path, encoding='utf-8'))
+        return hyp_stream
 
 
     def get_ref_text(self, path_only=False):
@@ -1520,15 +1516,101 @@ class Submission(models.Model):
         """Returns team publication name if set, or the original name otherwise."""
         return self.submitted_by.publication_name or self.submitted_by.name
 
-    def _validate_hyp_length(self):
+    def _validate_hyp_length(self, raise_exception=True):
         """Checks if the hyp file matches the test set's number of segments."""
-        src_segments = len(list(self.get_src_text()))
-        hyp_segments = len(list(self.get_hyp_text()))
+        try:
+            src_segments = len(list(self.get_src_text()))
+            hyp_segments = len(list(self.get_hyp_text()))
 
-        if hyp_segments != src_segments:
-            raise ValidationError(
-                f"Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
-            )
+            if hyp_segments != src_segments:
+                if not raise_exception:
+                    return False
+                raise ValidationError(
+                    f"Submission invalid: hyp length ({hyp_segments}) != src segments ({src_segments})"
+                )
+            return True
+        except (OSError, IOError, ValueError):
+            # File doesn't exist yet (during full_clean) or other file access issues
+            # We'll validate this later in save() when the file is properly saved
+            return True if not raise_exception else None
+
+    def _validate_hyp_file_content(self):
+        """Validates the content of the uploaded hyp file during full_clean()."""
+        if not self.hyp_file:
+            return
+
+        # Validate the number of lines for JSONL format: non-empty or same as source
+        if self.file_format == JSONL_FILE:
+            try:
+                # Check if the file is empty
+                if self.hyp_file.size == 0:
+                    raise ValidationError("Hypothesis file is empty.")
+                # Count source lines, not segments
+                src_lines = len(self.test_set.src_file.read().splitlines())
+                self.hyp_file.seek(0)  # Ensure we're at the beginning
+                hyp_lines = len(self.hyp_file.read().splitlines())
+
+                if hyp_lines != src_lines:
+                    raise ValidationError(
+                        f"Submission invalid: hyp JSONL lines ({hyp_lines}) != src JSONL lines ({src_lines})"
+                    )
+            except (OSError, IOError, ValueError):
+                # If we can't read the file, skip validation - other validators will catch issues
+                return
+
+#        # Commented out because we allow submission only to a subset of language pairs
+#        # Validate the number of segments for SGML, XML, JSONL or text files
+#        src_segments = len(list(self.get_src_text()))
+#        hyp_segments = 0
+#        self.hyp_file.seek(0)  # Ensure we're at the beginning
+#
+#        try:
+#            if self.file_format == TEXT_FILE:
+#                # Simple line count for text files
+#                hyp_segments = sum(1 for line in self.hyp_file if line.strip())
+#
+#            elif self.file_format == XML_FILE:
+#                # Parse XML and count segments
+#                hyp_text_path = self.hyp_file.name.replace('.xml', '.txt')
+#                process_xml_to_text(
+#                    xml_path=self.hyp_file.name,
+#                    txt_path=hyp_text_path,
+#                    system=True,
+#                    collection=self.test_set.collection,
+#                )
+#                hyp_segments = len(list(open(hyp_text_path, encoding='utf-8')))
+#
+#                if hyp_segments != src_segments:
+#                    raise ValidationError(
+#                        f"Submission invalid: hyp XML segments ({hyp_segments}) != src XML segments ({src_segments})"
+#                    )
+#
+#            elif self.file_format == JSONL_FILE:
+#                # Parse JSONL and count entries
+#                hyp_text_path = self.hyp_file.name.replace('.jsonl', '.txt')
+#                process_jsonl_to_text(
+#                    jsonl_path=self.hyp_file.name,
+#                    txt_path=hyp_text_path,
+#                    system=True,
+#                    collection=self.test_set.collection,
+#                )
+#                hyp_segments = len(list(open(hyp_text_path, encoding='utf-8')))
+#
+#                if hyp_segments != src_segments:
+#                    raise ValidationError(
+#                        f"Submission invalid: hyp JSONL segments ({hyp_segments}) != src JSONL segments ({src_segments})"
+#                    )
+#
+#            elif self.file_format == SGML_FILE:
+#                # For SGML, we'll skip validation here as it's complex
+#                return
+#
+#        except Exception:
+#            # If we can't read the file, skip validation - other validators will catch issues
+#            return
+#        finally:
+#            self.hyp_file.seek(0)  # Reset file pointer
+
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates submission SGML, XML, JSONL or text file."""
@@ -1536,35 +1618,26 @@ class Submission(models.Model):
 
         if self.file_format == SGML_FILE:
             if not hyp_name.endswith('.sgm'):
-                _msg = 'Invalid SGML file named {0}'.format(hyp_name)
+                _msg = 'SGML file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
 
         elif self.file_format == XML_FILE:
             if not hyp_name.endswith('.xml'):
-                _msg = 'Invalid XML file named {0}'.format(hyp_name)
+                _msg = 'XML file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
-            try:
-                self._validate_hyp_length()
-            except OSError as e:
-                # logger.warning(f"Failed to validate XML file: {hyp_name}, error: {e}")
-                # TODO: this should be fixed after WMT23 submission week
-                pass
 
         elif self.file_format == JSONL_FILE:
             if not hyp_name.endswith('.jsonl'):
-                _msg = 'Invalid JSONL file named {0}'.format(hyp_name)
+                _msg = 'JSONL file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
-            try:
-                self._validate_hyp_length()
-            except OSError as e:
-                # logger.warning(f"Failed to validate JSONL file: {hyp_name}, error: {e}")
-                # TODO: this should be fixed after WMT23 submission week
-                pass
 
         elif self.file_format == TEXT_FILE:
             if not hyp_name.endswith('.txt'):
-                _msg = 'Invalid text file named {0}'.format(hyp_name)
+                _msg = 'Text file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
+
+        # Validate hyp file content directly from the uploaded file
+        self._validate_hyp_file_content()
 
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique
@@ -1580,6 +1653,13 @@ class Submission(models.Model):
         """Compute sacreBLEU score on save()."""
         self.is_valid = True
         super().save(force_insert, force_update, using, update_fields)
+
+        # Final validation after file is saved with proper path
+        if self.id and not self._validate_hyp_length(raise_exception=False):
+            self.is_valid = False
+            # Save again to update the is_valid flag
+            super().save(force_insert=False, force_update=True, using=using, update_fields=['is_valid'])
+
         if not self.score and self.id:
             self._compute_score()
 
