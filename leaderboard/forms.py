@@ -153,7 +153,7 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.FileInput(
             attrs={'class': 'form-control form-control-file'},
         ),
-        help_text="XML or JSONL file containing submission output",
+        help_text="XML or JSONL file containing submission output (.jsonl.gz compressed files supported)",
     )
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
@@ -172,7 +172,7 @@ class SubmissionForm(forms.ModelForm):
             name = hyp.name.lower()
             if name.endswith('.xml'):
                 self.instance.file_format = XML_FILE
-            elif name.endswith('.jsonl'):
+            elif name.endswith('.jsonl') or name.endswith('.jsonl.gz'):
                 self.instance.file_format = JSONL_FILE
             else:
                 raise forms.ValidationError(f'Unsupported extension on {name}')

@@ -320,7 +320,7 @@ def submit(request):
             # decide format by extension
             if fname.endswith('.xml'):
                 new_submission.file_format = XML_FILE
-            elif fname.endswith('.jsonl'):
+            elif fname.endswith('.jsonl') or fname.endswith('.jsonl.gz'):
                 new_submission.file_format = JSONL_FILE
             else:
                 messages.error(request, f'Unsupported extension on {fname}')

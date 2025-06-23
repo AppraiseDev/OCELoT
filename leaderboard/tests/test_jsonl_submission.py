@@ -2,6 +2,8 @@
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 Submission model tests for testsets in JSONL format.
 """
+import gzip
+import json
 import os
 from datetime import datetime
 from pathlib import Path
@@ -106,6 +108,13 @@ class JSONLSubmissionTests(TestCase):
             'jsonl/wmt-hyp-short.txt',
             'jsonl/wmt-hyp-long.jsonl',
             'jsonl/wmt-hyp-long.txt',
+            # Add compressed file cleanup
+            'jsonl/sample-hyp_compressed.jsonl.gz',
+            'jsonl/sample-hyp_compressed.txt',
+            # Add validation test file cleanup
+            'jsonl/test_src_validation.jsonl.gz',
+            'jsonl/test_hyp_validation_valid.jsonl.gz',
+            'jsonl/test_hyp_validation_invalid.jsonl.gz',
         ):
             p = Path(TESTDATA_DIR) / fname
             if p.exists():
@@ -145,6 +154,17 @@ class JSONLSubmissionTests(TestCase):
         session = self.client.session
         session['ocelot_team_token'] = self.team.token
         session.save()
+
+    def _create_compressed_jsonl(self, source_file, target_file):
+        """Helper method to create a compressed JSONL file from an uncompressed one."""
+        source_path = os.path.join(TESTDATA_DIR, source_file)
+        target_path = os.path.join(TESTDATA_DIR, target_file)
+
+        with open(source_path, 'r', encoding='utf-8') as f_in:
+            with gzip.open(target_path, 'wt', encoding='utf-8') as f_out:
+                f_out.write(f_in.read())
+
+        return target_path
 
     def test_submission_in_text_format_to_jsonl_testset(self):
         """Text‐format submission against JSONL testset yields scores."""
@@ -266,6 +286,175 @@ class JSONLSubmissionTests(TestCase):
         self.assertIn('Submission invalid: hyp', str(cm.exception))
         # Clean up long hyp file
         dst.unlink()
+
+    def test_submission_in_compressed_jsonl_format(self):
+        """JSONL submission in compressed (.jsonl.gz) format to JSONL testset computes correct scores."""
+        # Create a compressed version of the sample hypothesis file
+        src_file = os.path.join(TESTDATA_DIR, 'jsonl/sample-hyp.jsonl')
+        compressed_file = os.path.join(TESTDATA_DIR, 'jsonl/sample-hyp_compressed.jsonl.gz')
+
+        # Read the original JSONL file and compress it
+        with open(src_file, 'r', encoding='utf-8') as f_in:
+            with gzip.open(compressed_file, 'wt', encoding='utf-8') as f_out:
+                f_out.write(f_in.read())
+
+        # Verify the compressed file exists and has content
+        self.assertTrue(Path(compressed_file).exists())
+        self.assertGreater(Path(compressed_file).stat().st_size, 0)
+
+        # Create submission with compressed file
+        sub = self._make_submission('jsonl/sample-hyp_compressed.jsonl.gz')
+
+        # Verify scores are computed correctly (same as uncompressed version)
+        self.assertEqual(round(sub.score, 3), 81.141)
+        self.assertEqual(round(sub.score_chrf, 3), 89.180)
+
+        # Check that a .txt file was created under MEDIA_ROOT with correct extension handling
+        media_txt = Path(MEDIA_ROOT) / sub.hyp_file.name.replace('.jsonl.gz', '.txt')
+        self.assertTrue(media_txt.exists(), f"{media_txt} does not exist")
+        self.assertTrue(media_txt.stat().st_size > 0)
+
+        # Verify the submission file itself was saved correctly
+        media_file = Path(MEDIA_ROOT) / sub.hyp_file.name
+        self.assertTrue(media_file.exists(), f"{media_file} does not exist")
+        self.assertTrue(media_file.name.endswith('.jsonl.gz'))
+
+    def test_compressed_jsonl_validation(self):
+        """Test that compressed JSONL files pass validation checks."""
+        # Create a test compressed JSONL file with valid content
+        test_data = [
+            {
+                "dataset_id": "test",
+                "doc_id": "doc1",
+                "tgt_lang": "ha",
+                "hypothesis": "Test hypothesis 1"
+            },
+            {
+                "dataset_id": "test",
+                "doc_id": "doc2",
+                "tgt_lang": "ha",
+                "hypothesis": "Test hypothesis 2"
+            }
+        ]
+
+        compressed_file = os.path.join(TESTDATA_DIR, 'jsonl/test_validation_compressed.jsonl.gz')
+
+        # Create compressed file
+        with gzip.open(compressed_file, 'wt', encoding='utf-8') as f:
+            for item in test_data:
+                f.write(json.dumps(item) + '\n')
+
+        try:
+            # Test that file format validation accepts .jsonl.gz extension
+            from leaderboard.models import validate_jsonl_schema, validate_jsonl_submission
+
+            # Create a SimpleUploadedFile object to test validation
+            with open(compressed_file, 'rb') as f:
+                uploaded_file = SimpleUploadedFile(
+                    "test_validation_compressed.jsonl.gz",
+                    f.read(),
+                    content_type="application/gzip"
+                )
+
+            # Test schema validation - should not raise exception
+            validate_jsonl_schema(uploaded_file)
+
+            # Test submission validation - should not raise exception
+            validate_jsonl_submission(uploaded_file)
+
+        finally:
+            # Clean up test file
+            if Path(compressed_file).exists():
+                Path(compressed_file).unlink()
+
+    def test_validate_hyp_file_content_with_compressed_jsonl(self):
+        """Test that _validate_hyp_file_content works with compressed JSONL files."""
+        # Create a test source file with 3 lines
+        src_data = [
+            {"dataset_id": "test", "doc_id": "doc1", "src_lang": "en", "src_text": "Source 1"},
+            {"dataset_id": "test", "doc_id": "doc2", "src_lang": "en", "src_text": "Source 2"},
+            {"dataset_id": "test", "doc_id": "doc3", "src_lang": "en", "src_text": "Source 3"}
+        ]
+
+        src_file = os.path.join(TESTDATA_DIR, 'jsonl/test_src_validation.jsonl.gz')
+        with gzip.open(src_file, 'wt', encoding='utf-8') as f:
+            for item in src_data:
+                f.write(json.dumps(item) + '\n')
+
+        # Create a compressed testset using this source file
+        test_testset = TestSet.objects.create(
+            is_active=True,
+            name='TestSetValidation',
+            source_language=Language.objects.get(code='en'),
+            target_language=Language.objects.get(code='ha'),
+            file_format=JSONL_FILE,
+            src_file=src_file,
+            ref_file=None,
+            competition=self.comp,
+        )
+
+        try:
+            # Test case 1: Compressed hyp file with matching line count (should pass)
+            hyp_data_valid = [
+                {"dataset_id": "test", "doc_id": "doc1", "tgt_lang": "ha", "hypothesis": "Hyp 1"},
+                {"dataset_id": "test", "doc_id": "doc2", "tgt_lang": "ha", "hypothesis": "Hyp 2"},
+                {"dataset_id": "test", "doc_id": "doc3", "tgt_lang": "ha", "hypothesis": "Hyp 3"}
+            ]
+
+            hyp_file_valid = os.path.join(TESTDATA_DIR, 'jsonl/test_hyp_validation_valid.jsonl.gz')
+            with gzip.open(hyp_file_valid, 'wt', encoding='utf-8') as f:
+                for item in hyp_data_valid:
+                    f.write(json.dumps(item) + '\n')
+
+            # Create submission with matching line count - should not raise ValidationError
+            sub_valid = Submission(
+                name='test_valid_compressed',
+                original_name='test_valid_compressed',
+                test_set=test_testset,
+                submitted_by=self.team,
+                file_format=JSONL_FILE,
+                hyp_file=hyp_file_valid,
+            )
+
+            # This should not raise an exception
+            sub_valid._validate_hyp_file_content()
+
+            # Test case 2: Compressed hyp file with mismatched line count (should fail)
+            hyp_data_invalid = [
+                {"dataset_id": "test", "doc_id": "doc1", "tgt_lang": "ha", "hypothesis": "Hyp 1"},
+                {"dataset_id": "test", "doc_id": "doc2", "tgt_lang": "ha", "hypothesis": "Hyp 2"}
+                # Missing third line
+            ]
+
+            hyp_file_invalid = os.path.join(TESTDATA_DIR, 'jsonl/test_hyp_validation_invalid.jsonl.gz')
+            with gzip.open(hyp_file_invalid, 'wt', encoding='utf-8') as f:
+                for item in hyp_data_invalid:
+                    f.write(json.dumps(item) + '\n')
+
+            sub_invalid = Submission(
+                name='test_invalid_compressed',
+                original_name='test_invalid_compressed',
+                test_set=test_testset,
+                submitted_by=self.team,
+                file_format=JSONL_FILE,
+                hyp_file=hyp_file_invalid,
+            )
+
+            # This should raise a ValidationError
+            with self.assertRaises(ValidationError) as cm:
+                sub_invalid._validate_hyp_file_content()
+
+            self.assertIn('hyp JSONL lines (2) != src JSONL lines (3)', str(cm.exception))
+
+        finally:
+            # Clean up test files
+            for test_file in [
+                src_file,
+                hyp_file_valid,
+                hyp_file_invalid
+            ]:
+                if Path(test_file).exists():
+                    Path(test_file).unlink()
 
     def test_successful_jsonl_submission(self):
         """Checks that a successful submission displays message about the success."""

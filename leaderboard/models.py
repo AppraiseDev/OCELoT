@@ -3,6 +3,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
 import re
 import xml
+import tempfile
 from pathlib import Path
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ import json
 import jsonschema
 import lxml.etree as ET
 import logging  # noqa: F401
+import xmlschema
 
 # Logger for leaderboard models
 logger = logging.getLogger(__name__)  # noqa: F821
@@ -19,6 +21,7 @@ from django.db import DEFAULT_DB_ALIAS
 from django.db import models
 from sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu import corpus_chrf  # type: ignore
+from sacrebleu.utils import smart_open
 
 from leaderboard.utils import analyze_xml_file
 from leaderboard.utils import process_to_text  # type: ignore
@@ -365,26 +368,56 @@ def validate_xml_schema(xml_file):
 def validate_jsonl_schema(json_file):
     """Validates JSONL file based on JSONL_SCHEMA."""
     # Skip validation for non‐JSONL uploads
-    if not json_file.name.endswith('.jsonl'):
+    if not (json_file.name.endswith('.jsonl') or json_file.name.endswith('.jsonl.gz')):
         #logger.debug(f"JSONL schema validation skipped for {json_file.name}")
         return
 
     try:
         # Ensure we start at the beginning of the file
         json_file.seek(0)
-        for lineno, line in enumerate(json_file, start=1):
-            text = line.strip()
-            if not text:
-                continue  # skip blank lines
-            try:
-                obj = json.loads(text)
-            except json.JSONDecodeError as e:
-                raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
-            try:
-                jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
-            except jsonschema.ValidationError as e:
-                # Report the first schema violation
-                raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+
+        # Handle compressed files by using smart_open with file path
+        if json_file.name.endswith('.jsonl.gz'):
+            # For compressed files, we need to read via file path, not the file object directly
+            if hasattr(json_file, 'temporary_file_path'):
+                file_path = json_file.temporary_file_path()
+            else:
+                # For in-memory files, write to temp file first
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                    json_file.seek(0)
+                    temp_file.write(json_file.read())
+                    file_path = temp_file.name
+
+            with smart_open(file_path, 'rt', encoding='utf-8') as f:
+                for lineno, line in enumerate(f, start=1):
+                    text = line.strip()
+                    if not text:
+                        continue  # skip blank lines
+                    try:
+                        obj = json.loads(text)
+                    except json.JSONDecodeError as e:
+                        raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
+                    try:
+                        jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
+                    except jsonschema.ValidationError as e:
+                        # Report the first schema violation
+                        raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+        else:
+            # Handle uncompressed files directly
+            for lineno, line in enumerate(json_file, start=1):
+                text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+                if not text:
+                    continue  # skip blank lines
+                try:
+                    obj = json.loads(text)
+                except json.JSONDecodeError as e:
+                    raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
+                try:
+                    jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
+                except jsonschema.ValidationError as e:
+                    # Report the first schema violation
+                    raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
     finally:
         # Reset file pointer so further processing can read it again
         json_file.seek(0)
@@ -392,22 +425,52 @@ def validate_jsonl_schema(json_file):
 
 def validate_jsonl_src_testset(json_file):
     """Validate source texts in JSONL test set."""
-    if not json_file.name.endswith('.jsonl'):
+    if not (json_file.name.endswith('.jsonl') or json_file.name.endswith('.jsonl.gz')):
         return
+
     json_file.seek(0)
     src_langs = set()
-    for lineno, line in enumerate(json_file, start=1):
-        text = line.strip()
-        if not text:
-            continue
-        try:
-            obj = json.loads(text)
-        except json.JSONDecodeError as e:
-            raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
-        lang = obj.get('src_lang')
-        if lang is None:
-            raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
-        src_langs.add(lang)
+
+    # Handle compressed files
+    if json_file.name.endswith('.jsonl.gz'):
+        if hasattr(json_file, 'temporary_file_path'):
+            file_path = json_file.temporary_file_path()
+        else:
+            # For in-memory files, write to temp file first
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                json_file.seek(0)
+                temp_file.write(json_file.read())
+                file_path = temp_file.name
+
+        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+            for lineno, line in enumerate(f, start=1):
+                text = line.strip()
+                if not text:
+                    continue
+                try:
+                    obj = json.loads(text)
+                except json.JSONDecodeError as e:
+                    raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
+                lang = obj.get('src_lang')
+                if lang is None:
+                    raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
+                src_langs.add(lang)
+    else:
+        # Handle uncompressed files
+        for lineno, line in enumerate(json_file, start=1):
+            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+            if not text:
+                continue
+            try:
+                obj = json.loads(text)
+            except json.JSONDecodeError as e:
+                raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
+            lang = obj.get('src_lang')
+            if lang is None:
+                raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
+            src_langs.add(lang)
+
     if not src_langs:
         raise ValidationError(f'No source language found in JSONL file {json_file.name}')
     json_file.seek(0)
@@ -417,27 +480,60 @@ def validate_jsonl_ref_testset(json_file):
     """Validate reference texts in JSONL test set."""
     if not json_file:  # FileField evaluates as False when None
         return
-    if not json_file.name.endswith('.jsonl'):
+    if not (json_file.name.endswith('.jsonl') or json_file.name.endswith('.jsonl.gz')):
         return
 
     json_file.seek(0)
     ref_langs = set()
-    for lineno, line in enumerate(json_file, start=1):
-        text = line.strip()
-        if not text:
-            continue
-        try:
-            obj = json.loads(text)
-        except json.JSONDecodeError as e:
-            raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
-        refs = obj.get('refs')
-        if not refs:
-            raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
-        for ref in refs:
-            lang = ref.get('tgt_lang')
-            if lang is None:
-                raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
-            ref_langs.add(lang)
+
+    # Handle compressed files
+    if json_file.name.endswith('.jsonl.gz'):
+        if hasattr(json_file, 'temporary_file_path'):
+            file_path = json_file.temporary_file_path()
+        else:
+            # For in-memory files, write to temp file first
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                json_file.seek(0)
+                temp_file.write(json_file.read())
+                file_path = temp_file.name
+
+        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+            for lineno, line in enumerate(f, start=1):
+                text = line.strip()
+                if not text:
+                    continue
+                try:
+                    obj = json.loads(text)
+                except json.JSONDecodeError as e:
+                    raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
+                refs = obj.get('refs')
+                if not refs:
+                    raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
+                for ref in refs:
+                    lang = ref.get('tgt_lang')
+                    if lang is None:
+                        raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
+                    ref_langs.add(lang)
+    else:
+        # Handle uncompressed files
+        for lineno, line in enumerate(json_file, start=1):
+            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+            if not text:
+                continue
+            try:
+                obj = json.loads(text)
+            except json.JSONDecodeError as e:
+                raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
+            refs = obj.get('refs')
+            if not refs:
+                raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
+            for ref in refs:
+                lang = ref.get('tgt_lang')
+                if lang is None:
+                    raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
+                ref_langs.add(lang)
+
     if not ref_langs:
         raise ValidationError(f'No reference languages found in JSONL file {json_file.name}')
     json_file.seek(0)
@@ -445,21 +541,47 @@ def validate_jsonl_ref_testset(json_file):
 
 def validate_jsonl_submission(json_file):
     """Validate submissions in JSONL format."""
-    if not json_file.name.endswith('.jsonl'):
+    if not (json_file.name.endswith('.jsonl') or json_file.name.endswith('.jsonl.gz')):
         return
     # First validate basic schema
     validate_jsonl_schema(json_file)
     json_file.seek(0)
     has_hyps = False
-    for lineno, line in enumerate(json_file, start=1):
-        text = line.strip()
-        if not text:
-            continue
-        obj = json.loads(text)
-        hyps = obj.get('hypothesis') or obj.get('hyps') or ""
-        if hyps:
-            has_hyps = True
-            break
+
+    # Handle compressed files
+    if json_file.name.endswith('.jsonl.gz'):
+        if hasattr(json_file, 'temporary_file_path'):
+            file_path = json_file.temporary_file_path()
+        else:
+            # For in-memory files, write to temp file first
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                json_file.seek(0)
+                temp_file.write(json_file.read())
+                file_path = temp_file.name
+
+        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+            for lineno, line in enumerate(f, start=1):
+                text = line.strip()
+                if not text:
+                    continue
+                obj = json.loads(text)
+                hyps = obj.get('hypothesis') or obj.get('hyps') or ""
+                if hyps:
+                    has_hyps = True
+                    break
+    else:
+        # Handle uncompressed files
+        for lineno, line in enumerate(json_file, start=1):
+            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+            if not text:
+                continue
+            obj = json.loads(text)
+            hyps = obj.get('hypothesis') or obj.get('hyps') or ""
+            if hyps:
+                has_hyps = True
+                break
+
     if not has_hyps:
         raise ValidationError(f'Could not find "hypothesis" node anywhere in the JSONL submission')
     json_file.seek(0)
@@ -663,7 +785,7 @@ class TestSet(models.Model):
     src_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='XML, JSONL or text file containing test set source',
+        help_text='XML, JSONL (optionally compressed as .jsonl.gz) or text file containing test set source',
         null=True,
         validators=[
             validate_xml_src_testset,
@@ -674,7 +796,7 @@ class TestSet(models.Model):
     ref_file = models.FileField(
         blank=True,
         upload_to='testsets',
-        help_text='XML, JSONL or text file containing test set reference(s)',
+        help_text='XML, JSONL (optionally compressed as .jsonl.gz) or text file containing test set reference(s)',
         null=True,
         validators=[
             validate_xml_ref_testset,
@@ -785,7 +907,11 @@ class TestSet(models.Model):
             src_path = str(self.src_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in src_path:
                 src_path = str(Path(MEDIA_ROOT) / src_path)
-            txt_src = src_path.replace('.jsonl', '.txt')
+            # Handle both .jsonl and .jsonl.gz files
+            if src_path.endswith('.jsonl.gz'):
+                txt_src = src_path.replace('.jsonl.gz', '.txt')
+            else:
+                txt_src = src_path.replace('.jsonl', '.txt')
 
             # use the shared JSONL‐to‐text processor
             process_jsonl_to_text(
@@ -802,7 +928,11 @@ class TestSet(models.Model):
             ref_path = str(self.ref_file.name)
             if MEDIA_ROOT and MEDIA_ROOT not in ref_path:
                 ref_path = str(Path(MEDIA_ROOT) / ref_path)
-            txt_ref = ref_path.replace('.jsonl', '.txt')
+            # Handle both .jsonl and .jsonl.gz files
+            if ref_path.endswith('.jsonl.gz'):
+                txt_ref = ref_path.replace('.jsonl.gz', '.txt')
+            else:
+                txt_ref = ref_path.replace('.jsonl', '.txt')
 
             # pick first translator for reference extraction
             translators = analyze_jsonl_file(ref_path).get('translators', [])
@@ -848,7 +978,7 @@ class TestSet(models.Model):
                 # the XML file. Do it here or in validate_xml_submission()
 
             elif self.file_format == JSONL_FILE:
-                if not current_path.endswith('.jsonl'):
+                if not (current_path.endswith('.jsonl') or current_path.endswith('.jsonl.gz')):
                     _msg = 'Invalid JSONL file name {0}'.format(
                         current_path
                     )
@@ -1012,7 +1142,8 @@ class Team(models.Model):
 
 def _get_submission_upload_path(instance, filename):
     """Construct upload path based on test set and team data."""
-    del filename  # not used
+    # Use filename to determine if it's compressed
+    is_compressed = filename and filename.endswith('.gz')
 
     submissions_count = 0
     submissions_for_team = Submission.objects.filter(
@@ -1029,7 +1160,7 @@ def _get_submission_upload_path(instance, filename):
         file_extension = 'xml'
 
     elif instance.file_format == JSONL_FILE:
-        file_extension = 'jsonl'
+        file_extension = 'jsonl.gz' if is_compressed else 'jsonl'
 
     elif instance.file_format == TEXT_FILE:
         file_extension = 'txt'
@@ -1159,7 +1290,7 @@ class Submission(models.Model):
 
     hyp_file = models.FileField(
         upload_to=_get_submission_upload_path,
-        help_text='XML, JSONL or text file containing submission output',
+        help_text='XML, JSONL (optionally compressed as .jsonl.gz) or text file containing submission output',
         null=True,
         validators=[
             validate_sgml_schema,
@@ -1259,7 +1390,11 @@ class Submission(models.Model):
 
         elif self.file_format == JSONL_FILE:
             # Use resolved hyp_path
-            hyp_text_path = hyp_path.replace('.jsonl', '.txt')
+            # Handle both .jsonl and .jsonl.gz files
+            if hyp_path.endswith('.jsonl.gz'):
+                hyp_text_path = hyp_path.replace('.jsonl.gz', '.txt')
+            else:
+                hyp_text_path = hyp_path.replace('.jsonl', '.txt')
 
             if not Path(hyp_text_path).exists():
                 output = analyze_jsonl_file(hyp_path)
@@ -1309,7 +1444,11 @@ class Submission(models.Model):
 
         elif self.test_set.file_format == JSONL_FILE:
             ref_jsonl_path = self.test_set.ref_file.name
-            ref_text_path = ref_jsonl_path.replace('.jsonl', '.txt')
+            # Handle both .jsonl and .jsonl.gz files
+            if ref_jsonl_path.endswith('.jsonl.gz'):
+                ref_text_path = ref_jsonl_path.replace('.jsonl.gz', '.txt')
+            else:
+                ref_text_path = ref_jsonl_path.replace('.jsonl', '.txt')
 
         elif self.test_set.file_format == TEXT_FILE:
             ref_text_path = self.test_set.ref_file.name
@@ -1333,7 +1472,11 @@ class Submission(models.Model):
 
         elif self.test_set.file_format == JSONL_FILE:
             src_jsonl_path = self.test_set.src_file.name
-            src_text_path = src_jsonl_path.replace('.jsonl', '.txt')
+            # Handle both .jsonl and .jsonl.gz files
+            if src_jsonl_path.endswith('.jsonl.gz'):
+                src_text_path = src_jsonl_path.replace('.jsonl.gz', '.txt')
+            else:
+                src_text_path = src_jsonl_path.replace('.jsonl', '.txt')
 
         elif self.test_set.file_format == TEXT_FILE:
             src_text_path = self.test_set.src_file.name
@@ -1513,10 +1656,46 @@ class Submission(models.Model):
                 # Check if the file is empty
                 if self.hyp_file.size == 0:
                     raise ValidationError("Hypothesis file is empty.")
-                # Count source lines, not segments
-                src_lines = len(self.test_set.src_file.read().splitlines())
-                self.hyp_file.seek(0)  # Ensure we're at the beginning
-                hyp_lines = len(self.hyp_file.read().splitlines())
+
+                # Count source lines - handle both compressed and uncompressed
+                src_file_name = self.test_set.src_file.name
+                if src_file_name.endswith('.jsonl.gz'):
+                    # Handle compressed source file
+                    if hasattr(self.test_set.src_file, 'temporary_file_path'):
+                        src_file_path = self.test_set.src_file.temporary_file_path()
+                    else:
+                        # For in-memory files, write to temp file first
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                            self.test_set.src_file.seek(0)
+                            temp_file.write(self.test_set.src_file.read())
+                            src_file_path = temp_file.name
+
+                    with smart_open(src_file_path, 'rt', encoding='utf-8') as f:
+                        src_lines = len(f.readlines())
+                else:
+                    # Handle uncompressed source file
+                    self.test_set.src_file.seek(0)
+                    src_lines = len(self.test_set.src_file.read().splitlines())
+
+                # Count hypothesis lines - handle both compressed and uncompressed
+                hyp_file_name = self.hyp_file.name
+                if hyp_file_name.endswith('.jsonl.gz'):
+                    # Handle compressed hypothesis file
+                    if hasattr(self.hyp_file, 'temporary_file_path'):
+                        hyp_file_path = self.hyp_file.temporary_file_path()
+                    else:
+                        # For in-memory files, write to temp file first
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                            self.hyp_file.seek(0)
+                            temp_file.write(self.hyp_file.read())
+                            hyp_file_path = temp_file.name
+
+                    with smart_open(hyp_file_path, 'rt', encoding='utf-8') as f:
+                        hyp_lines = len(f.readlines())
+                else:
+                    # Handle uncompressed hypothesis file
+                    self.hyp_file.seek(0)
+                    hyp_lines = len(self.hyp_file.read().splitlines())
 
                 if hyp_lines != src_lines:
                     raise ValidationError(
@@ -1595,8 +1774,8 @@ class Submission(models.Model):
                 raise ValidationError(_msg)
 
         elif self.file_format == JSONL_FILE:
-            if not hyp_name.endswith('.jsonl'):
-                _msg = 'JSONL file name must end with {0}'.format(hyp_name)
+            if not (hyp_name.endswith('.jsonl') or hyp_name.endswith('.jsonl.gz')):
+                _msg = 'JSONL file name must end with .jsonl or .jsonl.gz, got {0}'.format(hyp_name)
                 raise ValidationError(_msg)
 
         elif self.file_format == TEXT_FILE:
