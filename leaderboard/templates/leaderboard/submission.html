@@ -29,11 +29,14 @@
 
         <h2>Submission</h2>
 
-        {% if False %}
+        {% if True %}
         <p>
-          <em>Submissions and competition updates will become available on 6/23/2020, PDT.</em>
+          WMT25 General MT and Multilingual Instruction tasks require submissions in the new JSONL format.
+          Before submitting, please validate your submission file using <a href="https://www2.statmt.org/wmt25/wmt_gen_mt_tool.py"><code>wmt_gen_mt_tool.py</code></a>.
+          To minimize the risk of errors upon submission, make sure that you preserve all <code>\n</code> and <code>\n\n</code>,
+          and remove unnecessary keys from the JSONL file to make the file smaller 
+          (see <a href="{% url 'download-view' %}">Download</a> for an example).
         </p>
-        {% else %}
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
           {% csrf_token %}
           {{ form.as_p }}
@@ -41,11 +44,6 @@
         </form>
         <div>
           <br/>
-          <!--
-          <em>Note: SGML file names need to end with <code>".sgm"</code> to be
-              valid, and XML file names with <code>".xml"</code>. Text
-              file names need to end with <code>".txt"</code> instead.</em>
-          -->
           <em>Note: JSONL file names need to end with <code>".jsonl"</code> and XML files with <code>".xml"</code></em>
         </div>
         {% endif %}

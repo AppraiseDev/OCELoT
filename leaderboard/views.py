@@ -563,7 +563,7 @@ def teampage(request):
     # Details needed for the post-submission/publication survey
     publication_survey = {
         'active': True,
-        'username': '{} ({} from OCELoT)'.format(
+        'username': '{} ("{}" in OCELoT)'.format(
             current_team.institution_name, current_team.name
         ),
         'shortname': current_team.publication_name,
