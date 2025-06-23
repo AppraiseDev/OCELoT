@@ -231,7 +231,7 @@ class JSONLSubmissionTests(TestCase):
                 'jsonl/wmt-src.jsonl', test_set=self.testset_opt
             )
         # Verify the correct validation message is included
-        expected = 'No hyps array at line 1 in JSONL submission'
+        expected = 'Could not find "hypothesis"'
         self.assertIn(expected, str(cm.exception))
 
     def test_submission_with_short_hyps_rejected(self):

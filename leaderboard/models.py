@@ -234,46 +234,20 @@ JSONL_SCHEMA = {
     "type": "object",
     "properties": {
         "dataset_id":   { "type": "string" },
-        "src_text":     { "type": "string" },
-        "doc_id":       { "type": "string" },
-        "orig_lang":    { "type": "string" },
-        "src_lang":     { "type": "string" },
         "collection_id":{ "type": "string" },
-        "domain":       { "type": "string" },
-        "segment_id":   { "type": ["string","integer"] },
-        "hyps": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "system":   { "type": "string" },
-                    "tgt_lang": { "type": "string" },
-                    "text":     { "type": "string" }
-                },
-                "required": ["system","tgt_lang","text"],
-                "additionalProperties": True
-            }
-        },
-        "refs": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "translator": { "type": "string" },
-                    "tgt_lang":   { "type": "string" },
-                    "text":       { "type": "string" }
-                },
-                "required": ["translator","tgt_lang","text"],
-                "additionalProperties": True
-            }
-        }
+        "doc_id":       { "type": "string" },
+        "domain":       { "type": ["string", "null"] },
+        "src_lang":     { "type": "string" },
+        "tgt_lang":     { "type": "string" },
+        "src_text":     { "type": "string" },
+        "hypothesis":   { "type": "string" },
     },
     "required": [
-        "dataset_id","src_text","doc_id","orig_lang","src_lang"
+        "dataset_id","doc_id","tgt_lang"
     ],
     "anyOf": [
-        { "required": ["hyps"] },
-        { "required": ["refs"] }
+        { "required": ["src_text"] },
+        { "required": ["hypothesis"] }
     ],
     "additionalProperties": True
 }
@@ -475,24 +449,19 @@ def validate_jsonl_submission(json_file):
         return
     # First validate basic schema
     validate_jsonl_schema(json_file)
-    # Then ensure exactly one system in all hyps
     json_file.seek(0)
-    systems = set()
+    has_hyps = False
     for lineno, line in enumerate(json_file, start=1):
         text = line.strip()
         if not text:
             continue
         obj = json.loads(text)
-        hyps = obj.get('hyps') or []
-        if not hyps:
-            raise ValidationError(f'No hyps array at line {lineno} in JSONL submission')
-        for hyp in hyps:
-            sys_name = hyp.get('system')
-            if not sys_name:
-                raise ValidationError(f'Missing system in hyp at line {lineno}')
-            systems.add(sys_name)
-    if not systems:
-        raise ValidationError(f'No system found in the JSONL file {json_file.name}')
+        hyps = obj.get('hypothesis') or obj.get('hyps') or ""
+        if hyps:
+            has_hyps = True
+            break
+    if not has_hyps:
+        raise ValidationError(f'Could not find "hypothesis" node anywhere in the JSONL submission')
     json_file.seek(0)
 
 
@@ -1296,14 +1265,13 @@ class Submission(models.Model):
                 output = analyze_jsonl_file(hyp_path)
                 sys_names = output.get('systems', [])
 
-                if len(sys_names) > 0:
-                    # use the shared JSONL‐to‐text processor
-                    process_jsonl_to_text(
-                        jsonl_path=hyp_path,
-                        txt_path=hyp_text_path,
-                        system=sys_names.pop(),  # take the first system
-                        collection=self.test_set.collection,
-                    )
+                # use the shared JSONL‐to‐text processor
+                process_jsonl_to_text(
+                    jsonl_path=hyp_path,
+                    txt_path=hyp_text_path,
+                    system=sys_names.pop() if sys_names else True,
+                    collection=self.test_set.collection,
+                )
 
         elif self.file_format == TEXT_FILE:
             hyp_text_path = hyp_path

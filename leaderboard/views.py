@@ -343,7 +343,9 @@ def submit(request):
                 _msg = (
                     'Unsuccessful submission of {0}. '
                     'Please check the format of the submitted file. '
-                    'Does the submitted file have the required extension and the correct number of segments?'.format(
+                    'Make sure the file have the required extension '
+                    'and the correct number of segments, '
+                    'correctly separated with "\n" or "\n\n"'.format(
                         new_submission.hyp_file.name
                     )
                 )

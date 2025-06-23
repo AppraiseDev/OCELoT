@@ -91,11 +91,20 @@ def analyze_jsonl_file(jsonl_path):
                 if tr:
                     output['translators'].add(tr)
             # hypotheses
-            for hyp in obj.get('hyps', []):
-                sysn = hyp.get('system')
-                hl = hyp.get('tgt_lang')
+            for hyp in obj.get('hyps', obj.get('hypothesis', [])):
+                if isinstance(hyp, str):
+                    # If the hypothesis is a string, it might be an old format
+                    # without 'system' or 'tgt_lang' keys.
+                    continue
+                sysn = hyp.get('system', None)
+                hl = hyp.get('tgt_lang', None)
                 if hl:
                     output['hyp_langs'].add(hl)
+                if sysn:
+                    output['systems'].add(sysn)
+            if 'system' in obj:
+                # If the JSONL file has a 'system' key, add it to systems
+                sysn = obj['system']
                 if sysn:
                     output['systems'].add(sysn)
     return output
@@ -287,6 +296,9 @@ def process_jsonl_to_text(
             # Filter by collection if requested
             if collection and obj.get('collection_id') != collection:
                 continue
+            # Skip if collection_id is "testsuites"
+            if obj.get('collection_id') == 'testsuites':
+                continue
             sid = obj.get('segment_id')
             try:
                 sid = int(sid)
@@ -313,13 +325,18 @@ def process_jsonl_to_text(
                     break
         else:  # system
             sent = MISSING_TRANSLATION_MESSAGE
-            for hyp in obj.get('hyps', []):
-                # if system is Boolean, not a string, take first system
-                if isinstance(system, bool) and system:
-                    system = hyp.get('system')
-                if hyp.get('system') == system:
-                    sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
-                    break
+            hyps = obj.get('hyps', obj.get('hypothesis', []))
+            if len(hyps) > 0:
+                if isinstance(hyps, str):
+                    sent = hyps or MISSING_TRANSLATION_MESSAGE
+                elif isinstance(hyps, list):
+                    for hyp in hyps:
+                        # if system is Boolean, not a string, take first system
+                        if isinstance(system, bool) and system:
+                            system = hyp.get('system')
+                        if hyp.get('system') == system:
+                            sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
+                            break
         out_sents.append(sent)
 
     # Write to txt file
