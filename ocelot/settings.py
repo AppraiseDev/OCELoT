@@ -173,17 +173,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
+# Allow to specify absolute filesystem path to the directory that will hold
+# user-uploaded files, otherwise use the root directory of the project
+MEDIA_ROOT = os.environ.get('OCELOT_MEDIA_ROOT', BASE_DIR)
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(MEDIA_ROOT, 'static')
 
 # Static files that are not tied to a particular app should be put there
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'assets'),
 ]
-
-# Allow to specify absolute filesystem path to the directory that will hold
-# user-uploaded files, otherwise use the root directory of the project
-MEDIA_ROOT = os.environ.get('OCELOT_MEDIA_ROOT', BASE_DIR)
 
 # Project version
 # See point 4 from https://packaging.python.org/guides/single-sourcing-package-version/
