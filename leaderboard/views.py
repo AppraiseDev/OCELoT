@@ -20,7 +20,7 @@ from leaderboard.models import Competition
 from leaderboard.models import Submission
 from leaderboard.models import Team
 from leaderboard.models import TestSet
-from leaderboard.models import XML_FILE, JSONL_FILE
+from leaderboard.models import XML_FILE, JSONL_FILE, JSON_FILE
 
 
 MAX_SUBMISSION_DISPLAY_COUNT = 10
@@ -322,6 +322,8 @@ def submit(request):
                 new_submission.file_format = XML_FILE
             elif fname.endswith('.jsonl') or fname.endswith('.jsonl.gz'):
                 new_submission.file_format = JSONL_FILE
+            elif fname.endswith('.json') or fname.endswith('.json.gz'):
+                new_submission.file_format = JSON_FILE
             else:
                 messages.error(request, f'Unsupported extension on {fname}')
                 return HttpResponseRedirect(request.path)

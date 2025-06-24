@@ -16,7 +16,7 @@ from leaderboard.models import TestSet
 from leaderboard.models import validate_institution_name
 from leaderboard.models import validate_publication_name
 from leaderboard.models import validate_token
-from .models import XML_FILE, JSONL_FILE
+from .models import XML_FILE, JSONL_FILE, JSON_FILE
 
 
 PLACEHOLDER_FOR_DESCRIPTION = """TEAM-ONE submission is a standard Transformer
@@ -153,7 +153,7 @@ class SubmissionForm(forms.ModelForm):
         widget=forms.FileInput(
             attrs={'class': 'form-control form-control-file'},
         ),
-        help_text="XML or JSONL file containing submission output (.jsonl.gz compressed files supported)",
+        help_text="JSONL or JSON file containing submission output (.gz compressed files supported)",
     )
 
     class Meta:  # pylint: disable=too-few-public-methods,missing-docstring
@@ -174,6 +174,8 @@ class SubmissionForm(forms.ModelForm):
                 self.instance.file_format = XML_FILE
             elif name.endswith('.jsonl') or name.endswith('.jsonl.gz'):
                 self.instance.file_format = JSONL_FILE
+            elif name.endswith('.json') or name.endswith('.json.gz'):
+                self.instance.file_format = JSON_FILE
             else:
                 raise forms.ValidationError(f'Unsupported extension on {name}')
         return cleaned

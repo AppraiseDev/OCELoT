@@ -110,6 +110,48 @@ def analyze_jsonl_file(jsonl_path):
     return output
 
 
+def analyze_json_file(json_path):
+    """
+    Return all task IDs, systems, and other metadata found in a JSON file.
+    JSON files contain arrays of objects with taskid, prompt, and answer fields.
+    """
+    output = {
+        "taskids": set(),
+        "systems": set(),
+        "has_prompts": False,
+        "has_answers": False,
+    }
+    
+    # Read the JSON file and extract the required information
+    with smart_open(json_path, 'rt', encoding='utf-8') as f:
+        data = json.load(f)
+        
+    if not isinstance(data, list):
+        return output
+        
+    for obj in data:
+        if not isinstance(obj, dict):
+            continue
+            
+        # taskid
+        taskid = obj.get('taskid')
+        if taskid:
+            output['taskids'].add(taskid)
+            
+        # Check for prompts and answers
+        if obj.get('prompt'):
+            output['has_prompts'] = True
+        if obj.get('answer'):
+            output['has_answers'] = True
+            
+        # System information (if available)
+        system = obj.get('system')
+        if system:
+            output['systems'].add(system)
+            
+    return output
+
+
 # Taken from sacrebleu which removed this with v2.2
 #
 # https://github.com/mjpost/sacrebleu/blob/65a8a9eeccd8c0c7875e875e12edf10db33ab0ba/sacrebleu/utils.py#L277
@@ -337,6 +379,58 @@ def process_jsonl_to_text(
                         if hyp.get('system') == system:
                             sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
                             break
+        out_sents.append(sent)
+
+    # Write to txt file
+    with smart_open(txt_path, 'wt', encoding='utf-8') as fout:
+        for s in out_sents:
+            fout.write(f"{s}\n")
+    return True
+
+
+def process_json_to_text(
+    json_path,
+    txt_path,
+    source=None,
+    system=None,
+):
+    """
+    Extract source prompts or system answers from a JSON file.
+    If source is True, extract prompts.
+    If system is True, extract answers (first system found).
+    If system is a string, it will be used to filter answers by system.
+    """
+    # Must specify exactly one of source or system
+    if [source, system].count(None) != 1:
+        raise ValueError(
+            f'Exactly one of source or system must be provided, but got: '
+            f'source={source}, system={system}'
+        )
+
+    # Read JSON file
+    with smart_open(json_path, 'rt', encoding='utf-8') as fin:
+        data = json.load(fin)
+        
+    if not isinstance(data, list):
+        # If no entries, write empty file and bail
+        with smart_open(txt_path, 'wt', encoding='utf-8'):
+            pass
+        return False
+
+    # Build output sentences
+    out_sents = []
+    for obj in data:
+        if not isinstance(obj, dict):
+            continue
+            
+        if source:
+            sent = obj.get('prompt', MISSING_TRANSLATION_MESSAGE)
+        elif system:
+            # For JSON, answers are directly in the object
+            sent = obj.get('answer', MISSING_TRANSLATION_MESSAGE)
+        
+        # Escape newline characters to ensure each JSON object results in exactly one line
+        sent = sent.replace('\n', '\\n').replace('\r', '\\r')
         out_sents.append(sent)
 
     # Write to txt file
