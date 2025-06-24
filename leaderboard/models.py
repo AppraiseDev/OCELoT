@@ -1341,7 +1341,7 @@ class Team(models.Model):
         db_index=True,
         max_length=MAX_NAME_LENGTH,
         help_text=(
-            'Team publication name (max {0} characters)'.format(
+            'Team short name (max {0} characters)'.format(
                 32
             )  # see validation
         ),

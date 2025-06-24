@@ -275,6 +275,7 @@ class TeamAdmin(admin.ModelAdmin):
         'name',
         'email',
         'token',
+        'institution_name',
         'publication_name',
         'is_active',
         'is_flagged',
