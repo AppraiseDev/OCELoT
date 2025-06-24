@@ -319,6 +319,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'is_active',
         'is_public',
         'compute_scores',
+        'validate',
     ]
 
     list_display = [
@@ -332,6 +333,7 @@ class TestSetAdmin(admin.ModelAdmin):
         'is_active',
         'is_public',
         'compute_scores',
+        'validate',
         'file_format',
         'competition',
     ]

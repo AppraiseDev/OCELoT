@@ -753,6 +753,13 @@ class TestSet(models.Model):
         help_text='Compute automatic scores?',
     )
 
+    validate = models.BooleanField(
+        blank=False,
+        db_index=True,
+        default=True,
+        help_text='Validate submissions for this test set? Set to False to skip validation',
+    )
+
     name = models.CharField(
         blank=False,
         db_index=True,
@@ -1787,8 +1794,10 @@ class Submission(models.Model):
                 _msg = 'Text file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
 
-        # Validate hyp file content directly from the uploaded file
-        self._validate_hyp_file_content()
+        # Skip validation if the test set has validation disabled
+        if self.test_set and self.test_set.validate:
+            # Validate hyp file content directly from the uploaded file
+            self._validate_hyp_file_content()
 
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique
@@ -1808,7 +1817,7 @@ class Submission(models.Model):
         # TODO: validate only if TestSet does not have skip_validation set to False
 
         # Final validation after file is saved with proper path
-        if self.id and not self._validate_hyp_length(raise_exception=False):
+        if self.id and self.test_set and self.test_set.validate and not self._validate_hyp_length(raise_exception=False):
             self.is_valid = False
             # Save again to update the is_valid flag
             super().save(force_insert=False, force_update=True, using=using, update_fields=['is_valid'])
