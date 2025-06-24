@@ -42,7 +42,7 @@
           <br/>
           <a href="https://www2.statmt.org/wmt25/multilingual-instruction.html#_testset_submission">Multilingual Instruction task</a> requires submission in new JSON format.
           See the official website for details.
-          To minimize the risk of errors upon submission, compress the file with <code>gzip</code> to make it smaller.
+          To minimize the risk of errors upon submission, remove <em>prompt</em>s and compress the file with <code>gzip</code> to make it smaller.
         </p>
         </div>
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
