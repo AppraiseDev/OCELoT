@@ -4,6 +4,7 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 import re
 import xml
 import tempfile
+from gzip import BadGzipFile
 from pathlib import Path
 from uuid import uuid4
 
@@ -389,20 +390,23 @@ def validate_jsonl_schema(json_file):
                     temp_file.write(json_file.read())
                     file_path = temp_file.name
 
-            with smart_open(file_path, 'rt', encoding='utf-8') as f:
-                for lineno, line in enumerate(f, start=1):
-                    text = line.strip()
-                    if not text:
-                        continue  # skip blank lines
-                    try:
-                        obj = json.loads(text)
-                    except json.JSONDecodeError as e:
-                        raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
-                    try:
-                        jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
-                    except jsonschema.ValidationError as e:
-                        # Report the first schema violation
-                        raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+            try:
+                with smart_open(file_path, 'rt', encoding='utf-8') as f:
+                    for lineno, line in enumerate(f, start=1):
+                        text = line.strip()
+                        if not text:
+                            continue  # skip blank lines
+                        try:
+                            obj = json.loads(text)
+                        except json.JSONDecodeError as e:
+                            raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
+                        try:
+                            jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
+                        except jsonschema.ValidationError as e:
+                            # Report the first schema violation
+                            raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+            except BadGzipFile as e:
+                raise ValidationError(f'JSONL file is not a valid gzip file: {e}')
         else:
             # Handle uncompressed files directly
             for lineno, line in enumerate(json_file, start=1):
@@ -1800,6 +1804,8 @@ class Submission(models.Model):
         """Compute sacreBLEU score on save()."""
         self.is_valid = True
         super().save(force_insert, force_update, using, update_fields)
+
+        # TODO: validate only if TestSet does not have skip_validation set to False
 
         # Final validation after file is saved with proper path
         if self.id and not self._validate_hyp_length(raise_exception=False):

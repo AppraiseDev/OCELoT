@@ -112,6 +112,7 @@ class JSONLSubmissionTests(TestCase):
             'jsonl/sample-hyp_compressed.jsonl.gz',
             'jsonl/sample-hyp_compressed.txt',
             # Add validation test file cleanup
+            'jsonl/test_src_validation.txt',
             'jsonl/test_src_validation.jsonl.gz',
             'jsonl/test_hyp_validation_valid.jsonl.gz',
             'jsonl/test_hyp_validation_invalid.jsonl.gz',

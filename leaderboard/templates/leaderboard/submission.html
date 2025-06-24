@@ -34,7 +34,7 @@
           WMT25 General MT and Multilingual Instruction tasks require submissions in the new JSONL format.
           Before submitting, please validate your submission file using <a href="https://www2.statmt.org/wmt25/wmt_gen_mt_tool.py"><code>wmt_gen_mt_tool.py</code></a>.
           To minimize the risk of errors upon submission, make sure that you preserve all <code>\n</code> and <code>\n\n</code>,
-          and remove unnecessary keys from the JSONL file to make the file smaller 
+          remove unnecessary keys from JSON and compress the file with <code>gzip</code> to make it smaller 
           (see <a href="{% url 'download-view' %}">Download</a> for an example).
         </p>
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
@@ -44,7 +44,7 @@
         </form>
         <div>
           <br/>
-          <em>Note: JSONL file names need to end with <code>".jsonl"</code> and XML files with <code>".xml"</code></em>
+          <em>Note: JSONL file names need to end with <code>".jsonl"</code> or <code>".jsonl.gz"</code></em>
         </div>
         {% endif %}
         <hr>
