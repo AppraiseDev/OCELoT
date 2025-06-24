@@ -31,11 +31,15 @@
 
         {% if True %}
         <p>
-          WMT25 General MT and Multilingual Instruction tasks require submissions in the new JSONL format.
+          <div class="alert alert-info" role="alert">
+          <strong>Important!</strong>
+          <a href="https://www2.statmt.org/wmt25/translation-task.html#submission">General MT</a> and 
+          <a href="https://www2.statmt.org/wmt25/multilingual-instruction.html#_testset_submission">Multilingual Instruction</a> tasks require submissions in the new JSONL format.
           Before submitting, please validate your submission file using <a href="https://www2.statmt.org/wmt25/wmt_gen_mt_tool.py"><code>wmt_gen_mt_tool.py</code></a>.
           To minimize the risk of errors upon submission, make sure that you preserve all <code>\n</code> and <code>\n\n</code>,
           remove unnecessary keys from JSON and compress the file with <code>gzip</code> to make it smaller 
           (see <a href="{% url 'download-view' %}">Download</a> for an example).
+          </div>
         </p>
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
           {% csrf_token %}
