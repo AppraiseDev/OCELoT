@@ -8,6 +8,11 @@
         <br/>
         <h3>Submission {{submission}}</h3>
 
+        <div class="alert alert-info" role="alert">
+          For submissions in JSONL or JSON formats, it is possible that the extracted source segments from the testset and system outputs are not aligned.
+          This should not be an error with the submission, but we still recommend to double check that your submission is correct.
+        </div>
+
         <p class="form-inline">
           {% if compare_with %}
             <span class="pr-1">Compare this submission with</span>

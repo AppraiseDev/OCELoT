@@ -13,6 +13,11 @@
       <div class="container">
         <br/>
         <h3>Compare two submissions</h3>
+
+        <div class="alert alert-info" role="alert">
+          For submissions in JSONL or JSON formats, it is possible that the extracted system outputs are not correctly aligned.
+        </div>
+
         <p>Displaying up to {{page_size}} segments per page.</p>
 
         {% include '_paginator.html' %}
