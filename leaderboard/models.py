@@ -252,10 +252,10 @@ JSONL_SCHEMA = {
     "required": [
         "dataset_id","doc_id","tgt_lang"
     ],
-    "anyOf": [
-        { "required": ["src_text"] },
-        { "required": ["hypothesis"] }
-    ],
+    #"anyOf": [
+    #    { "required": ["src_text"] },
+    #    { "required": ["hypothesis"] }
+    #],
     "additionalProperties": True
 }
 
