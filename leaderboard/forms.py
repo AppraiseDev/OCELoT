@@ -54,7 +54,7 @@ class PublicationNameForm(forms.Form):
         widget=forms.TextInput(
             attrs={'class': 'form-control', 'placeholder': 'TEAM-ONE'}
         ),
-        label='Short team name for the publication',
+        label='System name, which will be used in the overview paper',
     )
 
 
@@ -69,7 +69,7 @@ class PublicationDescriptionForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control',
-                'placeholder': 'John Doe, Jack Smith: TeamOneMT at Translation Task',
+                'placeholder': 'TEAM-ONE at WMT25 Translation Task',
             }
         ),
         label='System paper',
