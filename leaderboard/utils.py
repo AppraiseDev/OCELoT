@@ -63,6 +63,19 @@ def analyze_jsonl_file(jsonl_path):
         "hyp_langs": set(),
         "systems": set(),
     }
+    
+    # First, detect format by checking the first line
+    is_st_mt_format = False
+    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
+        first_line = f.readline().strip()
+        if first_line:
+            try:
+                obj = json.loads(first_line)
+                dataset_id = obj.get('dataset_id', '')
+                is_st_mt_format = dataset_id.startswith('wmtslavicllm2025_')
+            except json.JSONDecodeError:
+                pass
+    
     # Read the JSONL file and extract the required information
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -70,43 +83,55 @@ def analyze_jsonl_file(jsonl_path):
             if not line:
                 continue
             obj = json.loads(line)
-            # collection_id
-            cid = obj.get('collection_id')
-            if cid:
-                output['collections'].add(cid)
-            # src_lang
-            sl = obj.get('src_lang')
-            if sl:
-                output['src_langs'].add(sl)
-            # tgt_lang
-            tl = obj.get('tgt_lang')
-            if tl:
-                output['tgt_langs'].add(tl)
-            # references
-            for ref in obj.get('refs', []):
-                tl = ref.get('tgt_lang')
-                tr = ref.get('translator')
+            
+            if is_st_mt_format:
+                # Handle ST MT format
+                # if "target" is present, add "True" as translator
+                if 'target' in obj:
+                    output['translators'].add('True')
+                # if "pred" is present, add "True" as system
+                if 'pred' in obj:
+                    output['systems'].add('True')
+                
+            else:
+                # Handle standard WMT25 format
+                # collection_id
+                cid = obj.get('collection_id')
+                if cid:
+                    output['collections'].add(cid)
+                # src_lang
+                sl = obj.get('src_lang')
+                if sl:
+                    output['src_langs'].add(sl)
+                # tgt_lang
+                tl = obj.get('tgt_lang')
                 if tl:
-                    output['ref_langs'].add(tl)
-                if tr:
-                    output['translators'].add(tr)
-            # hypotheses
-            for hyp in obj.get('hyps', obj.get('hypothesis', [])):
-                if isinstance(hyp, str):
-                    # If the hypothesis is a string, it might be an old format
-                    # without 'system' or 'tgt_lang' keys.
-                    continue
-                sysn = hyp.get('system', None)
-                hl = hyp.get('tgt_lang', None)
-                if hl:
-                    output['hyp_langs'].add(hl)
-                if sysn:
-                    output['systems'].add(sysn)
-            if 'system' in obj:
-                # If the JSONL file has a 'system' key, add it to systems
-                sysn = obj['system']
-                if sysn:
-                    output['systems'].add(sysn)
+                    output['tgt_langs'].add(tl)
+                # references
+                for ref in obj.get('refs', []):
+                    tl = ref.get('tgt_lang')
+                    tr = ref.get('translator')
+                    if tl:
+                        output['ref_langs'].add(tl)
+                    if tr:
+                        output['translators'].add(tr)
+                # hypotheses
+                for hyp in obj.get('hyps', obj.get('hypothesis', [])):
+                    if isinstance(hyp, str):
+                        # If the hypothesis is a string, it might be an old format
+                        # without 'system' or 'tgt_lang' keys.
+                        continue
+                    sysn = hyp.get('system', None)
+                    hl = hyp.get('tgt_lang', None)
+                    if hl:
+                        output['hyp_langs'].add(hl)
+                    if sysn:
+                        output['systems'].add(sysn)
+                if 'system' in obj:
+                    # If the JSONL file has a 'system' key, add it to systems
+                    sysn = obj['system']
+                    if sysn:
+                        output['systems'].add(sysn)
     return output
 
 
@@ -327,6 +352,18 @@ def process_jsonl_to_text(
             f'source={source}, reference={reference}, system={system}'
         )
 
+    # First, detect format by checking the first line
+    is_st_mt_format = False
+    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
+        first_line = f.readline().strip()
+        if first_line:
+            try:
+                obj = json.loads(first_line)
+                dataset_id = obj.get('dataset_id', '')
+                is_st_mt_format = dataset_id.startswith('wmtslavicllm2025_')
+            except json.JSONDecodeError:
+                pass
+
     # Read and collect JSONL entries
     entries = []
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as fin:
@@ -335,13 +372,20 @@ def process_jsonl_to_text(
             if not line:
                 continue
             obj = json.loads(line)
-            # Filter by collection if requested
-            if collection and obj.get('collection_id') != collection:
-                continue
-            # Skip if collection_id is "testsuites"
-            if obj.get('collection_id') == 'testsuites':
-                continue
-            sid = obj.get('segment_id')
+            
+            if is_st_mt_format:
+                # Use sent_id instead of segment_id for ST MT format
+                sid = obj.get('sent_id')
+            else:
+                # For standard WMT25 format
+                # Filter by collection if requested
+                if collection and obj.get('collection_id') != collection:
+                    continue
+                # Skip if collection_id is "testsuites"
+                if obj.get('collection_id') == 'testsuites':
+                    continue
+                sid = obj.get('segment_id')
+            
             try:
                 sid = int(sid)
             except Exception:
@@ -357,28 +401,38 @@ def process_jsonl_to_text(
     # Build output sentences
     out_sents = []
     for _, obj in entries:
-        if source:
-            sent = obj.get('src_text', MISSING_TRANSLATION_MESSAGE)
-        elif reference:
-            sent = MISSING_TRANSLATION_MESSAGE
-            for ref in obj.get('refs', []):
-                if ref.get('translator') == reference:
-                    sent = ref.get('text', MISSING_TRANSLATION_MESSAGE)
-                    break
-        else:  # system
-            sent = MISSING_TRANSLATION_MESSAGE
-            hyps = obj.get('hyps', obj.get('hypothesis', []))
-            if len(hyps) > 0:
-                if isinstance(hyps, str):
-                    sent = hyps or MISSING_TRANSLATION_MESSAGE
-                elif isinstance(hyps, list):
-                    for hyp in hyps:
-                        # if system is Boolean, not a string, take first system
-                        if isinstance(system, bool) and system:
-                            system = hyp.get('system')
-                        if hyp.get('system') == system:
-                            sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
-                            break
+        if is_st_mt_format:
+            # Handle ST MT format
+            if source:
+                sent = obj.get('source', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                sent = obj.get('target', MISSING_TRANSLATION_MESSAGE)
+            else:  # system
+                sent = obj.get('pred', MISSING_TRANSLATION_MESSAGE)
+        else:
+            # Handle standard WMT25 format
+            if source:
+                sent = obj.get('src_text', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                sent = MISSING_TRANSLATION_MESSAGE
+                for ref in obj.get('refs', []):
+                    if ref.get('translator') == reference:
+                        sent = ref.get('text', MISSING_TRANSLATION_MESSAGE)
+                        break
+            else:  # system
+                sent = MISSING_TRANSLATION_MESSAGE
+                hyps = obj.get('hyps', obj.get('hypothesis', []))
+                if len(hyps) > 0:
+                    if isinstance(hyps, str):
+                        sent = hyps or MISSING_TRANSLATION_MESSAGE
+                    elif isinstance(hyps, list):
+                        for hyp in hyps:
+                            # if system is Boolean, not a string, take first system
+                            if isinstance(system, bool) and system:
+                                system = hyp.get('system')
+                            if hyp.get('system') == system:
+                                sent = hyp.get('text', MISSING_TRANSLATION_MESSAGE)
+                                break
         out_sents.append(sent)
 
     # Write to txt file
