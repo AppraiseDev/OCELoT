@@ -5,6 +5,7 @@ Tests for utils functions.
 from pathlib import Path
 
 from .common import TestCase, TESTDATA_DIR, analyze_xml_file, analyze_jsonl_file, process_xml_to_text, process_jsonl_to_text
+from leaderboard.utils import detect_jsonl_format
 
 
 class UtilsTests(TestCase):
@@ -122,6 +123,79 @@ class UtilsTests(TestCase):
             'Indonesian',
         ]
         self.assertSetEqual(tgt_langs, set(expected_langs))
+
+    def test_detect_jsonl_format_standard_wmt25(self):
+        """Checks if standard WMT25 JSONL format is detected correctly."""
+        import io
+        
+        # Create a file-like object with standard WMT25 format
+        jsonl_content = '{"dataset_id": "newssample2021", "src_text": "Hello", "doc_id": "test", "src_lang": "en", "segment_id": "1"}\n'
+        jsonl_file = io.BytesIO(jsonl_content.encode('utf-8'))
+        jsonl_file.name = 'test.jsonl'
+        
+        result = detect_jsonl_format(jsonl_file)
+        self.assertFalse(result)
+
+    def test_detect_jsonl_format_st_mt_format(self):
+        """Checks if ST MT JSONL format is detected correctly."""
+        import io
+        
+        # Create a file-like object with ST MT format
+        jsonl_content = '{"dataset_id": "wmtslavicllm2025_de-dsb", "sent_id": "de-dsb-00001", "source": "Source text", "target": "Target text"}\n'
+        jsonl_file = io.BytesIO(jsonl_content.encode('utf-8'))
+        jsonl_file.name = 'test.jsonl'
+        
+        result = detect_jsonl_format(jsonl_file)
+        self.assertTrue(result)
+
+    def test_detect_jsonl_format_compressed_st_mt(self):
+        """Checks if compressed ST MT JSONL format is detected correctly."""
+        import io
+        import gzip
+        
+        # Create a compressed file-like object with ST MT format
+        jsonl_content = '{"dataset_id": "wmtslavicllm2025_de-dsb", "sent_id": "de-dsb-00001", "source": "Source text", "target": "Target text"}\n'
+        
+        # Create a temporary file for testing compressed format
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.jsonl.gz', delete=False) as tmp:
+            with gzip.open(tmp.name, 'wt', encoding='utf-8') as gz_file:
+                gz_file.write(jsonl_content)
+            
+            # Open the compressed file for testing
+            with open(tmp.name, 'rb') as f:
+                jsonl_file = io.BytesIO(f.read())
+                jsonl_file.name = 'test.jsonl.gz'
+                
+                result = detect_jsonl_format(jsonl_file)
+                self.assertTrue(result)
+        
+        # Clean up
+        import os
+        os.unlink(tmp.name)
+
+    def test_detect_jsonl_format_empty_file(self):
+        """Checks if empty JSONL file is handled correctly."""
+        import io
+        
+        # Create an empty file-like object
+        jsonl_file = io.BytesIO(b'')
+        jsonl_file.name = 'empty.jsonl'
+        
+        result = detect_jsonl_format(jsonl_file)
+        self.assertFalse(result)
+
+    def test_detect_jsonl_format_invalid_json(self):
+        """Checks if invalid JSON in JSONL file is handled correctly."""
+        import io
+        
+        # Create a file-like object with invalid JSON
+        jsonl_content = '{"dataset_id": "test", invalid json}\n'
+        jsonl_file = io.BytesIO(jsonl_content.encode('utf-8'))
+        jsonl_file.name = 'invalid.jsonl'
+        
+        result = detect_jsonl_format(jsonl_file)
+        self.assertFalse(result)
 
 
     #################################################################

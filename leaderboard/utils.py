@@ -5,12 +5,58 @@ import os.path
 import re
 from typing import Optional
 import json
+import tempfile
 
 import lxml.etree as ET
 from sacrebleu.utils import smart_open
 
 
 MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
+
+
+def detect_jsonl_format(json_file):
+    """Detect whether a JSONL file uses the new wmtslavicllm2025_ format."""
+    json_file.seek(0)
+    
+    # Handle compressed files
+    if json_file.name.endswith('.jsonl.gz'):
+        if hasattr(json_file, 'temporary_file_path'):
+            file_path = json_file.temporary_file_path()
+        else:
+            # For in-memory files, write to temp file first
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                json_file.seek(0)
+                temp_file.write(json_file.read())
+                file_path = temp_file.name
+
+        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+            for line in f:
+                text = line.strip()
+                if text:
+                    try:
+                        obj = json.loads(text)
+                        dataset_id = obj.get('dataset_id', '')
+                        json_file.seek(0)
+                        return dataset_id.startswith('wmtslavicllm2025_')
+                    except json.JSONDecodeError:
+                        json_file.seek(0)
+                        return False
+    else:
+        # Handle uncompressed files
+        for line in json_file:
+            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+            if text:
+                try:
+                    obj = json.loads(text)
+                    dataset_id = obj.get('dataset_id', '')
+                    json_file.seek(0)
+                    return dataset_id.startswith('wmtslavicllm2025_')
+                except json.JSONDecodeError:
+                    json_file.seek(0)
+                    return False
+    
+    json_file.seek(0)
+    return False
 
 
 def analyze_xml_file(xml_path):
@@ -49,6 +95,20 @@ def analyze_xml_file(xml_path):
     return collections, src_langs, ref_langs, translators, systems
 
 
+def detect_jsonl_format_from_path(jsonl_path):
+    """Detect whether a JSONL file uses the new wmtslavicllm2025_ format from file path."""
+    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
+        first_line = f.readline().strip()
+        if first_line:
+            try:
+                obj = json.loads(first_line)
+                dataset_id = obj.get('dataset_id', '')
+                return dataset_id.startswith('wmtslavicllm2025_')
+            except json.JSONDecodeError:
+                pass
+    return False
+
+
 def analyze_jsonl_file(jsonl_path):
     """
     Return all collection IDs, source languages, reference languages,
@@ -65,16 +125,7 @@ def analyze_jsonl_file(jsonl_path):
     }
     
     # First, detect format by checking the first line
-    is_st_mt_format = False
-    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
-        first_line = f.readline().strip()
-        if first_line:
-            try:
-                obj = json.loads(first_line)
-                dataset_id = obj.get('dataset_id', '')
-                is_st_mt_format = dataset_id.startswith('wmtslavicllm2025_')
-            except json.JSONDecodeError:
-                pass
+    is_st_mt_format = detect_jsonl_format_from_path(jsonl_path)
     
     # Read the JSONL file and extract the required information
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
@@ -353,16 +404,7 @@ def process_jsonl_to_text(
         )
 
     # First, detect format by checking the first line
-    is_st_mt_format = False
-    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
-        first_line = f.readline().strip()
-        if first_line:
-            try:
-                obj = json.loads(first_line)
-                dataset_id = obj.get('dataset_id', '')
-                is_st_mt_format = dataset_id.startswith('wmtslavicllm2025_')
-            except json.JSONDecodeError:
-                pass
+    is_st_mt_format = detect_jsonl_format_from_path(jsonl_path)
 
     # Read and collect JSONL entries
     entries = []

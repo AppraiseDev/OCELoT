@@ -29,6 +29,7 @@ from leaderboard.utils import process_to_text  # type: ignore
 from leaderboard.utils import process_xml_to_text
 from leaderboard.utils import analyze_jsonl_file, process_jsonl_to_text
 from leaderboard.utils import analyze_json_file, process_json_to_text
+from leaderboard.utils import detect_jsonl_format
 from ocelot.settings import MEDIA_ROOT
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
@@ -411,52 +412,6 @@ def validate_xml_schema(xml_file):
         raise ValidationError(_msg)
 
 
-def _detect_jsonl_format(json_file):
-    """Detect whether a JSONL file uses the new wmtslavicllm2025_ format."""
-    json_file.seek(0)
-    
-    # Handle compressed files
-    if json_file.name.endswith('.jsonl.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
-            for line in f:
-                text = line.strip()
-                if text:
-                    try:
-                        obj = json.loads(text)
-                        dataset_id = obj.get('dataset_id', '')
-                        json_file.seek(0)
-                        return dataset_id.startswith('wmtslavicllm2025_')
-                    except json.JSONDecodeError:
-                        json_file.seek(0)
-                        return False
-    else:
-        # Handle uncompressed files
-        for line in json_file:
-            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
-            if text:
-                try:
-                    obj = json.loads(text)
-                    dataset_id = obj.get('dataset_id', '')
-                    json_file.seek(0)
-                    return dataset_id.startswith('wmtslavicllm2025_')
-                except json.JSONDecodeError:
-                    json_file.seek(0)
-                    return False
-    
-    json_file.seek(0)
-    return False
-
-
 def validate_jsonl_schema(json_file):
     """Validates JSONL file based on appropriate schema."""
     # Skip validation for non‐JSONL uploads
@@ -464,7 +419,7 @@ def validate_jsonl_schema(json_file):
         return
 
     # Detect format and choose appropriate schema
-    is_st_mt_format = _detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file)
     schema = JSONL_WMT25_ST_MT_SCHEMA if is_st_mt_format else JSONL_WMT25_SCHEMA
 
     try:
@@ -712,7 +667,7 @@ def validate_jsonl_src_testset(json_file):
     src_langs = set()
     
     # Detect format
-    is_st_mt_format = _detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -802,7 +757,7 @@ def validate_jsonl_ref_testset(json_file):
     ref_langs = set()
     
     # Detect format
-    is_st_mt_format = _detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -899,7 +854,7 @@ def validate_jsonl_submission(json_file):
     has_hyps = False
     
     # Detect format
-    is_st_mt_format = _detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
