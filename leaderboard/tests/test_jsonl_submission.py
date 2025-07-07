@@ -470,3 +470,183 @@ class JSONLSubmissionTests(TestCase):
             }
             response = self.client.post('/submit', data, follow=True)
         self.assertContains(response, 'successfully submitted')
+
+
+#####################################################################
+# Tests for analyze_xyz_file functions
+
+class WMTSTMTSubmissionTests(TestCase):
+    """Tests Submission model for WMT-ST MT JSONL format."""
+
+    def setUp(self):
+        """Set up test data for WMT-ST MT JSONL format tests."""
+        Language.objects.create(code='de', name='German')
+        Language.objects.create(code='dsb', name='Lower Sorbian')
+
+        _next_year = datetime.now().year + 1
+        self.competition = Competition.objects.create(
+            is_active=True,
+            name='WMT-ST-MT Competition',
+            description='WMT Speech Translation MT Competition',
+            deadline=datetime(_next_year, 1, 1, tzinfo=timezone.utc),
+        )
+
+        # Create test set for WMT-ST MT format (uses multi-language setting)
+        self.testset = TestSet.objects.create(
+            is_active=True,
+            name='WMT-ST-MT TestSet',
+            source_language=None,  # Multi-language test set
+            target_language=None,  # Multi-language test set
+            file_format=JSONL_FILE,
+            src_file=os.path.join(
+                TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.jsonl'
+            ),
+            ref_file=os.path.join(
+                TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.jsonl'
+            ),
+            competition=self.competition,
+        )
+
+        self.team = Team.objects.create(
+            is_active=True,
+            is_verified=True,
+            name='WMT-ST Team',
+            email='wmt-st-team@email.com',
+        )
+
+    def _set_ocelot_team_token(self):
+        """Set the team token to be able to render the submission form."""
+        session = self.client.session
+        session['ocelot_team_token'] = self.team.token
+        session.save()
+
+    def _make_submission(self, file_name, file_format=JSONL_FILE):
+        """Makes a WMT-ST MT submission."""
+        return Submission.objects.create(
+            name=file_name,
+            original_name=file_name,
+            test_set=self.testset,
+            submitted_by=self.team,
+            file_format=file_format,
+            hyp_file=os.path.join(TESTDATA_DIR, 'jsonl-wmt-st', file_name),
+        )
+
+    def test_wmt_st_mt_testset_validation(self):
+        """Test that WMT-ST MT JSONL test set validates correctly."""
+        # Test set should be valid and format should be detected
+        self.assertTrue(self.testset.is_active)
+        self.assertEqual(self.testset.file_format, JSONL_FILE)
+
+    def test_wmt_st_mt_submission_with_predictions(self):
+        """Test WMT-ST MT submission with predictions."""
+        _file = 'wmt-st-mt.pred.jsonl'
+        sub = self._make_submission(_file)
+        
+        # Check basic submission properties
+        self.assertEqual(sub.name, _file)
+        self.assertEqual(sub.file_format, JSONL_FILE)
+        self.assertEqual(sub.test_set, self.testset)
+        self.assertEqual(sub.submitted_by, self.team)
+        self.assertTrue(sub.is_valid)
+
+    def test_wmt_st_mt_submission_pred_only(self):
+        """Test WMT-ST MT submission with predictions only."""
+        _file = 'wmt-st-mt.pred_only.jsonl'
+        sub = self._make_submission(_file)
+        
+        # Check basic submission properties
+        self.assertEqual(sub.name, _file)
+        self.assertEqual(sub.file_format, JSONL_FILE)
+        self.assertEqual(sub.test_set, self.testset)
+        self.assertEqual(sub.submitted_by, self.team)
+        self.assertTrue(sub.is_valid)
+
+    def test_wmt_st_mt_submission_scores_computation(self):
+        """Test that scores are computed for WMT-ST MT submissions."""
+        _file = 'wmt-st-mt.pred.jsonl'
+        sub = self._make_submission(_file)
+        
+        # Scores should be computed if compute_scores is enabled
+        if self.testset.compute_scores:
+            self.assertIsNotNone(sub.score)
+            self.assertIsNotNone(sub.score_chrf)
+            # Scores should be positive numbers
+            self.assertGreater(sub.score, 0)
+            self.assertGreater(sub.score_chrf, 0)
+
+    def test_wmt_st_mt_submission_is_anonymous_by_default(self):
+        """Test that WMT-ST MT submission is anonymous by default."""
+        _file = 'wmt-st-mt.pred.jsonl'
+        sub = self._make_submission(_file)
+        
+        # Check that submission is anonymous by default
+        self.assertFalse(sub.is_public)
+        self.assertIn('Anonymous', str(sub))
+
+    def test_wmt_st_mt_submission_can_be_public(self):
+        """Test that WMT-ST MT submission can be made public."""
+        _file = 'wmt-st-mt.pred.jsonl'
+        sub = self._make_submission(_file)
+        sub.is_public = True
+        sub.save()
+        
+        # Check that submission is public
+        self.assertTrue(sub.is_public)
+        self.assertNotIn('Anonymous', str(sub))
+
+    def test_wmt_st_mt_submission_form_shows_testset(self):
+        """Test that WMT-ST MT test set appears in submission form."""
+        self._set_ocelot_team_token()
+        
+        response = self.client.get('/submit')
+        self.assertContains(response, self.testset.name)
+
+    def test_wmt_st_mt_submission_form_upload(self):
+        """Test uploading WMT-ST MT submission through form."""
+        self._set_ocelot_team_token()
+        
+        _file = 'jsonl-wmt-st/wmt-st-mt.pred.jsonl'
+        with open(os.path.join(TESTDATA_DIR, _file), encoding='utf8') as f:
+            data = {
+                'test_set': str(self.testset.id),
+                'hyp_file': f,
+            }
+            response = self.client.post('/submit', data, follow=True)
+        
+        # Check that submission was successful
+        self.assertNotContains(response, 'submission has closed')
+        # Check that a submission was created
+        self.assertTrue(Submission.objects.filter(
+            test_set=self.testset,
+            submitted_by=self.team
+        ).exists())
+
+    def test_wmt_st_mt_format_detection(self):
+        """Test that WMT-ST MT format is correctly detected."""
+        # Import the detection function
+        from leaderboard.utils import detect_jsonl_format_from_path
+        
+        # Test that WMT-ST MT format is detected
+        st_mt_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.jsonl')
+        self.assertTrue(detect_jsonl_format_from_path(st_mt_file))
+        
+        # Test with pred file
+        pred_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.pred.jsonl')
+        self.assertTrue(detect_jsonl_format_from_path(pred_file))
+        
+        # Test with pred only file  
+        pred_only_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.pred_only.jsonl')
+        self.assertTrue(detect_jsonl_format_from_path(pred_only_file))
+
+    def test_wmt_st_mt_testset_text_file_creation(self):
+        """Test that text files are created from WMT-ST MT JSONL files."""
+        # Force text file creation
+        self.testset._create_text_files()
+        
+        # Check if text files were created
+        src_path = str(self.testset.src_file.name).replace('.jsonl', '.txt')
+        ref_path = str(self.testset.ref_file.name).replace('.jsonl', '.txt')
+        
+        # Files should exist after text file creation
+        self.assertTrue(os.path.exists(src_path) or 
+                       os.path.exists(os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.txt')))

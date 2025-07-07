@@ -8,7 +8,7 @@ from datetime import timedelta
 
 from .common import (
     TestCase, timezone, TESTDATA_DIR, Language, Competition, 
-    TestSet, Team, Submission, SGML_FILE, TEXT_FILE
+    TestSet, Team, Submission, SGML_FILE, TEXT_FILE, JSONL_FILE
 )
 
 

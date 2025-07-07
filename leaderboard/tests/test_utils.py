@@ -206,7 +206,6 @@ class UtilsTests(TestCase):
         xml_path = TESTDATA_DIR + '/xml/sample-hyp.xml'
         txt_path = xml_path + '.temp.txt'
         process_xml_to_text(xml_path, txt_path, system='test-team')
-
         txt_file = Path(txt_path)
         self.assertTrue(txt_file.exists())
         self.assertTrue(txt_file.stat().st_size > 0)
