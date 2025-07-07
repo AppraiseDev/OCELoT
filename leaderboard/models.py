@@ -235,7 +235,7 @@ XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
 </grammar>
 """
 
-JSONL_SCHEMA = {
+JSONL_WMT25_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "WMT25 JSONL entry",
     "type": "object",
@@ -256,6 +256,27 @@ JSONL_SCHEMA = {
     #    { "required": ["src_text"] },
     #    { "required": ["hypothesis"] }
     #],
+    "additionalProperties": True
+}
+
+JSONL_WMT25_ST_MT_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT25-ST MT JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id":   { "type": "string" },
+        "sent_id":     { "type": "string" },
+        "source":     { "type": "string" },
+        "target":     { "type": "string" },
+        "pred":   { "type": "string" },
+    },
+    "required": [
+        "dataset_id",
+    ],
+    "anyOf": [
+        { "required": ["source"] },
+        { "required": ["pred"] }
+    ],
     "additionalProperties": True
 }
 
@@ -390,7 +411,7 @@ def validate_xml_schema(xml_file):
 
 
 def validate_jsonl_schema(json_file):
-    """Validates JSONL file based on JSONL_SCHEMA."""
+    """Validates JSONL file based on JSONL_WMT25_SCHEMA."""
     # Skip validation for non‐JSONL uploads
     if not (json_file.name.endswith('.jsonl') or json_file.name.endswith('.jsonl.gz')):
         return
@@ -416,37 +437,32 @@ def validate_jsonl_schema(json_file):
                 with smart_open(file_path, 'rt', encoding='utf-8') as f:
                     for lineno, line in enumerate(f, start=1):
                         text = line.strip()
-                        if not text:
-                            continue  # skip blank lines
-                        try:
-                            obj = json.loads(text)
-                        except json.JSONDecodeError as e:
-                            raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
-                        try:
-                            jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
-                        except jsonschema.ValidationError as e:
-                            # Report the first schema violation
-                            raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+                        _validate_jsonl_schema(text, lineno, schema=JSONL_WMT25_SCHEMA)
             except BadGzipFile as e:
                 raise ValidationError(f'JSONL file is not a valid gzip file: {e}')
         else:
             # Handle uncompressed files directly
             for lineno, line in enumerate(json_file, start=1):
                 text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
-                if not text:
-                    continue  # skip blank lines
-                try:
-                    obj = json.loads(text)
-                except json.JSONDecodeError as e:
-                    raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
-                try:
-                    jsonschema.validate(instance=obj, schema=JSONL_SCHEMA)
-                except jsonschema.ValidationError as e:
-                    # Report the first schema violation
-                    raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
+                _validate_jsonl_schema(text, lineno, schema=JSONL_WMT25_SCHEMA)
     finally:
         # Reset file pointer so further processing can read it again
         json_file.seek(0)
+
+
+def _validate_jsonl_schema(text, lineno, schema):
+    """Validate a single line of JSONL against the WMT25 JSONL schema."""
+    if not text:
+        pass  # skip blank lines
+    try:
+        obj = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise ValidationError(f'JSONL file invalid JSON at line {lineno}: {e}')
+    try:
+        jsonschema.validate(instance=obj, schema=schema)
+    except jsonschema.ValidationError as e:
+        # Report the first schema violation
+        raise ValidationError(f'JSONL file invalid at line {lineno}: {e.message}')
 
 
 def validate_json_schema(json_file):
