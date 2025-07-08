@@ -624,19 +624,19 @@ class WMTSTMTSubmissionTests(TestCase):
     def test_wmt_st_mt_format_detection(self):
         """Test that WMT-ST MT format is correctly detected."""
         # Import the detection function
-        from leaderboard.utils import detect_jsonl_format_from_path
+        from leaderboard.utils import detect_jsonl_format
         
         # Test that WMT-ST MT format is detected
         st_mt_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.jsonl')
-        self.assertTrue(detect_jsonl_format_from_path(st_mt_file))
+        self.assertTrue(detect_jsonl_format(st_mt_file, 'WMT-ST-MT'))
         
         # Test with pred file
         pred_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.pred.jsonl')
-        self.assertTrue(detect_jsonl_format_from_path(pred_file))
+        self.assertTrue(detect_jsonl_format(pred_file, 'WMT-ST-MT'))
         
         # Test with pred only file  
         pred_only_file = os.path.join(TESTDATA_DIR, 'jsonl-wmt-st/wmt-st-mt.pred_only.jsonl')
-        self.assertTrue(detect_jsonl_format_from_path(pred_only_file))
+        self.assertTrue(detect_jsonl_format(pred_only_file, 'WMT-ST-MT'))
 
     def test_wmt_st_mt_testset_text_file_creation(self):
         """Test that text files are created from WMT-ST MT JSONL files."""

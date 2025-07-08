@@ -30,6 +30,7 @@ from leaderboard.utils import process_xml_to_text
 from leaderboard.utils import analyze_jsonl_file, process_jsonl_to_text
 from leaderboard.utils import analyze_json_file, process_json_to_text
 from leaderboard.utils import detect_jsonl_format
+from leaderboard.utils import JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_GENMT_FORMAT
 from ocelot.settings import MEDIA_ROOT
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
@@ -419,7 +420,8 @@ def validate_jsonl_schema(json_file):
         return
 
     # Detect format and choose appropriate schema
-    is_st_mt_format = detect_jsonl_format(json_file)
+    # todo: this could be defined globally as a map
+    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
     schema = JSONL_WMT25_ST_MT_SCHEMA if is_st_mt_format else JSONL_WMT25_SCHEMA
 
     try:
@@ -667,7 +669,7 @@ def validate_jsonl_src_testset(json_file):
     src_langs = set()
     
     # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -757,7 +759,7 @@ def validate_jsonl_ref_testset(json_file):
     ref_langs = set()
     
     # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -854,7 +856,7 @@ def validate_jsonl_submission(json_file):
     has_hyps = False
     
     # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file)
+    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):

@@ -10,53 +10,76 @@ import tempfile
 import lxml.etree as ET
 from sacrebleu.utils import smart_open
 
-
 MISSING_TRANSLATION_MESSAGE = "NO TRANSLATION AVAILABLE"
 
+JSONL_WMT_GENMT_FORMAT = 'WMT25'  # WMT 2025 General MT format
+JSONL_WMT_ST_MT_FORMAT = 'WMT-ST-MT'  # WMT 2025 Slavic Translation MT format
+JSONL_WMT_ST_QA_FORMAT = 'WMT-ST-QA'  # WMT 2025 Slavic Translation QA format
 
-def detect_jsonl_format(json_file):
-    """Detect whether a JSONL file uses the new wmtslavicllm2025_ format."""
-    json_file.seek(0)
-    
-    # Handle compressed files
-    if json_file.name.endswith('.jsonl.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
+
+def detect_jsonl_format(json_file_or_path, format=None):
+    """
+    Detect the format of a JSONL file.
+    """
+
+    def _check_format_in_line(line_text):
+        if not line_text:
+            return None
+        
+        try:
+            obj = json.loads(line_text)
+        except json.JSONDecodeError:
+            return None
+
+        _format = None
+        if 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025_qa'):
+            _format = JSONL_WMT_ST_QA_FORMAT
+        elif 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025'):
+            _format = JSONL_WMT_ST_MT_FORMAT
+        elif 'dataset_id' in obj and 'doc_id' in obj and 'tgt_lang' in obj:
+            _format = JSONL_WMT_GENMT_FORMAT
         else:
-            # For in-memory files, write to temp file first
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
+            _format = None
 
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
-            for line in f:
-                text = line.strip()
-                if text:
-                    try:
-                        obj = json.loads(text)
-                        dataset_id = obj.get('dataset_id', '')
-                        json_file.seek(0)
-                        return dataset_id.startswith('wmtslavicllm2025_')
-                    except json.JSONDecodeError:
-                        json_file.seek(0)
-                        return False
-    else:
-        # Handle uncompressed files
-        for line in json_file:
-            text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
-            if text:
-                try:
-                    obj = json.loads(text)
-                    dataset_id = obj.get('dataset_id', '')
-                    json_file.seek(0)
-                    return dataset_id.startswith('wmtslavicllm2025_')
-                except json.JSONDecodeError:
-                    json_file.seek(0)
-                    return False
+        if format is not None:
+            return _format == format
+        return _format
     
+    # Handle file path (string)
+    if isinstance(json_file_or_path, str):
+        with smart_open(json_file_or_path, 'rt', encoding='utf-8') as f:
+            first_line = f.readline().strip()
+            return _check_format_in_line(first_line)
+    
+    # Handle file object
+    json_file = json_file_or_path
     json_file.seek(0)
-    return False
+    
+    try:
+        # Handle compressed files
+        if json_file.name.endswith('.jsonl.gz'):
+            if hasattr(json_file, 'temporary_file_path'):
+                file_path = json_file.temporary_file_path()
+            else:
+                # For in-memory files, write to temp file first
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
+                    json_file.seek(0)
+                    temp_file.write(json_file.read())
+                    file_path = temp_file.name
+
+            with smart_open(file_path, 'rt', encoding='utf-8') as f:
+                first_line = f.readline().strip()
+                return _check_format_in_line(first_line)
+        else:
+            # Handle uncompressed files
+            for line in json_file:
+                text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
+                if text:
+                    return _check_format_in_line(text)
+    finally:
+        json_file.seek(0)
+    
+    return False if format else None
 
 
 def analyze_xml_file(xml_path):
@@ -95,20 +118,6 @@ def analyze_xml_file(xml_path):
     return collections, src_langs, ref_langs, translators, systems
 
 
-def detect_jsonl_format_from_path(jsonl_path):
-    """Detect whether a JSONL file uses the new wmtslavicllm2025_ format from file path."""
-    with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
-        first_line = f.readline().strip()
-        if first_line:
-            try:
-                obj = json.loads(first_line)
-                dataset_id = obj.get('dataset_id', '')
-                return dataset_id.startswith('wmtslavicllm2025_')
-            except json.JSONDecodeError:
-                pass
-    return False
-
-
 def analyze_jsonl_file(jsonl_path):
     """
     Return all collection IDs, source languages, reference languages,
@@ -123,9 +132,8 @@ def analyze_jsonl_file(jsonl_path):
         "hyp_langs": set(),
         "systems": set(),
     }
-    
-    # First, detect format by checking the first line
-    is_st_mt_format = detect_jsonl_format_from_path(jsonl_path)
+
+    jsonl_format = detect_jsonl_format(jsonl_path)
     
     # Read the JSONL file and extract the required information
     with smart_open(jsonl_path, 'rt', encoding='utf-8') as f:
@@ -135,10 +143,19 @@ def analyze_jsonl_file(jsonl_path):
                 continue
             obj = json.loads(line)
             
-            if is_st_mt_format:
+            if jsonl_format == JSONL_WMT_ST_MT_FORMAT:
                 # Handle ST MT format
                 # if "target" is present, add "True" as translator
                 if 'target' in obj:
+                    output['translators'].add('True')
+                # if "pred" is present, add "True" as system
+                if 'pred' in obj:
+                    output['systems'].add('True')
+            
+            elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
+                # Handle ST QA format
+                # if "correct_answers" is present, add "True" as translator
+                if 'correct_answers' in obj:
                     output['translators'].add('True')
                 # if "pred" is present, add "True" as system
                 if 'pred' in obj:
@@ -404,7 +421,7 @@ def process_jsonl_to_text(
         )
 
     # First, detect format by checking the first line
-    is_st_mt_format = detect_jsonl_format_from_path(jsonl_path)
+    jsonl_format = detect_jsonl_format(jsonl_path)
 
     # Read and collect JSONL entries
     entries = []
@@ -415,7 +432,7 @@ def process_jsonl_to_text(
                 continue
             obj = json.loads(line)
             
-            if is_st_mt_format:
+            if jsonl_format == JSONL_WMT_ST_MT_FORMAT:
                 # Use sent_id instead of segment_id for ST MT format
                 sid = obj.get('sent_id')
             else:
@@ -443,7 +460,7 @@ def process_jsonl_to_text(
     # Build output sentences
     out_sents = []
     for _, obj in entries:
-        if is_st_mt_format:
+        if jsonl_format == JSONL_WMT_ST_MT_FORMAT:
             # Handle ST MT format
             if source:
                 sent = obj.get('source', MISSING_TRANSLATION_MESSAGE)

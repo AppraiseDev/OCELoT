@@ -5,7 +5,7 @@ Tests for utils functions.
 from pathlib import Path
 
 from .common import TestCase, TESTDATA_DIR, analyze_xml_file, analyze_jsonl_file, process_xml_to_text, process_jsonl_to_text
-from leaderboard.utils import detect_jsonl_format
+from leaderboard.utils import detect_jsonl_format, JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_GENMT_FORMAT
 
 
 class UtilsTests(TestCase):
@@ -133,7 +133,7 @@ class UtilsTests(TestCase):
         jsonl_file = io.BytesIO(jsonl_content.encode('utf-8'))
         jsonl_file.name = 'test.jsonl'
         
-        result = detect_jsonl_format(jsonl_file)
+        result = detect_jsonl_format(jsonl_file, JSONL_WMT_GENMT_FORMAT)
         self.assertFalse(result)
 
     def test_detect_jsonl_format_st_mt_format(self):
@@ -145,7 +145,7 @@ class UtilsTests(TestCase):
         jsonl_file = io.BytesIO(jsonl_content.encode('utf-8'))
         jsonl_file.name = 'test.jsonl'
         
-        result = detect_jsonl_format(jsonl_file)
+        result = detect_jsonl_format(jsonl_file, JSONL_WMT_ST_MT_FORMAT)
         self.assertTrue(result)
 
     def test_detect_jsonl_format_compressed_st_mt(self):
@@ -167,12 +167,71 @@ class UtilsTests(TestCase):
                 jsonl_file = io.BytesIO(f.read())
                 jsonl_file.name = 'test.jsonl.gz'
                 
-                result = detect_jsonl_format(jsonl_file)
+                result = detect_jsonl_format(jsonl_file, JSONL_WMT_ST_MT_FORMAT)
                 self.assertTrue(result)
         
         # Clean up
         import os
         os.unlink(tmp.name)
+
+    def test_detect_jsonl_format_general_detection(self):
+        """Checks if general format detection works correctly."""
+        import io
+        
+        # Test WMT25 format detection
+        wmt25_content = '{"dataset_id": "newssample2021", "src_text": "Hello", "doc_id": "test", "src_lang": "en", "tgt_lang": "de", "segment_id": "1"}\n'
+        wmt25_file = io.BytesIO(wmt25_content.encode('utf-8'))
+        wmt25_file.name = 'test.jsonl'
+        
+        result = detect_jsonl_format(wmt25_file)
+        self.assertEqual(result, JSONL_WMT_GENMT_FORMAT)
+        
+        # Test WMT ST format detection
+        st_content = '{"dataset_id": "wmtslavicllm2025_de-dsb", "sent_id": "de-dsb-00001", "source": "Source text", "target": "Target text"}\n'
+        st_file = io.BytesIO(st_content.encode('utf-8'))
+        st_file.name = 'test.jsonl'
+        
+        result = detect_jsonl_format(st_file)
+        self.assertEqual(result, JSONL_WMT_ST_MT_FORMAT)
+        
+        # Test specific format checking
+        result = detect_jsonl_format(wmt25_file, JSONL_WMT_GENMT_FORMAT)
+        self.assertTrue(result)
+        
+        result = detect_jsonl_format(wmt25_file, JSONL_WMT_ST_MT_FORMAT)
+        self.assertFalse(result)
+        
+        result = detect_jsonl_format(st_file, JSONL_WMT_ST_MT_FORMAT)
+        self.assertTrue(result)
+        
+        result = detect_jsonl_format(st_file, JSONL_WMT_GENMT_FORMAT)
+        self.assertFalse(result)
+
+    def test_detect_jsonl_format_path_input(self):
+        """Checks if path input works correctly."""
+        import tempfile
+        import os
+        
+        # Create a temporary file with WMT ST format
+        st_content = '{"dataset_id": "wmtslavicllm2025_de-dsb", "sent_id": "de-dsb-00001", "source": "Source text", "target": "Target text"}\n'
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as tmp:
+            tmp.write(st_content)
+            tmp_path = tmp.name
+        
+        try:
+            # Test general detection
+            result = detect_jsonl_format(tmp_path)
+            self.assertEqual(result, JSONL_WMT_ST_MT_FORMAT)
+            
+            # Test specific format checking
+            result = detect_jsonl_format(tmp_path, JSONL_WMT_ST_MT_FORMAT)
+            self.assertTrue(result)
+            
+            result = detect_jsonl_format(tmp_path, JSONL_WMT_GENMT_FORMAT)
+            self.assertFalse(result)
+        finally:
+            os.unlink(tmp_path)
 
     def test_detect_jsonl_format_empty_file(self):
         """Checks if empty JSONL file is handled correctly."""
@@ -182,8 +241,12 @@ class UtilsTests(TestCase):
         jsonl_file = io.BytesIO(b'')
         jsonl_file.name = 'empty.jsonl'
         
-        result = detect_jsonl_format(jsonl_file)
+        result = detect_jsonl_format(jsonl_file, JSONL_WMT_ST_MT_FORMAT)
         self.assertFalse(result)
+        
+        # Test general detection
+        result = detect_jsonl_format(jsonl_file)
+        self.assertIsNone(result)
 
     def test_detect_jsonl_format_invalid_json(self):
         """Checks if invalid JSON in JSONL file is handled correctly."""
