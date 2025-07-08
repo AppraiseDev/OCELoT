@@ -763,6 +763,9 @@ def validate_jsonl_ref_testset(json_file):
         if format == JSONL_WMT_ST_MT_FORMAT:
             if not obj.get('target', ""):
                 raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
+        elif format == JSONL_WMT_ST_QA_FORMAT:
+            if not obj.get('correct_answers', []):
+                raise ValidationError(f'Missing "correct_answers" field at line {lineno} in JSONL ref test set')
         else:
             refs = obj.get('refs', [])
             if not refs:
