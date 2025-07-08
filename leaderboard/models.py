@@ -274,10 +274,10 @@ JSONL_WMT25_ST_QA_SCHEMA = {
     "required": [
         "dataset_id",
     ],
-    #"anyOf": [
-    #    { "required": ["correct_answers"] },
-    #    { "required": ["pred"] }
-    #],
+    "anyOf": [
+        { "required": ["correct_answers"] },
+        { "required": ["pred"] }
+    ],
     "additionalProperties": True
 }
 
@@ -296,10 +296,10 @@ JSONL_WMT25_ST_MT_SCHEMA = {
     "required": [
         "dataset_id", "sent_id"
     ],
-    #"anyOf": [
-    #    { "required": ["source"] },
-    #    { "required": ["pred"] }
-    #],
+    "anyOf": [
+        { "required": ["source"] },
+        { "required": ["pred"] }
+    ],
     "additionalProperties": True
 }
 
