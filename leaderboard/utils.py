@@ -433,8 +433,11 @@ def process_jsonl_to_text(
             obj = json.loads(line)
             
             if jsonl_format == JSONL_WMT_ST_MT_FORMAT:
-                # Use sent_id instead of segment_id for ST MT format
-                sid = obj.get('sent_id')
+                # Use sent_id instead of segment_id for WMT ST MT format
+                sid = obj.get('sent_id', None)
+            elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
+                # Use sent_id instead of segment_id for WMT ST QA format
+                sid = obj.get('question_id', None)
             else:
                 # For standard WMT25 format
                 # Filter by collection if requested
@@ -468,6 +471,18 @@ def process_jsonl_to_text(
                 sent = obj.get('target', MISSING_TRANSLATION_MESSAGE)
             else:  # system
                 sent = obj.get('pred', MISSING_TRANSLATION_MESSAGE)
+            sent = sent.replace('\n', '\\n').replace('\r', '\\r')
+        
+        elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
+            # Handle ST QA format
+            if source:
+                sent = obj.get('question', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                sent = obj.get('correct_answers', [MISSING_TRANSLATION_MESSAGE])[0]
+            else:  # system
+                sent = obj.get('pred', MISSING_TRANSLATION_MESSAGE)
+            sent = sent.replace('\n', '\\n').replace('\r', '\\r')
+
         else:
             # Handle standard WMT25 format
             if source:

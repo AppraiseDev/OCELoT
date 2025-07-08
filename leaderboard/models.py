@@ -30,7 +30,7 @@ from leaderboard.utils import process_xml_to_text
 from leaderboard.utils import analyze_jsonl_file, process_jsonl_to_text
 from leaderboard.utils import analyze_json_file, process_json_to_text
 from leaderboard.utils import detect_jsonl_format
-from leaderboard.utils import JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_GENMT_FORMAT
+from leaderboard.utils import JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT, JSONL_WMT_GENMT_FORMAT
 from ocelot.settings import MEDIA_ROOT
 
 MAX_CODE_LENGTH = 10  # ISO 639 codes need 3 chars, but better add buffer
@@ -262,6 +262,26 @@ JSONL_WMT25_SCHEMA = {
 }
 
 # requires "dataset_id" to start with "wmtslavicllm2025_" 
+JSONL_WMT25_ST_QA_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT25-ST QA JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id":      { "type": "string" },
+        "correct_answers": { "type": "array", "items": { "type": "string" } },
+        "pred":            { "type": "string" },
+    },
+    "required": [
+        "dataset_id",
+    ],
+    #"anyOf": [
+    #    { "required": ["correct_answers"] },
+    #    { "required": ["pred"] }
+    #],
+    "additionalProperties": True
+}
+
+# requires "dataset_id" to start with "wmtslavicllm2025_" 
 JSONL_WMT25_ST_MT_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "WMT25-ST MT JSONL entry",
@@ -274,12 +294,12 @@ JSONL_WMT25_ST_MT_SCHEMA = {
         "pred":       { "type": "string" },
     },
     "required": [
-        "dataset_id",
+        "dataset_id", "sent_id"
     ],
-    "anyOf": [
-        { "required": ["source"] },
-        { "required": ["pred"] }
-    ],
+    #"anyOf": [
+    #    { "required": ["source"] },
+    #    { "required": ["pred"] }
+    #],
     "additionalProperties": True
 }
 
@@ -420,9 +440,13 @@ def validate_jsonl_schema(json_file):
         return
 
     # Detect format and choose appropriate schema
-    # todo: this could be defined globally as a map
-    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
-    schema = JSONL_WMT25_ST_MT_SCHEMA if is_st_mt_format else JSONL_WMT25_SCHEMA
+    jsonl_format = detect_jsonl_format(json_file)
+    if jsonl_format == JSONL_WMT_ST_MT_FORMAT:
+        schema = JSONL_WMT25_ST_MT_SCHEMA
+    elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
+        schema = JSONL_WMT25_ST_QA_SCHEMA
+    else:
+        schema = JSONL_WMT25_SCHEMA
 
     try:
         # Ensure we start at the beginning of the file
@@ -667,9 +691,26 @@ def validate_jsonl_src_testset(json_file):
 
     json_file.seek(0)
     src_langs = set()
-    
-    # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
+
+    def _validate_jsonl_src(text, lineno, format):
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as e:
+            raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
+
+        if format == JSONL_WMT_ST_MT_FORMAT:
+            if not obj.get('source', ""):
+                raise ValidationError(f'Missing "source" field at line {lineno} in JSONL src test set')
+        elif format == JSONL_WMT_ST_QA_FORMAT:
+            if not obj.get('correct_answers', []):
+                raise ValidationError(f'Missing "correct_answers" field at line {lineno} in JSONL src test set')
+        else:
+            lang = obj.get('src_lang')
+            if lang is None:
+                raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
+            src_langs.add(lang)
+
+    jsonl_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -688,62 +729,17 @@ def validate_jsonl_src_testset(json_file):
                 text = line.strip()
                 if not text:
                     continue
-                try:
-                    obj = json.loads(text)
-                except json.JSONDecodeError as e:
-                    raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
+                _validate_jsonl_src(text, lineno, jsonl_format)
                 
-                if is_st_mt_format:
-                    # For ST MT format, check for "source" field
-                    if not obj.get('source'):
-                        raise ValidationError(f'Missing "source" field at line {lineno} in JSONL src test set')
-                    # For ST MT format, we don't have explicit language fields
-                    # but we can derive from dataset_id
-                    dataset_id = obj.get('dataset_id', '')
-                    if dataset_id.startswith('wmtslavicllm2025_'):
-                        # Extract language pair from dataset_id (e.g., wmtslavicllm2025_de-dsb)
-                        lang_pair = dataset_id.replace('wmtslavicllm2025_', '')
-                        if '-' in lang_pair:
-                            src_lang = lang_pair.split('-')[0]
-                            src_langs.add(src_lang)
-                else:
-                    # For standard WMT25 format
-                    lang = obj.get('src_lang')
-                    if lang is None:
-                        raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
-                    src_langs.add(lang)
     else:
         # Handle uncompressed files
         for lineno, line in enumerate(json_file, start=1):
             text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
             if not text:
                 continue
-            try:
-                obj = json.loads(text)
-            except json.JSONDecodeError as e:
-                raise ValidationError(f'JSONL src test set invalid JSON at line {lineno}: {e}')
-            
-            if is_st_mt_format:
-                # For ST MT format, check for "source" field
-                if not obj.get('source'):
-                    raise ValidationError(f'Missing "source" field at line {lineno} in JSONL src test set')
-                # For ST MT format, we don't have explicit language fields
-                # but we can derive from dataset_id
-                dataset_id = obj.get('dataset_id', '')
-                if dataset_id.startswith('wmtslavicllm2025_'):
-                    # Extract language pair from dataset_id (e.g., wmtslavicllm2025_de-dsb)
-                    lang_pair = dataset_id.replace('wmtslavicllm2025_', '')
-                    if '-' in lang_pair:
-                        src_lang = lang_pair.split('-')[0]
-                        src_langs.add(src_lang)
-            else:
-                # For standard WMT25 format
-                lang = obj.get('src_lang')
-                if lang is None:
-                    raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
-                src_langs.add(lang)
+            _validate_jsonl_src(text, lineno, jsonl_format)
 
-    if not src_langs:
+    if (jsonl_format not in [JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT] and not src_langs):
         raise ValidationError(f'No source language found in JSONL file {json_file.name}')
     json_file.seek(0)
 
@@ -757,9 +753,28 @@ def validate_jsonl_ref_testset(json_file):
 
     json_file.seek(0)
     ref_langs = set()
+
+    def _validate_jsonl_ref(text, lineno, format):
+        try:
+            obj = json.loads(text)
+        except json.JSONDecodeError as e:
+            raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
+
+        if format == JSONL_WMT_ST_MT_FORMAT:
+            if not obj.get('target', ""):
+                raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
+        else:
+            refs = obj.get('refs', [])
+            if not refs:
+                raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
+            for ref in refs:
+                lang = ref.get('tgt_lang')
+                if lang is None:
+                    raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
+                ref_langs.add(lang)
     
     # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
+    jsonl_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -778,70 +793,17 @@ def validate_jsonl_ref_testset(json_file):
                 text = line.strip()
                 if not text:
                     continue
-                try:
-                    obj = json.loads(text)
-                except json.JSONDecodeError as e:
-                    raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
+                _validate_jsonl_ref(text, lineno, jsonl_format)
                 
-                if is_st_mt_format:
-                    # For ST MT format, check for "target" field
-                    if not obj.get('target'):
-                        raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
-                    # For ST MT format, we don't have explicit language fields
-                    # but we can derive from dataset_id
-                    dataset_id = obj.get('dataset_id', '')
-                    if dataset_id.startswith('wmtslavicllm2025_'):
-                        # Extract language pair from dataset_id (e.g., wmtslavicllm2025_de-dsb)
-                        lang_pair = dataset_id.replace('wmtslavicllm2025_', '')
-                        if '-' in lang_pair:
-                            tgt_lang = lang_pair.split('-')[1]
-                            ref_langs.add(tgt_lang)
-                else:
-                    # For standard WMT25 format
-                    refs = obj.get('refs')
-                    if not refs:
-                        raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
-                    for ref in refs:
-                        lang = ref.get('tgt_lang')
-                        if lang is None:
-                            raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
-                        ref_langs.add(lang)
     else:
         # Handle uncompressed files
         for lineno, line in enumerate(json_file, start=1):
             text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
             if not text:
                 continue
-            try:
-                obj = json.loads(text)
-            except json.JSONDecodeError as e:
-                raise ValidationError(f'JSONL ref test set invalid JSON at line {lineno}: {e}')
-            
-            if is_st_mt_format:
-                # For ST MT format, check for "target" field
-                if not obj.get('target'):
-                    raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
-                # For ST MT format, we don't have explicit language fields
-                # but we can derive from dataset_id
-                dataset_id = obj.get('dataset_id', '')
-                if dataset_id.startswith('wmtslavicllm2025_'):
-                    # Extract language pair from dataset_id (e.g., wmtslavicllm2025_de-dsb)
-                    lang_pair = dataset_id.replace('wmtslavicllm2025_', '')
-                    if '-' in lang_pair:
-                        tgt_lang = lang_pair.split('-')[1]
-                        ref_langs.add(tgt_lang)
-            else:
-                # For standard WMT25 format
-                refs = obj.get('refs')
-                if not refs:
-                    raise ValidationError(f'No refs array at line {lineno} in JSONL ref test set')
-                for ref in refs:
-                    lang = ref.get('tgt_lang')
-                    if lang is None:
-                        raise ValidationError(f'Missing tgt_lang in refs at line {lineno}')
-                    ref_langs.add(lang)
+            _validate_jsonl_ref(text, lineno, jsonl_format)
 
-    if not ref_langs:
+    if (jsonl_format not in [JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT] and not ref_langs):
         raise ValidationError(f'No reference languages found in JSONL file {json_file.name}')
     json_file.seek(0)
 
@@ -854,9 +816,19 @@ def validate_jsonl_submission(json_file):
     validate_jsonl_schema(json_file)
     json_file.seek(0)
     has_hyps = False
-    
+
+    def _validate_jsonl_hyps(text, lineno, format):
+        obj = json.loads(text)
+        if format == JSONL_WMT_ST_MT_FORMAT or format == JSONL_WMT_ST_QA_FORMAT:
+            hyps = obj.get('pred', "")
+            if not hyps:
+                raise ValidationError(f'Missing "pred" field at line {lineno} in JSONL submission')
+        else:
+            hyps = obj.get('hypothesis') or obj.get('hyps') or ""
+        return bool(hyps)
+
     # Detect format
-    is_st_mt_format = detect_jsonl_format(json_file, JSONL_WMT_ST_MT_FORMAT)
+    jsonl_format = detect_jsonl_format(json_file)
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
@@ -875,16 +847,7 @@ def validate_jsonl_submission(json_file):
                 text = line.strip()
                 if not text:
                     continue
-                obj = json.loads(text)
-                
-                if is_st_mt_format:
-                    # For ST MT format, check for "pred" field
-                    hyps = obj.get('pred', "")
-                else:
-                    # For standard WMT25 format
-                    hyps = obj.get('hypothesis') or obj.get('hyps') or ""
-                
-                if hyps:
+                if _validate_jsonl_hyps(text, lineno, jsonl_format):
                     has_hyps = True
                     break
     else:
@@ -893,24 +856,14 @@ def validate_jsonl_submission(json_file):
             text = line.decode('utf-8').strip() if isinstance(line, bytes) else line.strip()
             if not text:
                 continue
-            obj = json.loads(text)
-            
-            if is_st_mt_format:
-                # For ST MT format, check for "pred" field
-                hyps = obj.get('pred', "")
-            else:
-                # For standard WMT25 format
-                hyps = obj.get('hypothesis') or obj.get('hyps') or ""
-            
-            if hyps:
+            if _validate_jsonl_hyps(text, lineno, jsonl_format):
                 has_hyps = True
                 break
 
     if not has_hyps:
-        field_name = "pred" if is_st_mt_format else "hypothesis"
+        field_name = "hypothesis" if jsonl_format is JSONL_WMT_GENMT_FORMAT else "pred"
         raise ValidationError(f'Could not find "{field_name}" node anywhere in the JSONL submission')
     json_file.seek(0)
-
 
 
 def validate_team_name(value):
