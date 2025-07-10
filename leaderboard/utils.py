@@ -154,8 +154,8 @@ def analyze_jsonl_file(jsonl_path):
             
             elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
                 # Handle ST QA format
-                # if "correct_answers" is present, add "True" as translator
-                if 'correct_answers' in obj:
+                # if "correct_answer" is present, add "True" as translator
+                if 'correct_answer' in obj:
                     output['translators'].add('True')
                 # if "pred" is present, add "True" as system
                 if 'pred' in obj:
@@ -476,11 +476,11 @@ def process_jsonl_to_text(
         elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
             # Handle ST QA format
             if source:
-                sent = obj.get('question', MISSING_TRANSLATION_MESSAGE)
+                sent = str(obj.get('question_id', "")) + ": " + obj.get('question', MISSING_TRANSLATION_MESSAGE)
             elif reference:
-                sent = obj.get('correct_answers', [MISSING_TRANSLATION_MESSAGE])[0]
+                sent = str(obj.get('correct_answer', MISSING_TRANSLATION_MESSAGE))
             else:  # system
-                sent = obj.get('pred', MISSING_TRANSLATION_MESSAGE)
+                sent = str(obj.get('pred', MISSING_TRANSLATION_MESSAGE))
             sent = sent.replace('\n', '\\n').replace('\r', '\\r')
 
         else:

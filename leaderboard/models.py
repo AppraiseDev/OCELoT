@@ -268,14 +268,14 @@ JSONL_WMT25_ST_QA_SCHEMA = {
     "type": "object",
     "properties": {
         "dataset_id":      { "type": "string" },
-        "correct_answers": { "type": "array", "items": { "type": "string" } },
+        "correct_answer":  { "type": ["string", "integer"] },
         "pred":            { "type": "string" },
     },
     "required": [
         "dataset_id",
     ],
     "anyOf": [
-        { "required": ["correct_answers"] },
+        { "required": ["correct_answer"] },
         { "required": ["pred"] }
     ],
     "additionalProperties": True
@@ -702,8 +702,8 @@ def validate_jsonl_src_testset(json_file):
             if not obj.get('source', ""):
                 raise ValidationError(f'Missing "source" field at line {lineno} in JSONL src test set')
         elif format == JSONL_WMT_ST_QA_FORMAT:
-            if not obj.get('correct_answers', []):
-                raise ValidationError(f'Missing "correct_answers" field at line {lineno} in JSONL src test set')
+            if not obj.get('correct_answer', []):
+                raise ValidationError(f'Missing "correct_answer" field at line {lineno} in JSONL src test set')
         else:
             lang = obj.get('src_lang')
             if lang is None:
@@ -764,8 +764,8 @@ def validate_jsonl_ref_testset(json_file):
             if not obj.get('target', ""):
                 raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
         elif format == JSONL_WMT_ST_QA_FORMAT:
-            if not obj.get('correct_answers', []):
-                raise ValidationError(f'Missing "correct_answers" field at line {lineno} in JSONL ref test set')
+            if not obj.get('correct_answer', []):
+                raise ValidationError(f'Missing "correct_answer" field at line {lineno} in JSONL ref test set')
         else:
             refs = obj.get('refs', [])
             if not refs:
