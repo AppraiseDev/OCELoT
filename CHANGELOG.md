@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.12] - to be released
+- Updates for WMT25 GenMT and MIST tasks
+- Updates for WMT25 ST task
 
 ## [0.8.1] - 2024-06-28
 - Updated `#wmt23dev` to `#wmt24dev` and other WMT23 mentions.
