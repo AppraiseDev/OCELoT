@@ -58,8 +58,12 @@
               <tr>
                 <th>#</th>
                 <th>Name</th>
+                {% if "-qa" in testset|lower %}
+                <th>Accuracy</th>
+                {% else %}
                 <th>BLEU</th>
                 <th>chrF</th>
+                {% endif %}
                 <th>Date</th>
               </tr>
             </thead>
@@ -87,10 +91,12 @@
                 {% else %}
                 <td>---</td>
                 {% endif %}
+                {% if "-qa" not in testset|lower %}
                 {% if submission.score_chrf %}
                 <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                 {% else %}
                 <td>---</td>
+                {% endif %}
                 {% endif %}
                 <td>{{submission.date_created}}</td>
               </tr>

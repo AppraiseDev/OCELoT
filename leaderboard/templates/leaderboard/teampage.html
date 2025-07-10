@@ -234,8 +234,12 @@
                     <th>ID</th>
                     <th>Name</th>
                     {% if testset.compute_scores %}
-                    <th>BLEU</th>
-                    <th>chrF</th>
+                      {% if "-qa" in testset.name|lower %}
+                      <th>Accuracy</th>
+                      {% else %}
+                      <th>BLEU</th>
+                      <th>chrF</th>
+                      {% endif %}
                     {% endif %}
                     <th>Date</th>
                   </tr>
@@ -271,10 +275,12 @@
                     {% else %}
                     <td>---</td>
                     {% endif %}
+                    {% if not "-qa" in testset.name|lower %}
                     {% if submission.score_chrf %}
                     <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
+                    {% endif %}
                     {% endif %}
                     {% endif %}
                     <td>{{submission.date_created}}</td>

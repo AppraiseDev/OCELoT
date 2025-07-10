@@ -786,7 +786,7 @@ class WMTSTQASubmissionTests(TestCase):
         self.assertTrue(sub.is_valid)
 
         # Check BLEU and ChrF scores are computed
-        self.assertEqual(sub.score, -2.0)  # -2.0 seems correct
+        self.assertEqual(sub.score, 20.4)
         self.assertGreater(sub.score_chrf, 0)
 
     def test_wmt_st_qa_submission_is_anonymous_by_default(self):
@@ -870,4 +870,5 @@ class WMTSTQASubmissionTests(TestCase):
         perfect_sub = self._make_submission('wmt-st-qa.perfect.jsonl')
         self.assertTrue(perfect_sub.is_valid)
 
+        self.assertEqual(perfect_sub.score, 100.0)
         self.assertEqual(perfect_sub.score_chrf, 100.0)

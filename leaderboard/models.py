@@ -1934,11 +1934,6 @@ class Submission(models.Model):
             elif target_language_code == 'zh':
                 tokenize = 'zh'
 
-        # _msg = 'language: {0}, tokenize: {1}'.format(
-        # target_language_code, tokenize
-        # )
-        # print(_msg)
-
         hyp_text_path = self.get_hyp_text(path_only=True)
         ref_text_path = self.get_ref_text(path_only=True)
 
@@ -1962,9 +1957,32 @@ class Submission(models.Model):
             self.score_chrf = None
 
         finally:
+            # if this is QA testset, compute accuracy
+            if not self.score and "-qa" in self.test_set.name.lower():
+                self.score = self._compute_accuracy(hyp_stream, ref_stream)
+
             if not self.score:  # temporary fix to check if this may prevent infinite loop
                 self.score = -2
+            if not self.score_chrf:
+                self.score_chrf = -2
             self.save()
+
+    def _compute_accuracy(self, hyp_stream, ref_stream):
+        """Computes accuracy for QA test sets."""
+        correct = 0
+        total = 0
+
+        for hyp, ref in zip(hyp_stream, ref_stream):
+            hyp = hyp.strip()
+            ref = ref.strip()
+
+            if hyp == ref:
+                correct += 1
+            total += 1
+
+        if total > 0:
+            return round((correct / total) * 100, 1)
+        return 0.0
 
     def _score(self):
         """Returns human-readable SacreBLEU score."""
