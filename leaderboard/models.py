@@ -269,7 +269,7 @@ JSONL_WMT25_ST_QA_SCHEMA = {
     "properties": {
         "dataset_id":      { "type": "string" },
         "correct_answer":  { "type": ["string", "integer"] },
-        "pred":            { "type": "string" },
+        "pred":            { "type": ["string", "integer"] },
     },
     "required": [
         "dataset_id",
