@@ -1,0 +1,5 @@
+{"doc_id": "wmt26-news-01", "tgt_lang": "de", "hypothesis": "<p>Output segment 1</p><p>Output segment 2</p><p>Output segment 3</p>"}
+{"doc_id": "wmt26-news-02", "tgt_lang": "cs", "hypothesis": "<p>Output segment 1</p><p>Output segment 2</p>"}
+{"doc_id": "wmt26-social-01", "tgt_lang": "de", "hypothesis": "<p>Output segment 1</p><p>Output segment 2</p><p>Output segment 3</p><p>Output segment 4</p>"}
+{"doc_id": "wmt26-speech-01", "tgt_lang": "cs", "hypothesis": "<p>Output segment 1</p><p>Output segment 2</p>"}
+{"doc_id": "wmt26-html-01", "tgt_lang": "de", "hypothesis": "<p>Output segment 1</p><p>Output segment 2</p><p>Output segment 3</p>"}

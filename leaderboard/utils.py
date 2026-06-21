@@ -36,7 +36,9 @@ def detect_jsonl_format(json_file_or_path, format=None):
             _format = JSONL_WMT_ST_QA_FORMAT
         elif 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025'):
             _format = JSONL_WMT_ST_MT_FORMAT
-        elif 'dataset_id' in obj and 'doc_id' in obj and 'tgt_lang' in obj:
+        elif 'doc_id' in obj and 'tgt_lang' in obj:
+            # General MT format (WMT25 and WMT26). WMT26 blindsets drop
+            # 'dataset_id' and use 'source_doc' instead of 'src_text'.
             _format = JSONL_WMT_GENMT_FORMAT
         else:
             _format = None
@@ -486,7 +488,8 @@ def process_jsonl_to_text(
         else:
             # Handle standard WMT25 format
             if source:
-                sent = obj.get('src_text', MISSING_TRANSLATION_MESSAGE)
+                # WMT26 uses 'source_doc' instead of 'src_text'
+                sent = obj.get('src_text') or obj.get('source_doc') or MISSING_TRANSLATION_MESSAGE
             elif reference:
                 sent = MISSING_TRANSLATION_MESSAGE
                 for ref in obj.get('refs', []):

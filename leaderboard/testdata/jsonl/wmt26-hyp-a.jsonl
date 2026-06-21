@@ -1,0 +1,5 @@
+{"doc_id": "wmt26-news-01", "tgt_lang": "de", "hypothesis": "<p>Translated segment 1</p><p>Translated segment 2</p><p>Translated segment 3</p>", "thinking": "Translate each paragraph faithfully."}
+{"doc_id": "wmt26-news-02", "tgt_lang": "cs", "hypothesis": "<p>Translated segment 1</p><p>Translated segment 2</p>", "thinking": "Translate each paragraph faithfully."}
+{"doc_id": "wmt26-social-01", "tgt_lang": "de", "hypothesis": "<p>Translated segment 1</p><p>Translated segment 2</p><p>Translated segment 3</p><p>Translated segment 4</p>", "thinking": "Keep informal register."}
+{"doc_id": "wmt26-speech-01", "tgt_lang": "cs", "hypothesis": "<p>Translated segment 1</p><p>Translated segment 2</p>", "thinking": "Based on the video."}
+{"doc_id": "wmt26-html-01", "tgt_lang": "de", "hypothesis": "<p>Translated segment 1</p><p>Translated segment 2</p><p>Translated segment 3</p>", "thinking": "Preserve the HTML markup."}

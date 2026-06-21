@@ -252,7 +252,7 @@ JSONL_WMT25_SCHEMA = {
         "hypothesis":   { "type": "string" },
     },
     "required": [
-        "dataset_id","doc_id","tgt_lang"
+        "doc_id","tgt_lang"
     ],
     #"anyOf": [
     #    { "required": ["src_text"] },
@@ -705,10 +705,10 @@ def validate_jsonl_src_testset(json_file):
             if not obj.get('correct_answer', []):
                 raise ValidationError(f'Missing "correct_answer" field at line {lineno} in JSONL src test set')
         else:
+            # src_lang is optional (WMT26 GenMT blindsets do not provide it)
             lang = obj.get('src_lang')
-            if lang is None:
-                raise ValidationError(f'Missing src_lang at line {lineno} in JSONL src test set')
-            src_langs.add(lang)
+            if lang is not None:
+                src_langs.add(lang)
 
     jsonl_format = detect_jsonl_format(json_file)
 
@@ -739,8 +739,8 @@ def validate_jsonl_src_testset(json_file):
                 continue
             _validate_jsonl_src(text, lineno, jsonl_format)
 
-    if (jsonl_format not in [JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT] and not src_langs):
-        raise ValidationError(f'No source language found in JSONL file {json_file.name}')
+    # src_lang is optional (e.g. WMT26 GenMT blindsets have no src_lang), so it
+    # is no longer required to be present.
     json_file.seek(0)
 
 
