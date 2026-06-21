@@ -73,6 +73,17 @@ class WMT26SubmissionTests(TestCase):
             if p.exists():
                 p.unlink()
 
+        # Remove submission files uploaded via the submit form
+        submissions_dir = Path(MEDIA_ROOT) / 'submissions'
+        if submissions_dir.exists():
+            for p in submissions_dir.glob('testsetwmt26.*'):
+                p.unlink()
+
+    def _signin(self):
+        session = self.client.session
+        session['ocelot_team_token'] = self.team.token
+        session.save()
+
     def _make_submission(self, file_name, test_set=None):
         hyp_path = os.path.join(TESTDATA_DIR, file_name)
         sub = Submission(
@@ -186,3 +197,22 @@ class WMT26SubmissionTests(TestCase):
         # "Translated" vs "Output" differ, so a diff span is produced
         self.assertIn('diff', ann_a)
         self.assertIn('diff', ann_b)
+
+    # ------------------------------------------------------------------
+    # End-to-end submit() form path
+    # ------------------------------------------------------------------
+
+    def test_wmt26_submission_via_submit_form(self):
+        """A WMT26 JSONL file can be submitted through the submit() view."""
+        self._signin()
+        with self._open('jsonl/wmt26-hyp-a.jsonl') as f:
+            response = self.client.post('/submit', {
+                'test_set': self.testset.id,
+                'hyp_file': f,
+            }, follow=True)
+
+        self.assertContains(response, 'successfully submitted')
+        sub = Submission.objects.filter(submitted_by=self.team).first()
+        self.assertIsNotNone(sub)
+        self.assertEqual(sub.file_format, JSONL_FILE)
+        self.assertTrue(sub.is_valid)

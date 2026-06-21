@@ -289,3 +289,12 @@ class SubmissionTests(TestCase):
         self.assertNotContains(
             response, 'Anonymous submission #{0}'.format(sub.id)
         )
+
+    def test_is_yours_matches_owning_team_token(self):
+        """is_yours() is True only for the owning team's token."""
+        _file = 'newstest2019.msft-WMT19-document-level.6808.en-de.txt'
+        sub = self._make_submission(_file)
+
+        self.assertTrue(sub.is_yours(self.team.token))
+        self.assertFalse(sub.is_yours('0000000000'))
+        self.assertFalse(sub.is_yours(None))

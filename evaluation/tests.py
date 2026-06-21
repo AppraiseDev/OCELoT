@@ -7,6 +7,7 @@ from datetime import datetime
 from django.test import TestCase
 from django.utils import timezone
 
+from evaluation.views import _annotate_texts_with_span_diffs
 from leaderboard.models import Competition
 from leaderboard.models import Language
 from leaderboard.models import SGML_FILE
@@ -146,3 +147,74 @@ class ComparisonTests(TestCase):
         self.assertContains(response, str(self.sub_1))
         self.assertContains(response, str(self.sub_2))
         self.assertContains(response, '<span class="diff')
+
+    def test_submission_view_404_for_missing_submission(self):
+        """The segment viewer returns 404 for a non-existent submission."""
+        response = self.client.get('/submission/999999')
+        self.assertEqual(response.status_code, 404)
+
+    def test_submission_view_renders_public_submission(self):
+        """A public submission renders in the segment viewer."""
+        self.sub_2.is_public = True  # owned by team_b
+        self.sub_2.save()
+        response = self.client.get('/submission/{0}'.format(self.sub_2.id))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.sub_2))
+
+    def test_submission_view_hides_non_public_not_yours(self):
+        """A non-public submission of another team is not viewable."""
+        # Signed in as team_a (see setUp); sub_2 belongs to team_b and is private
+        response = self.client.get(
+            '/submission/{0}'.format(self.sub_2.id), follow=True
+        )
+        self.assertContains(response, 'not public')
+
+    def test_submission_view_shows_your_own_private_submission(self):
+        """Your own submission is viewable even when not public."""
+        # Signed in as team_a (see setUp); sub_1 belongs to team_a and is private
+        response = self.client.get('/submission/{0}'.format(self.sub_1.id))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, str(self.sub_1))
+
+
+class SpanDiffTests(TestCase):
+    """Unit tests for _annotate_texts_with_span_diffs()."""
+
+    def test_equal_texts_are_unchanged(self):
+        """Identical texts get no diff annotations."""
+        a, b = _annotate_texts_with_span_diffs('a b c', 'a b c')
+        self.assertEqual(a, 'a b c')
+        self.assertEqual(b, 'a b c')
+
+    def test_empty_text_is_unchanged(self):
+        """An empty text short-circuits without annotation."""
+        a, b = _annotate_texts_with_span_diffs('', 'a b c')
+        self.assertEqual(a, '')
+        self.assertEqual(b, 'a b c')
+
+    def test_word_replacement_marks_substitution(self):
+        """A changed word is wrapped in a diff-sub span on both sides."""
+        a, b = _annotate_texts_with_span_diffs('a b c', 'a B c')
+        self.assertIn('diff-sub', a)
+        self.assertIn('diff-sub', b)
+
+    def test_insertion_marks_only_second_text(self):
+        """An inserted word is marked as an insertion in the second text."""
+        a, b = _annotate_texts_with_span_diffs('a c', 'a b c')
+        self.assertNotIn('diff-ins', a)
+        self.assertIn('diff-ins', b)
+
+    def test_deletion_marks_only_first_text(self):
+        """A deleted word is marked as a deletion in the first text."""
+        a, b = _annotate_texts_with_span_diffs('a b c', 'a c')
+        self.assertIn('diff-del', a)
+        self.assertNotIn('diff-del', b)
+
+    def test_char_based_diff(self):
+        """Character-based diffing highlights character differences."""
+        a, b = _annotate_texts_with_span_diffs('猫が好き', '犬が好き', char_based=True)
+        self.assertIn('diff-sub', a)
+        self.assertIn('diff-sub', b)
+        # Characters are joined without spaces in char-based mode
+        self.assertIn('が好き', a)
+        self.assertIn('が好き', b)
