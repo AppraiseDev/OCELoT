@@ -3,6 +3,8 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 
 XML format schema and validators.
 """
+import threading
+
 import lxml.etree as ET
 from django.core.exceptions import ValidationError
 
@@ -216,6 +218,25 @@ def validate_xml_submission(xml_file):
     # present in the file. Do it here or in full_clean()
 
 
+_RELAXNG_LOCAL = threading.local()
+
+
+def _relaxng():
+    """Return a per-thread cached, compiled RelaxNG validator.
+
+    Compiling the validator is relatively expensive and the schema is a
+    constant, so it is built once per thread. A per-thread cache is used
+    because lxml validators are not safe to share between threads
+    (``validate()`` mutates the validator's error log).
+    """
+    relaxng = getattr(_RELAXNG_LOCAL, 'relaxng', None)
+    if relaxng is None:
+        schema = ET.fromstring(XML_RNG_SCHEMA.encode())
+        relaxng = ET.RelaxNG(schema)
+        _RELAXNG_LOCAL.relaxng = relaxng
+    return relaxng
+
+
 def validate_xml_schema(xml_file):
     """Validates XML file based on RNG schema."""
 
@@ -225,11 +246,7 @@ def validate_xml_schema(xml_file):
     is_valid = False
     relaxng = None
     try:
-        # Could not make it working with a RNC schema, so using RNG instead.
-        # lxml did not use rnc2rng as described in the documentation:
-        # https://lxml.de/validation.html#relaxng
-        schema = ET.fromstring(XML_RNG_SCHEMA.encode())
-        relaxng = ET.RelaxNG(schema)
+        relaxng = _relaxng()
         # Parse the untrusted upload with a hardened parser to prevent XXE and
         # entity-expansion (billion laughs) attacks.
         hyp_doc = ET.parse(xml_file, parser=safe_xml_parser())

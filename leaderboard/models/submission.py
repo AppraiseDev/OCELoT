@@ -5,7 +5,6 @@ Submission model and its upload-path helper.
 """
 import json
 import re
-import tempfile
 from pathlib import Path
 
 import lxml.etree as ET
@@ -15,7 +14,6 @@ from django.db import DEFAULT_DB_ALIAS
 from django.db import models
 from sacrebleu import corpus_bleu  # type: ignore
 from sacrebleu import corpus_chrf  # type: ignore
-from sacrebleu.utils import smart_open
 
 from leaderboard.utils import analyze_jsonl_file
 from leaderboard.utils import analyze_xml_file
@@ -37,6 +35,7 @@ from .formats import validate_json_submission
 from .formats import validate_jsonl_submission
 from .formats import validate_sgml_schema
 from .formats import validate_xml_submission
+from .formats._io import open_uploaded_text
 from .formats._xml_safe import safe_xml_parser
 from .team import Team
 from .testset import TestSet
@@ -626,16 +625,7 @@ class Submission(models.Model):
                 src_file_name = self.test_set.src_file.name
                 if src_file_name.endswith('.jsonl.gz'):
                     # Handle compressed source file
-                    if hasattr(self.test_set.src_file, 'temporary_file_path'):
-                        src_file_path = self.test_set.src_file.temporary_file_path()
-                    else:
-                        # For in-memory files, write to temp file first
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                            self.test_set.src_file.seek(0)
-                            temp_file.write(self.test_set.src_file.read())
-                            src_file_path = temp_file.name
-
-                    with smart_open(src_file_path, 'rt', encoding='utf-8') as f:
+                    with open_uploaded_text(self.test_set.src_file, suffix='.jsonl.gz') as f:
                         src_lines = len(f.readlines())
                 else:
                     # Handle uncompressed source file
@@ -646,16 +636,7 @@ class Submission(models.Model):
                 hyp_file_name = self.hyp_file.name
                 if hyp_file_name.endswith('.jsonl.gz'):
                     # Handle compressed hypothesis file
-                    if hasattr(self.hyp_file, 'temporary_file_path'):
-                        hyp_file_path = self.hyp_file.temporary_file_path()
-                    else:
-                        # For in-memory files, write to temp file first
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                            self.hyp_file.seek(0)
-                            temp_file.write(self.hyp_file.read())
-                            hyp_file_path = temp_file.name
-
-                    with smart_open(hyp_file_path, 'rt', encoding='utf-8') as f:
+                    with open_uploaded_text(self.hyp_file, suffix='.jsonl.gz') as f:
                         hyp_lines = len(f.readlines())
                 else:
                     # Handle uncompressed hypothesis file
@@ -681,16 +662,7 @@ class Submission(models.Model):
                 src_file_name = self.test_set.src_file.name
                 if src_file_name.endswith('.json.gz'):
                     # Handle compressed source file
-                    if hasattr(self.test_set.src_file, 'temporary_file_path'):
-                        src_file_path = self.test_set.src_file.temporary_file_path()
-                    else:
-                        # For in-memory files, write to temp file first
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                            self.test_set.src_file.seek(0)
-                            temp_file.write(self.test_set.src_file.read())
-                            src_file_path = temp_file.name
-
-                    with smart_open(src_file_path, 'rt', encoding='utf-8') as f:
+                    with open_uploaded_text(self.test_set.src_file, suffix='.json.gz') as f:
                         src_data = json.load(f)
                         src_items = len(src_data) if isinstance(src_data, list) else 0
                 else:
@@ -706,16 +678,7 @@ class Submission(models.Model):
                 hyp_file_name = self.hyp_file.name
                 if hyp_file_name.endswith('.json.gz'):
                     # Handle compressed hypothesis file
-                    if hasattr(self.hyp_file, 'temporary_file_path'):
-                        hyp_file_path = self.hyp_file.temporary_file_path()
-                    else:
-                        # For in-memory files, write to temp file first
-                        with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                            self.hyp_file.seek(0)
-                            temp_file.write(self.hyp_file.read())
-                            hyp_file_path = temp_file.name
-
-                    with smart_open(hyp_file_path, 'rt', encoding='utf-8') as f:
+                    with open_uploaded_text(self.hyp_file, suffix='.json.gz') as f:
                         hyp_data = json.load(f)
                         hyp_items = len(hyp_data) if isinstance(hyp_data, list) else 0
                 else:
@@ -765,10 +728,16 @@ class Submission(models.Model):
                 _msg = 'Text file name must end with {0}'.format(hyp_name)
                 raise ValidationError(_msg)
 
-        # Skip validation if the test set has validation disabled
+        # Skip expensive content validation when the test set has validation
+        # disabled (used for the largest test sets). This also excludes the
+        # hyp_file field validators (which parse/schema-check the entire
+        # upload) from Django's full_clean(), not just the line-count check.
         if self.test_set and self.test_set.validate:
             # Validate hyp file content directly from the uploaded file
             self._validate_hyp_file_content()
+        else:
+            exclude = set(exclude) if exclude else set()
+            exclude.add('hyp_file')
 
         super().full_clean(
             exclude=exclude, validate_unique=validate_unique

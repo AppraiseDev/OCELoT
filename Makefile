@@ -8,4 +8,4 @@ test:
 	OCELOT_SECRET_KEY="not-so-secret-key" python manage.py test
 
 run:
-	python manage.py runserver
+	OCELOT_SECRET_KEY="not-so-secret-key" python manage.py runserver

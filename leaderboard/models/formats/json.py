@@ -4,11 +4,11 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 JSON format schema and validators.
 """
 import json
-import tempfile
 
 import jsonschema
 from django.core.exceptions import ValidationError
-from sacrebleu.utils import smart_open
+
+from ._io import open_uploaded_text
 
 JSON_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -43,16 +43,7 @@ def validate_json_schema(json_file):
 
         # Handle compressed files by using smart_open with file path
         if json_file.name.endswith('.json.gz'):
-            if hasattr(json_file, 'temporary_file_path'):
-                file_path = json_file.temporary_file_path()
-            else:
-                # For in-memory files, write to temp file first
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                    json_file.seek(0)
-                    temp_file.write(json_file.read())
-                    file_path = temp_file.name
-
-            with smart_open(file_path, 'rt', encoding='utf-8') as f:
+            with open_uploaded_text(json_file, suffix='.json.gz') as f:
                 data = json.load(f)
         else:
             # Handle uncompressed files
@@ -83,16 +74,7 @@ def validate_json_src_testset(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.json.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.json.gz') as f:
             data = json.load(f)
     else:
         # Handle uncompressed files
@@ -134,16 +116,7 @@ def validate_json_ref_testset(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.json.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.json.gz') as f:
             data = json.load(f)
     else:
         # Handle uncompressed files
@@ -184,16 +157,7 @@ def validate_json_submission(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.json.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.json.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.json.gz') as f:
             data = json.load(f)
     else:
         # Handle uncompressed files

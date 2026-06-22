@@ -3,6 +3,8 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 
 SGML format schema and validators.
 """
+import threading
+
 import lxml.etree as ET
 import xmlschema
 from django.core.exceptions import ValidationError
@@ -49,19 +51,35 @@ SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 </xs:schema>
 """
 
+_SCHEMA_LOCK = threading.Lock()
+_SGML_SCHEMA_CACHE = None
+
+
+def _sgml_schema():
+    """Return a cached, compiled XSD schema for SGML validation.
+
+    Compiling the schema is expensive and the schema is a constant, so it is
+    built once and reused. xmlschema validation is read-only on the schema, so
+    a single shared instance is safe to use across threads.
+    """
+    global _SGML_SCHEMA_CACHE
+    if _SGML_SCHEMA_CACHE is None:
+        with _SCHEMA_LOCK:
+            if _SGML_SCHEMA_CACHE is None:
+                _SGML_SCHEMA_CACHE = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
+    return _SGML_SCHEMA_CACHE
+
 
 def validate_sgml_schema(hyp_file):
     """Validates SGML file based on XSD schema."""
     if not hyp_file.name.endswith('.sgm'):
         return  # Skip validation for other format files.
 
-    schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
-
     try:
         # Parse the untrusted upload with a hardened parser first (preventing
         # XXE and entity-expansion attacks), then validate the resulting tree.
         document = ET.parse(hyp_file, parser=safe_xml_parser())
-        schema.validate(document)
+        _sgml_schema().validate(document)
     except (
         xmlschema.XMLSchemaValidationError,
         ET.XMLSyntaxError,

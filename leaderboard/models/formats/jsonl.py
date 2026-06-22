@@ -4,17 +4,17 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 JSONL format schemas and validators.
 """
 import json
-import tempfile
 from gzip import BadGzipFile
 
 import jsonschema
 from django.core.exceptions import ValidationError
-from sacrebleu.utils import smart_open
 
 from leaderboard.utils import detect_jsonl_format
 from leaderboard.utils import JSONL_WMT_ST_MT_FORMAT
 from leaderboard.utils import JSONL_WMT_ST_QA_FORMAT
 from leaderboard.utils import JSONL_WMT_GENMT_FORMAT
+
+from ._io import open_uploaded_text
 
 JSONL_WMT25_SCHEMA = {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -104,19 +104,8 @@ def validate_jsonl_schema(json_file):
 
         # Handle compressed files by using smart_open with file path
         if json_file.name.endswith('.jsonl.gz'):
-            # For compressed files, we need to read via file path, not the file object directly
-            if hasattr(json_file, 'temporary_file_path'):
-                file_path = json_file.temporary_file_path()
-            else:
-                # For in-memory files, write to temp file first
-                import tempfile
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                    json_file.seek(0)
-                    temp_file.write(json_file.read())
-                    file_path = temp_file.name
-
             try:
-                with smart_open(file_path, 'rt', encoding='utf-8') as f:
+                with open_uploaded_text(json_file, suffix='.jsonl.gz') as f:
                     for lineno, line in enumerate(f, start=1):
                         text = line.strip()
                         _validate_jsonl_schema(text, lineno, schema=schema)
@@ -177,17 +166,7 @@ def validate_jsonl_src_testset(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.jsonl.gz') as f:
             for lineno, line in enumerate(f, start=1):
                 text = line.strip()
                 if not text:
@@ -244,17 +223,7 @@ def validate_jsonl_ref_testset(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.jsonl.gz') as f:
             for lineno, line in enumerate(f, start=1):
                 text = line.strip()
                 if not text:
@@ -298,17 +267,7 @@ def validate_jsonl_submission(json_file):
 
     # Handle compressed files
     if json_file.name.endswith('.jsonl.gz'):
-        if hasattr(json_file, 'temporary_file_path'):
-            file_path = json_file.temporary_file_path()
-        else:
-            # For in-memory files, write to temp file first
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jsonl.gz') as temp_file:
-                json_file.seek(0)
-                temp_file.write(json_file.read())
-                file_path = temp_file.name
-
-        with smart_open(file_path, 'rt', encoding='utf-8') as f:
+        with open_uploaded_text(json_file, suffix='.jsonl.gz') as f:
             for lineno, line in enumerate(f, start=1):
                 text = line.strip()
                 if not text:
