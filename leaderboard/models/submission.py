@@ -490,6 +490,12 @@ class Submission(models.Model):
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
 
+        # Idempotent: once a score (including a sentinel) has been set, do not
+        # recompute. This also makes the method safe to call independently of
+        # save().
+        if self.score:
+            return
+
         # Reference file may not exist
         if not self.test_set.has_references():
             return
@@ -540,7 +546,10 @@ class Submission(models.Model):
                 self.score = -2
             if not self.score_chrf:
                 self.score_chrf = -2
-            self.save()
+            # Persist only the score columns with a direct (non-recursive)
+            # write. Going through self.save() here would re-enter save(),
+            # re-run the length validation and re-save the whole row.
+            super().save(update_fields=['score', 'score_chrf'])
 
     def _compute_accuracy(self, hyp_stream, ref_stream):
         """Computes accuracy for QA test sets."""

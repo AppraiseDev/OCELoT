@@ -5,6 +5,7 @@ sentinel score handling.
 """
 import os
 from datetime import datetime
+from unittest import mock
 
 from sacrebleu import corpus_bleu  # type: ignore
 
@@ -139,3 +140,31 @@ class ScoringTests(TestCase):
         sub = self._make_submission(testset, f'{SCORING}/disjoint-hyp.txt')
         # No exact matches -> accuracy 0 -> sentinel -2
         self.assertEqual(sub.score, -2)
+
+    def test_score_computed_once_and_persisted(self):
+        """Scoring runs exactly once on create, is persisted via a targeted
+        write, and is not recomputed when the submission is saved again."""
+        testset = self._make_testset(
+            'IdempotentTestSet', 'ja', f'{SCORING}/ja-src.txt',
+            f'{SCORING}/ja-ref.txt'
+        )
+
+        original = Submission._compute_score
+        with mock.patch.object(
+            Submission, '_compute_score', autospec=True, side_effect=original
+        ) as spy:
+            sub = self._make_submission(testset, f'{SCORING}/ja-hyp.txt')
+
+            # Scored exactly once during creation.
+            self.assertEqual(spy.call_count, 1)
+            # A real (non-sentinel) score was computed...
+            self.assertNotIn(sub.score, (-1, -2))
+            self.assertGreater(sub.score, 0)
+            # ...and persisted by the targeted update_fields write.
+            self.assertAlmostEqual(
+                Submission.objects.get(pk=sub.pk).score, sub.score, places=6
+            )
+
+            # Re-saving (e.g. set_primary) must not recompute the score.
+            sub.set_primary()
+            self.assertEqual(spy.call_count, 1)
