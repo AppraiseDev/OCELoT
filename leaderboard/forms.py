@@ -69,7 +69,7 @@ class PublicationDescriptionForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 'class': 'form-control',
-                'placeholder': 'TEAM-ONE at WMT25 Translation Task',
+                'placeholder': 'TEAM-ONE at WMT26 Translation Task',
             }
         ),
         label='System paper',

@@ -33,19 +33,11 @@
         <div class="alert alert-info" role="alert">
         <p>
           <strong>Important!</strong>
-          <a href="https://www2.statmt.org/wmt25/translation-task.html#submission">General MT task</a> requires submission in the new JSONL format.
-          Before submitting, please validate your submission file using <a href="https://www2.statmt.org/wmt25/wmt_gen_mt_tool.py"><code>wmt_gen_mt_tool.py</code></a>.
-          To minimize the risk of errors upon submission, make sure that you preserve all <code>\n</code> and <code>\n\n</code>,
-          remove unnecessary keys from JSON and compress the file with <code>gzip</code> to make it smaller
-          &mdash; see the example in <a href="{% url 'download-view' %}">Download</a>.
-          Submissions for a subset of languages are possible by simply skipping lines for the languages you do not want to submit for.
-          The file name must end with <code>".jsonl"</code> or <code>".jsonl.gz"</code>.
-          <br/>
-          <br/>
-          <a href="https://www2.statmt.org/wmt25/multilingual-instruction.html#_testset_submission">Multilingual Instruction task</a> requires submission in new JSON format.
-          See the official website for details.
-          To minimize the risk of errors upon submission, consider removing <em>prompt</em> keys, and compress the file with <code>gzip</code> to make it smaller.
-          The file name must end with <code>".json"</code> or <code>".json.gz"</code>.
+          The <a href="https://www2.statmt.org/wmt26/translation-task.html#submission">General MT task</a> requires a JSONL file (<code>".jsonl"</code> or <code>".jsonl.gz"</code>).
+          Each row needs <code>doc_id</code> and <code>tgt_lang</code> from the blindset plus your <code>hypothesis</code> (other metadata such as <code>thinking</code> is allowed).
+          Output exactly one row per blindset line you translate, preserving its paragraph/segment structure if possible.
+          You may skip entire target languages, but translate every line of the languages you do submit.
+          Optionally check alignment within documents with <a href="https://www2.statmt.org/wmt26/assets/genmt_check_alignment.py"><code>genmt_check_alignment.py</code></a>.
         </p>
         </div>
         <form action="{% url 'submit-view' %}" enctype="multipart/form-data" method="post">
