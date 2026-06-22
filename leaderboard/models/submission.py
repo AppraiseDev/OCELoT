@@ -8,6 +8,7 @@ import re
 import tempfile
 from pathlib import Path
 
+import lxml.etree as ET
 from bs4 import BeautifulSoup
 from django.core.exceptions import ValidationError
 from django.db import DEFAULT_DB_ALIAS
@@ -36,6 +37,7 @@ from .formats import validate_json_submission
 from .formats import validate_jsonl_submission
 from .formats import validate_sgml_schema
 from .formats import validate_xml_submission
+from .formats._xml_safe import safe_xml_parser
 from .team import Team
 from .testset import TestSet
 
@@ -431,11 +433,21 @@ class Submission(models.Model):
         )
 
     @staticmethod
+    def _parse_sgml_safely(sgml_path):
+        """Parse an SGML/XML file into a BeautifulSoup tree using a hardened
+        lxml parser, neutralizing XXE and entity-expansion (billion laughs)
+        attacks. The file is read as bytes so lxml honors its own encoding
+        declaration; the hardened parse strips any DOCTYPE/entities before the
+        content is handed to BeautifulSoup."""
+        with open(sgml_path, 'rb') as sgml_handle:
+            tree = ET.parse(sgml_handle, parser=safe_xml_parser())
+        return BeautifulSoup(ET.tostring(tree), 'lxml-xml')
+
+    @staticmethod
     def _get_docids_from_path(sgml_path, encoding='utf-8'):
         """Gets list of docids from SGML path."""
 
-        with open(sgml_path, encoding=encoding) as sgml_handle:
-            sgml_soup = BeautifulSoup(sgml_handle, 'lxml-xml')
+        sgml_soup = Submission._parse_sgml_safely(sgml_path)
 
         sgml_docids = []
         sgml_regexp = re.compile('doc', re.IGNORECASE)
@@ -451,8 +463,7 @@ class Submission(models.Model):
 
         valid_docids = [x.lower() for x in docids]
 
-        with open(sgml_path, encoding=encoding) as sgml_handle:
-            sgml_soup = BeautifulSoup(sgml_handle, 'lxml-xml')
+        sgml_soup = Submission._parse_sgml_safely(sgml_path)
 
         sgml_docs = {}
         sgml_regexp = re.compile('doc', re.IGNORECASE)

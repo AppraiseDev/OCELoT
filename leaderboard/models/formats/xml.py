@@ -8,6 +8,8 @@ from django.core.exceptions import ValidationError
 
 from leaderboard.utils import analyze_xml_file
 
+from ._xml_safe import safe_xml_parser
+
 XML_RNG_SCHEMA = """<?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns="http://relaxng.org/ns/structure/1.0"
          datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
@@ -228,7 +230,9 @@ def validate_xml_schema(xml_file):
         # https://lxml.de/validation.html#relaxng
         schema = ET.fromstring(XML_RNG_SCHEMA.encode())
         relaxng = ET.RelaxNG(schema)
-        hyp_doc = ET.parse(xml_file)
+        # Parse the untrusted upload with a hardened parser to prevent XXE and
+        # entity-expansion (billion laughs) attacks.
+        hyp_doc = ET.parse(xml_file, parser=safe_xml_parser())
         is_valid = relaxng.validate(hyp_doc)
     except Exception as error:
         _msg = 'XML file invalid: {0}'.format(error)

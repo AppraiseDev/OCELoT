@@ -3,10 +3,11 @@ Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 
 SGML format schema and validators.
 """
-import xml
-
+import lxml.etree as ET
 import xmlschema
 from django.core.exceptions import ValidationError
+
+from ._xml_safe import safe_xml_parser
 
 SGML_XSD_SCHEMA = """<?xml version="1.0"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -57,10 +58,13 @@ def validate_sgml_schema(hyp_file):
     schema = xmlschema.XMLSchema(SGML_XSD_SCHEMA)
 
     try:
-        schema.validate(hyp_file)
+        # Parse the untrusted upload with a hardened parser first (preventing
+        # XXE and entity-expansion attacks), then validate the resulting tree.
+        document = ET.parse(hyp_file, parser=safe_xml_parser())
+        schema.validate(document)
     except (
         xmlschema.XMLSchemaValidationError,
-        xml.etree.ElementTree.ParseError,
+        ET.XMLSyntaxError,
     ) as error:
         _msg = 'SGML file invalid: {0}'.format(error)
         raise ValidationError(_msg)
