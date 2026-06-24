@@ -83,7 +83,7 @@ graph LR
 
 ### Submissions
 - Upload system output for any open test set through the web form.
-- **Submission limit:** up to **7 valid submissions** per team per test set.
+- **Submission limit:** up to **20 valid submissions** per team per test set.
 - **Primary vs. contrastive:** each team designates one *primary* system per
   test set (used for the official ranking) and optionally one *contrastive*
   system. If no primary is chosen, OCELoT defaults to the highest-scoring (or

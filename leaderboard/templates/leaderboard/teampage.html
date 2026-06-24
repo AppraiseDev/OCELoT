@@ -40,30 +40,24 @@
 
             <h2>Publication details</h2>
             <hr>
+            <h4>Model card</h4>
+            <p class="form-text">
+              All participants <strong>must</strong> fill in the
+              <a href="https://forms.gle/17oDgJYWdXzuLCNh9" target="_blank">model card</a>
+              with details about their submission. This is a required step for
+              participation and replaces the abstract submission used in previous
+              years.
+            </p>
+
             <h4>Publication names</h4>
             <p class="form-text">
-              Please think about how you want your team to be named in the
-              overview paper. The overview paper needs to show your institution
-              and also a short team name in the result tables.
+              Please provide your institution name and a short system name, which will
+              be used to identify your team in the overview paper and result tables.
+              These should match what you entered in the model card.
             </p>
 
             <div class="form-group">
             {{ publication_name_form.as_p }}
-            </div>
-
-            <h4>Description paper</h4>
-            <p class="form-text">
-              The overview paper needs to cite a paper with the full details of
-              your system.
-              If you are submitting the paper to this year's proceedings,
-              please specify the title, which <b>must</b> start with your system name, 
-              e.g. <code>TEAM-ONE at WMT26 Translation Task</code>.
-              Feel free to provide an <em>anticipated</em> paper title if the
-              paper is yet to be written.
-              The list of authors will be collected from SoftConf.
-            </p>
-            <div class="form-group">
-            {{ publication_desc_form.as_p }}
             </div>
 
             <input class="btn btn-primary" type="submit" value="Submit">

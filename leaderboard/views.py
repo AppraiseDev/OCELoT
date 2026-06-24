@@ -24,7 +24,7 @@ from leaderboard.models import XML_FILE, JSONL_FILE, JSON_FILE
 
 
 MAX_SUBMISSION_DISPLAY_COUNT = 10
-MAX_SUBMISSION_LIMIT = 7
+MAX_SUBMISSION_LIMIT = 20
 
 
 def _get_team_data(request):
