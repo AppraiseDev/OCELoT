@@ -1,0 +1,5 @@
+{"dataset_id":"wmt2026_lrllm_test_gc_ukr","id":0,"input_sentence":"The report is complete.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_ukr","id":1,"input_sentence":"The results was published.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_ukr","id":2,"input_sentence":"The meeting starts at noon.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_ukr","id":3,"input_sentence":"An document was signed.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_ukr","id":4,"input_sentence":"The agreement is final.","pred_incorrect":"pred","pred_corrected":"pred"}

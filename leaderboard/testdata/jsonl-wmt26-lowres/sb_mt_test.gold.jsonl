@@ -1,0 +1,12 @@
+{"dataset_id":"wmt2026_lrllm_test_mt_de-dsb","sent_id":"de-dsb-0000","source":"Source sentence de-dsb-0000.","target":"Target sentence de-dsb-0000.","year":2025.0,"lang_pair":"de-dsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-dsb","sent_id":"de-dsb-0001","source":"Source sentence de-dsb-0001.","target":"Target sentence de-dsb-0001.","year":2025.0,"lang_pair":"de-dsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-hsb","sent_id":"de-hsb-0000","source":"Source sentence de-hsb-0000.","target":"Target sentence de-hsb-0000.","year":2025.0,"lang_pair":"de-hsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-hsb","sent_id":"de-hsb-0001","source":"Source sentence de-hsb-0001.","target":"Target sentence de-hsb-0001.","year":2025.0,"lang_pair":"de-hsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-de","sent_id":"dsb-de-0000","source":"Source sentence dsb-de-0000.","target":"Target sentence dsb-de-0000.","year":2025.0,"lang_pair":"dsb-de"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-de","sent_id":"dsb-de-0001","source":"Source sentence dsb-de-0001.","target":"Target sentence dsb-de-0001.","year":2025.0,"lang_pair":"dsb-de"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-hsb","sent_id":"dsb-hsb-0000","source":"Source sentence dsb-hsb-0000.","target":"Target sentence dsb-hsb-0000.","year":2025.0,"lang_pair":"dsb-hsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-hsb","sent_id":"dsb-hsb-0001","source":"Source sentence dsb-hsb-0001.","target":"Target sentence dsb-hsb-0001.","year":2025.0,"lang_pair":"dsb-hsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-de","sent_id":"hsb-de-0000","source":"Source sentence hsb-de-0000.","target":"Target sentence hsb-de-0000.","year":2025.0,"lang_pair":"hsb-de"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-de","sent_id":"hsb-de-0001","source":"Source sentence hsb-de-0001.","target":"Target sentence hsb-de-0001.","year":2025.0,"lang_pair":"hsb-de"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-dsb","sent_id":"hsb-dsb-0000","source":"Source sentence hsb-dsb-0000.","target":"Target sentence hsb-dsb-0000.","year":2025.0,"lang_pair":"hsb-dsb"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-dsb","sent_id":"hsb-dsb-0001","source":"Source sentence hsb-dsb-0001.","target":"Target sentence hsb-dsb-0001.","year":2025.0,"lang_pair":"hsb-dsb"}

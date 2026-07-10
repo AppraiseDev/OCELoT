@@ -87,15 +87,17 @@ def leaderboard(request, competition_id=None):
     )
 
     for test_set in test_sets:
-        order_flag = '-score_chrf'
+        # Secondary '-score' ranks accuracy-only test sets (e.g. WMT26
+        # low-resource QA/MR/SC/GC) that have no chrF score.
+        order_flags = ('-score_chrf', '-score')
         if not test_set.compute_scores:
-            order_flag = '-id'
+            order_flags = ('-id',)
 
         submissions = Submission.objects.filter(
             test_set=test_set,
             is_valid=True,  # Ignore invalid submissions
             is_removed=False,  # Ignore any removed submissions
-        ).order_by(order_flag,)[:MAX_SUBMISSION_DISPLAY_COUNT]
+        ).order_by(*order_flags)[:MAX_SUBMISSION_DISPLAY_COUNT]
 
         for submission in submissions:
             key = str(test_set)
@@ -501,6 +503,7 @@ def teampage(request):
         'test_set__source_language__code',
         'test_set__target_language__code',
         '-score_chrf',
+        '-score',
         '-date_created',
     )
     for submission in submissions.order_by(*ordering):

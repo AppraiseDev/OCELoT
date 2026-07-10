@@ -17,10 +17,14 @@ from sacrebleu import corpus_chrf  # type: ignore
 
 from leaderboard.utils import analyze_jsonl_file
 from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import detect_jsonl_format
 from leaderboard.utils import process_jsonl_to_text
 from leaderboard.utils import process_json_to_text
 from leaderboard.utils import process_to_text
 from leaderboard.utils import process_xml_to_text
+from leaderboard.utils import JSONL_WMT26_LR_FORMATS
+from leaderboard.utils import JSONL_WMT26_LR_MT_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_ACCURACY_FORMATS
 from ocelot.settings import MEDIA_ROOT
 
 from .constants import FILE_FORMAT_CHOICES
@@ -487,6 +491,27 @@ class Submission(models.Model):
 
         return sgml_filtered_path
 
+    def _wmt26_lr_format(self):
+        """Return this test set's WMT26 low-resource format, or None.
+
+        The task (and therefore the metric) is detected from the reference (or
+        source) JSONL file, so no extra configuration is required on the test
+        set.
+        """
+        if self.test_set.file_format != JSONL_FILE:
+            return None
+        ref_field = self.test_set.ref_file or self.test_set.src_file
+        if not ref_field:
+            return None
+        path = ref_field.name
+        if MEDIA_ROOT:
+            path = str(Path(MEDIA_ROOT) / path)
+        try:
+            jsonl_format = detect_jsonl_format(path)
+        except Exception:
+            return None
+        return jsonl_format if jsonl_format in JSONL_WMT26_LR_FORMATS else None
+
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""
 
@@ -502,6 +527,14 @@ class Submission(models.Model):
 
         # Do not compute scores if instructed not to do so
         if not self.test_set.compute_scores:
+            return
+
+        wmt26_lr_format = self._wmt26_lr_format()
+
+        # Accuracy-only tasks (QA, MR, SC, GC): exact-match accuracy, no BLEU or
+        # chrF. A genuine 0.0 accuracy is preserved instead of a sentinel.
+        if wmt26_lr_format in JSONL_WMT26_LR_ACCURACY_FORMATS:
+            self._compute_accuracy_score()
             return
 
         tokenize = '13a'
@@ -525,7 +558,11 @@ class Submission(models.Model):
             bleu = corpus_bleu(hyp_stream, [ref_stream], tokenize=tokenize)
             self.score = bleu.score
 
-            chrf = corpus_chrf(hyp_stream, [ref_stream])
+            if wmt26_lr_format == JSONL_WMT26_LR_MT_FORMAT:
+                # Low-resource MT reports chrF++ (chrF with word order 2).
+                chrf = corpus_chrf(hyp_stream, [ref_stream], word_order=2)
+            else:
+                chrf = corpus_chrf(hyp_stream, [ref_stream])
             self.score_chrf = chrf.score
 
         except Exception:
@@ -567,6 +604,25 @@ class Submission(models.Model):
         if total > 0:
             return round((correct / total) * 100, 1)
         return 0.0
+
+    def _compute_accuracy_score(self):
+        """Computes and persists exact-match accuracy for WMT26 low-resource
+        accuracy tasks (QA, MR, SC, GC).
+
+        Unlike the BLEU/chrF path, a genuine 0.0 accuracy is stored as 0.0
+        instead of being replaced by a sentinel, and chrF is left undefined.
+        """
+        hyp_text_path = self.get_hyp_text(path_only=True)
+        ref_text_path = self.get_ref_text(path_only=True)
+        try:
+            hyp_stream = [x for x in open(hyp_text_path, encoding='utf-8')]
+            ref_stream = [r for r in open(ref_text_path, encoding='utf-8')]
+            self.score = self._compute_accuracy(hyp_stream, ref_stream)
+        except Exception:
+            self.score = -1
+        # chrF is not applicable to accuracy tasks.
+        self.score_chrf = None
+        super().save(update_fields=['score', 'score_chrf'])
 
     def _score(self):
         """Returns human-readable SacreBLEU score."""

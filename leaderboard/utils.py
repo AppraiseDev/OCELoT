@@ -16,6 +16,65 @@ JSONL_WMT_GENMT_FORMAT = 'WMT25'  # WMT 2025 General MT format
 JSONL_WMT_ST_MT_FORMAT = 'WMT-ST-MT'  # WMT 2025 Slavic Translation MT format
 JSONL_WMT_ST_QA_FORMAT = 'WMT-ST-QA'  # WMT 2025 Slavic Translation QA format
 
+# WMT 2026 low-resource LLM task formats. One file per task; a single file may
+# contain several dataset_id values (e.g. all MT language pairs). The task is
+# encoded in the dataset_id as wmt2026_lrllm_test_{task}_{lang|pair}.
+JSONL_WMT26_LR_PREFIX = 'wmt2026_lrllm_test_'
+JSONL_WMT26_LR_MT_FORMAT = 'WMT26-LR-MT'  # Machine Translation (BLEU + chrF++)
+JSONL_WMT26_LR_QA_FORMAT = 'WMT26-LR-QA'  # Question Answering (accuracy)
+JSONL_WMT26_LR_SC_FORMAT = 'WMT26-LR-SC'  # Spell Checking (two-output accuracy)
+JSONL_WMT26_LR_GC_FORMAT = 'WMT26-LR-GC'  # Grammar Checking (two-output accuracy)
+JSONL_WMT26_LR_MR_FORMAT = 'WMT26-LR-MR'  # Maths Reasoning (accuracy)
+
+# Maps the task token in dataset_id to the corresponding format constant.
+_WMT26_LR_TASK_FORMATS = {
+    'mt': JSONL_WMT26_LR_MT_FORMAT,
+    'qa': JSONL_WMT26_LR_QA_FORMAT,
+    'sc': JSONL_WMT26_LR_SC_FORMAT,
+    'gc': JSONL_WMT26_LR_GC_FORMAT,
+    'mr': JSONL_WMT26_LR_MR_FORMAT,
+}
+
+# All WMT26 low-resource formats, and the subset scored by exact-match accuracy.
+JSONL_WMT26_LR_FORMATS = frozenset(_WMT26_LR_TASK_FORMATS.values())
+JSONL_WMT26_LR_ACCURACY_FORMATS = frozenset({
+    JSONL_WMT26_LR_QA_FORMAT,
+    JSONL_WMT26_LR_SC_FORMAT,
+    JSONL_WMT26_LR_GC_FORMAT,
+    JSONL_WMT26_LR_MR_FORMAT,
+})
+
+# Reference (gold) and prediction (submission) fields per WMT26 low-resource
+# format, used to detect whether a JSONL file provides references or system
+# outputs.
+_WMT26_LR_REF_FIELDS = {
+    JSONL_WMT26_LR_MT_FORMAT: ('target',),
+    JSONL_WMT26_LR_QA_FORMAT: ('correct_answer_num',),
+    JSONL_WMT26_LR_MR_FORMAT: ('answer',),
+    JSONL_WMT26_LR_SC_FORMAT: ('incorrect_word', 'correct_word'),
+    JSONL_WMT26_LR_GC_FORMAT: ('incorrect_word', 'correct_word'),
+}
+_WMT26_LR_PRED_FIELDS = {
+    JSONL_WMT26_LR_MT_FORMAT: ('pred',),
+    JSONL_WMT26_LR_QA_FORMAT: ('pred',),
+    JSONL_WMT26_LR_MR_FORMAT: ('pred',),
+    JSONL_WMT26_LR_SC_FORMAT: ('pred_incorrect', 'pred_corrected'),
+    JSONL_WMT26_LR_GC_FORMAT: ('pred_incorrect', 'pred_corrected'),
+}
+
+
+def detect_wmt26_lr_format(dataset_id):
+    """Return the WMT26 low-resource format for a dataset_id, or None.
+
+    The task is the first token after the wmt2026_lrllm_test_ prefix, e.g.
+    'wmt2026_lrllm_test_qa_mmlu_ukr' -> QA and
+    'wmt2026_lrllm_test_mt_cs-ukr' -> MT.
+    """
+    if not dataset_id or not dataset_id.startswith(JSONL_WMT26_LR_PREFIX):
+        return None
+    task = dataset_id[len(JSONL_WMT26_LR_PREFIX):].split('_', 1)[0]
+    return _WMT26_LR_TASK_FORMATS.get(task)
+
 
 def detect_jsonl_format(json_file_or_path, format=None):
     """
@@ -32,7 +91,10 @@ def detect_jsonl_format(json_file_or_path, format=None):
             return None
 
         _format = None
-        if 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025_qa'):
+        _wmt26_lr = detect_wmt26_lr_format(obj.get('dataset_id'))
+        if _wmt26_lr is not None:
+            _format = _wmt26_lr
+        elif 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025_qa'):
             _format = JSONL_WMT_ST_QA_FORMAT
         elif 'dataset_id' in obj and obj.get('dataset_id').startswith('wmtslavicllm2025'):
             _format = JSONL_WMT_ST_MT_FORMAT
@@ -162,7 +224,16 @@ def analyze_jsonl_file(jsonl_path):
                 # if "pred" is present, add "True" as system
                 if 'pred' in obj:
                     output['systems'].add('True')
-                
+
+            elif jsonl_format in JSONL_WMT26_LR_FORMATS:
+                # WMT26 low-resource tasks: reference field presence marks a
+                # gold test set ('True' translator); prediction field presence
+                # marks a system submission ('True' system).
+                if any(f in obj for f in _WMT26_LR_REF_FIELDS[jsonl_format]):
+                    output['translators'].add('True')
+                if any(f in obj for f in _WMT26_LR_PRED_FIELDS[jsonl_format]):
+                    output['systems'].add('True')
+
             else:
                 # Handle standard WMT25 format
                 # collection_id
@@ -440,6 +511,9 @@ def process_jsonl_to_text(
             elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
                 # Use sent_id instead of segment_id for WMT ST QA format
                 sid = obj.get('question_id', None)
+            elif jsonl_format in JSONL_WMT26_LR_FORMATS:
+                # Preserve file order; the id field varies by task.
+                sid = obj.get('sent_id') or obj.get('question_id') or obj.get('id')
             else:
                 # For standard WMT25 format
                 # Filter by collection if requested
@@ -484,6 +558,46 @@ def process_jsonl_to_text(
             else:  # system
                 sent = str(obj.get('pred', MISSING_TRANSLATION_MESSAGE))
             sent = sent.replace('\n', '\\n').replace('\r', '\\r')
+
+        elif jsonl_format == JSONL_WMT26_LR_MT_FORMAT:
+            # Low-resource MT: source/target/pred plain text.
+            if source:
+                sent = obj.get('source', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                sent = obj.get('target', MISSING_TRANSLATION_MESSAGE)
+            else:  # system
+                sent = obj.get('pred', MISSING_TRANSLATION_MESSAGE)
+            sent = str(sent).replace('\n', '\\n').replace('\r', '\\r')
+
+        elif jsonl_format in (JSONL_WMT26_LR_QA_FORMAT, JSONL_WMT26_LR_MR_FORMAT):
+            # QA/Maths Reasoning: single answer scored by exact match.
+            if source:
+                sent = obj.get('question', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                ref_field = ('correct_answer_num'
+                             if jsonl_format == JSONL_WMT26_LR_QA_FORMAT
+                             else 'answer')
+                sent = str(obj.get(ref_field, MISSING_TRANSLATION_MESSAGE))
+            else:  # system
+                sent = str(obj.get('pred', MISSING_TRANSLATION_MESSAGE))
+            sent = str(sent).replace('\n', '\\n').replace('\r', '\\r')
+
+        elif jsonl_format in (JSONL_WMT26_LR_SC_FORMAT, JSONL_WMT26_LR_GC_FORMAT):
+            # Spell/Grammar checking: two outputs joined with a tab so a line is
+            # correct only when both fields match (joint-pair accuracy).
+            if source:
+                sent = obj.get('input_sentence', MISSING_TRANSLATION_MESSAGE)
+            elif reference:
+                sent = '{0}\t{1}'.format(
+                    obj.get('incorrect_word', MISSING_TRANSLATION_MESSAGE),
+                    obj.get('correct_word', MISSING_TRANSLATION_MESSAGE),
+                )
+            else:  # system
+                sent = '{0}\t{1}'.format(
+                    obj.get('pred_incorrect', MISSING_TRANSLATION_MESSAGE),
+                    obj.get('pred_corrected', MISSING_TRANSLATION_MESSAGE),
+                )
+            sent = str(sent).replace('\n', '\\n').replace('\r', '\\r')
 
         else:
             # Handle standard WMT25 format

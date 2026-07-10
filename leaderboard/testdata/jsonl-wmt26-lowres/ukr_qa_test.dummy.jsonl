@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_qa_ukr","question_id":"qa_0000","question":"Question ukr 0000?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}
+{"dataset_id":"wmt2026_lrllm_test_qa_ukr","question_id":"qa_0001","question":"Question ukr 0001?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}
+{"dataset_id":"wmt2026_lrllm_test_qa_ukr","question_id":"qa_0002","question":"Question ukr 0002?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}
+{"dataset_id":"wmt2026_lrllm_test_qa_mmlu_ukr","question_id":"mmlu_000000","question":"Question mmlu 000000?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}
+{"dataset_id":"wmt2026_lrllm_test_qa_mmlu_ukr","question_id":"mmlu_000001","question":"Question mmlu 000001?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}
+{"dataset_id":"wmt2026_lrllm_test_qa_mmlu_ukr","question_id":"mmlu_000002","question":"Question mmlu 000002?","possible_answers":{"0":"Answer option 0","1":"Answer option 1","2":"Answer option 2","3":"Answer option 3"},"pred":0}

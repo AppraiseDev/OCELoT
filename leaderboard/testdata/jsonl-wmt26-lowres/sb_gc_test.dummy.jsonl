@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":0,"input_sentence":"The committee meets today.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":1,"input_sentence":"He go to school every day.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":2,"input_sentence":"They are happy today.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":3,"input_sentence":"The report is complete.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":4,"input_sentence":"She have two cats.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":5,"input_sentence":"We visited the museum.","pred_incorrect":"pred","pred_corrected":"pred"}

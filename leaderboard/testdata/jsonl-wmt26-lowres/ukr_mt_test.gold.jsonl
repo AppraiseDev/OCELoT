@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_mt_cs-ukr","sent_id":"cs-ukr-0000","source":"Source sentence cs-ukr-0000.","target":"Target sentence cs-ukr-0000."}
+{"dataset_id":"wmt2026_lrllm_test_mt_cs-ukr","sent_id":"cs-ukr-0001","source":"Source sentence cs-ukr-0001.","target":"Target sentence cs-ukr-0001."}
+{"dataset_id":"wmt2026_lrllm_test_mt_cs-ukr","sent_id":"cs-ukr-0002","source":"Source sentence cs-ukr-0002.","target":"Target sentence cs-ukr-0002."}
+{"dataset_id":"wmt2026_lrllm_test_mt_en-ukr","sent_id":"en-ukr-0000","source":"Source sentence en-ukr-0000.","target":"Target sentence en-ukr-0000."}
+{"dataset_id":"wmt2026_lrllm_test_mt_en-ukr","sent_id":"en-ukr-0001","source":"Source sentence en-ukr-0001.","target":"Target sentence en-ukr-0001."}
+{"dataset_id":"wmt2026_lrllm_test_mt_en-ukr","sent_id":"en-ukr-0002","source":"Source sentence en-ukr-0002.","target":"Target sentence en-ukr-0002."}

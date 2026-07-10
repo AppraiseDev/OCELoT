@@ -13,6 +13,12 @@ from leaderboard.utils import detect_jsonl_format
 from leaderboard.utils import JSONL_WMT_ST_MT_FORMAT
 from leaderboard.utils import JSONL_WMT_ST_QA_FORMAT
 from leaderboard.utils import JSONL_WMT_GENMT_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_MT_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_QA_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_SC_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_GC_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_MR_FORMAT
+from leaderboard.utils import JSONL_WMT26_LR_FORMATS
 
 from ._io import open_uploaded_text
 
@@ -82,6 +88,97 @@ JSONL_WMT25_ST_MT_SCHEMA = {
     "additionalProperties": True
 }
 
+# ---------------------------------------------------------------------------
+# WMT 2026 low-resource LLM task schemas. All permissive (additionalProperties)
+# to tolerate task-specific metadata (year, lang, subject, context, ...). Gold
+# test sets carry reference fields; submissions carry prediction fields.
+# ---------------------------------------------------------------------------
+JSONL_WMT26_LR_MT_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT26 low-resource MT JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id": { "type": "string" },
+        "sent_id":    { "type": "string" },
+        "source":     { "type": "string" },
+        "target":     { "type": "string" },
+        "pred":       { "type": "string" },
+    },
+    "required": ["dataset_id"],
+    "anyOf": [
+        { "required": ["target"] },
+        { "required": ["pred"] },
+    ],
+    "additionalProperties": True,
+}
+
+JSONL_WMT26_LR_QA_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT26 low-resource QA JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id":          { "type": "string" },
+        "question_id":         { "type": ["string", "integer"] },
+        "correct_answer_num":  { "type": ["integer", "string"] },
+        "pred":                { "type": ["integer", "string"] },
+    },
+    "required": ["dataset_id"],
+    "anyOf": [
+        { "required": ["correct_answer_num"] },
+        { "required": ["pred"] },
+    ],
+    "additionalProperties": True,
+}
+
+JSONL_WMT26_LR_MR_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT26 low-resource Maths Reasoning JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id": { "type": "string" },
+        "id":         { "type": ["string", "integer"] },
+        "answer":     { "type": ["integer", "string"] },
+        "pred":       { "type": ["integer", "string"] },
+    },
+    "required": ["dataset_id"],
+    "anyOf": [
+        { "required": ["answer"] },
+        { "required": ["pred"] },
+    ],
+    "additionalProperties": True,
+}
+
+# Spell Checking and Grammar Checking share the same two-output shape.
+JSONL_WMT26_LR_SCGC_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WMT26 low-resource Spell/Grammar Checking JSONL entry",
+    "type": "object",
+    "properties": {
+        "dataset_id":      { "type": "string" },
+        "id":              { "type": ["string", "integer"] },
+        "input_sentence":  { "type": "string" },
+        "incorrect_word":  { "type": "string" },
+        "correct_word":    { "type": "string" },
+        "pred_incorrect":  { "type": "string" },
+        "pred_corrected":  { "type": "string" },
+    },
+    "required": ["dataset_id"],
+    "anyOf": [
+        { "required": ["incorrect_word", "correct_word"] },
+        { "required": ["pred_incorrect", "pred_corrected"] },
+    ],
+    "additionalProperties": True,
+}
+
+# Maps each WMT26 low-resource format to its validation schema.
+_WMT26_LR_SCHEMAS = {
+    JSONL_WMT26_LR_MT_FORMAT: JSONL_WMT26_LR_MT_SCHEMA,
+    JSONL_WMT26_LR_QA_FORMAT: JSONL_WMT26_LR_QA_SCHEMA,
+    JSONL_WMT26_LR_MR_FORMAT: JSONL_WMT26_LR_MR_SCHEMA,
+    JSONL_WMT26_LR_SC_FORMAT: JSONL_WMT26_LR_SCGC_SCHEMA,
+    JSONL_WMT26_LR_GC_FORMAT: JSONL_WMT26_LR_SCGC_SCHEMA,
+}
+
 
 def validate_jsonl_schema(json_file):
     """Validates JSONL file based on appropriate schema."""
@@ -95,6 +192,8 @@ def validate_jsonl_schema(json_file):
         schema = JSONL_WMT25_ST_MT_SCHEMA
     elif jsonl_format == JSONL_WMT_ST_QA_FORMAT:
         schema = JSONL_WMT25_ST_QA_SCHEMA
+    elif jsonl_format in _WMT26_LR_SCHEMAS:
+        schema = _WMT26_LR_SCHEMAS[jsonl_format]
     else:
         schema = JSONL_WMT25_SCHEMA
 
@@ -156,6 +255,15 @@ def validate_jsonl_src_testset(json_file):
         elif format == JSONL_WMT_ST_QA_FORMAT:
             if not obj.get('correct_answer', []):
                 raise ValidationError(f'Missing "correct_answer" field at line {lineno} in JSONL src test set')
+        elif format == JSONL_WMT26_LR_MT_FORMAT:
+            if not obj.get('source', ""):
+                raise ValidationError(f'Missing "source" field at line {lineno} in JSONL src test set')
+        elif format in (JSONL_WMT26_LR_QA_FORMAT, JSONL_WMT26_LR_MR_FORMAT):
+            if not obj.get('question', ""):
+                raise ValidationError(f'Missing "question" field at line {lineno} in JSONL src test set')
+        elif format in (JSONL_WMT26_LR_SC_FORMAT, JSONL_WMT26_LR_GC_FORMAT):
+            if not obj.get('input_sentence', ""):
+                raise ValidationError(f'Missing "input_sentence" field at line {lineno} in JSONL src test set')
         else:
             # src_lang is optional (WMT26 GenMT blindsets do not provide it)
             lang = obj.get('src_lang')
@@ -208,6 +316,19 @@ def validate_jsonl_ref_testset(json_file):
         elif format == JSONL_WMT_ST_QA_FORMAT:
             if not obj.get('correct_answer', []):
                 raise ValidationError(f'Missing "correct_answer" field at line {lineno} in JSONL ref test set')
+        elif format == JSONL_WMT26_LR_MT_FORMAT:
+            if not obj.get('target', ""):
+                raise ValidationError(f'Missing "target" field at line {lineno} in JSONL ref test set')
+        elif format == JSONL_WMT26_LR_QA_FORMAT:
+            # correct_answer_num may be 0 (0-indexed answers), so check presence.
+            if 'correct_answer_num' not in obj:
+                raise ValidationError(f'Missing "correct_answer_num" field at line {lineno} in JSONL ref test set')
+        elif format == JSONL_WMT26_LR_MR_FORMAT:
+            if 'answer' not in obj:
+                raise ValidationError(f'Missing "answer" field at line {lineno} in JSONL ref test set')
+        elif format in (JSONL_WMT26_LR_SC_FORMAT, JSONL_WMT26_LR_GC_FORMAT):
+            if 'incorrect_word' not in obj or 'correct_word' not in obj:
+                raise ValidationError(f'Missing "incorrect_word"/"correct_word" field at line {lineno} in JSONL ref test set')
         else:
             refs = obj.get('refs', [])
             if not refs:
@@ -238,7 +359,8 @@ def validate_jsonl_ref_testset(json_file):
                 continue
             _validate_jsonl_ref(text, lineno, jsonl_format)
 
-    if (jsonl_format not in [JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT] and not ref_langs):
+    if (jsonl_format not in [JSONL_WMT_ST_MT_FORMAT, JSONL_WMT_ST_QA_FORMAT]
+            and jsonl_format not in JSONL_WMT26_LR_FORMATS and not ref_langs):
         raise ValidationError(f'No reference languages found in JSONL file {json_file.name}')
     json_file.seek(0)
 
@@ -258,6 +380,15 @@ def validate_jsonl_submission(json_file):
             hyps = obj.get('pred', "")
             if not hyps:
                 raise ValidationError(f'Missing "pred" field at line {lineno} in JSONL submission')
+        elif format in (JSONL_WMT26_LR_MT_FORMAT, JSONL_WMT26_LR_QA_FORMAT, JSONL_WMT26_LR_MR_FORMAT):
+            # 'pred' may legitimately be 0 (e.g. QA answer index), so check presence.
+            if 'pred' not in obj:
+                raise ValidationError(f'Missing "pred" field at line {lineno} in JSONL submission')
+            hyps = True
+        elif format in (JSONL_WMT26_LR_SC_FORMAT, JSONL_WMT26_LR_GC_FORMAT):
+            if 'pred_incorrect' not in obj or 'pred_corrected' not in obj:
+                raise ValidationError(f'Missing "pred_incorrect"/"pred_corrected" field at line {lineno} in JSONL submission')
+            hyps = True
         else:
             hyps = obj.get('hypothesis') or obj.get('hyps') or ""
         return bool(hyps)

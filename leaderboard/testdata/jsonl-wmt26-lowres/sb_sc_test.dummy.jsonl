@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":0,"input_sentence":"This sentence number 0 is correct.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":1,"input_sentence":"This sentence has a mistak here.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":2,"input_sentence":"This sentence number 2 is correct.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":3,"input_sentence":"This sentence number 3 is correct.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":4,"input_sentence":"Another wrng word appears.","pred_incorrect":"pred","pred_corrected":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":5,"input_sentence":"This sentence number 5 is correct.","pred_incorrect":"pred","pred_corrected":"pred"}

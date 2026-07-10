@@ -29,6 +29,10 @@ from .formats.json import validate_json_submission
 from .formats.jsonl import JSONL_WMT25_SCHEMA
 from .formats.jsonl import JSONL_WMT25_ST_MT_SCHEMA
 from .formats.jsonl import JSONL_WMT25_ST_QA_SCHEMA
+from .formats.jsonl import JSONL_WMT26_LR_MT_SCHEMA
+from .formats.jsonl import JSONL_WMT26_LR_QA_SCHEMA
+from .formats.jsonl import JSONL_WMT26_LR_MR_SCHEMA
+from .formats.jsonl import JSONL_WMT26_LR_SCGC_SCHEMA
 from .formats.jsonl import validate_jsonl_ref_testset
 from .formats.jsonl import validate_jsonl_schema
 from .formats.jsonl import validate_jsonl_src_testset
@@ -74,6 +78,10 @@ __all__ = [
     'JSONL_WMT25_SCHEMA',
     'JSONL_WMT25_ST_QA_SCHEMA',
     'JSONL_WMT25_ST_MT_SCHEMA',
+    'JSONL_WMT26_LR_MT_SCHEMA',
+    'JSONL_WMT26_LR_QA_SCHEMA',
+    'JSONL_WMT26_LR_MR_SCHEMA',
+    'JSONL_WMT26_LR_SCGC_SCHEMA',
     'JSON_SCHEMA',
     # format validators
     'validate_sgml_schema',

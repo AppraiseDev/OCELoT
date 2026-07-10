@@ -1,0 +1,12 @@
+{"dataset_id":"wmt2026_lrllm_test_mt_de-dsb","sent_id":"de-dsb-0000","source":"Source sentence de-dsb-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-dsb","sent_id":"de-dsb-0001","source":"Source sentence de-dsb-0001.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-hsb","sent_id":"de-hsb-0000","source":"Source sentence de-hsb-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_de-hsb","sent_id":"de-hsb-0001","source":"Source sentence de-hsb-0001.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-de","sent_id":"dsb-de-0000","source":"Source sentence dsb-de-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-de","sent_id":"dsb-de-0001","source":"Source sentence dsb-de-0001.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-hsb","sent_id":"dsb-hsb-0000","source":"Source sentence dsb-hsb-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_dsb-hsb","sent_id":"dsb-hsb-0001","source":"Source sentence dsb-hsb-0001.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-de","sent_id":"hsb-de-0000","source":"Source sentence hsb-de-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-de","sent_id":"hsb-de-0001","source":"Source sentence hsb-de-0001.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-dsb","sent_id":"hsb-dsb-0000","source":"Source sentence hsb-dsb-0000.","pred":"pred"}
+{"dataset_id":"wmt2026_lrllm_test_mt_hsb-dsb","sent_id":"hsb-dsb-0001","source":"Source sentence hsb-dsb-0001.","pred":"pred"}

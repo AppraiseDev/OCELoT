@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":0,"input_sentence":"The committee meets today.","original_sentence":"The committee meets today.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":1,"input_sentence":"He go to school every day.","original_sentence":"He goes to school every day.","incorrect_word":"go","correct_word":"goes","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_gc_hsb","id":2,"input_sentence":"They are happy today.","original_sentence":"They are happy today.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":3,"input_sentence":"The report is complete.","original_sentence":"The report is complete.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"dsb"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":4,"input_sentence":"She have two cats.","original_sentence":"She has two cats.","incorrect_word":"have","correct_word":"has","lang":"dsb"}
+{"dataset_id":"wmt2026_lrllm_test_gc_dsb","id":5,"input_sentence":"We visited the museum.","original_sentence":"We visited the museum.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"dsb"}

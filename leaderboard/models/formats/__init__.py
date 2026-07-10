@@ -15,6 +15,10 @@ from .xml import validate_xml_submission
 from .jsonl import JSONL_WMT25_SCHEMA
 from .jsonl import JSONL_WMT25_ST_QA_SCHEMA
 from .jsonl import JSONL_WMT25_ST_MT_SCHEMA
+from .jsonl import JSONL_WMT26_LR_MT_SCHEMA
+from .jsonl import JSONL_WMT26_LR_QA_SCHEMA
+from .jsonl import JSONL_WMT26_LR_MR_SCHEMA
+from .jsonl import JSONL_WMT26_LR_SCGC_SCHEMA
 from .jsonl import validate_jsonl_schema
 from .jsonl import validate_jsonl_src_testset
 from .jsonl import validate_jsonl_ref_testset
@@ -36,6 +40,10 @@ __all__ = [
     'JSONL_WMT25_SCHEMA',
     'JSONL_WMT25_ST_QA_SCHEMA',
     'JSONL_WMT25_ST_MT_SCHEMA',
+    'JSONL_WMT26_LR_MT_SCHEMA',
+    'JSONL_WMT26_LR_QA_SCHEMA',
+    'JSONL_WMT26_LR_MR_SCHEMA',
+    'JSONL_WMT26_LR_SCGC_SCHEMA',
     'validate_jsonl_schema',
     'validate_jsonl_src_testset',
     'validate_jsonl_ref_testset',

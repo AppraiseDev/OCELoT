@@ -1,0 +1,6 @@
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":0,"input_sentence":"This sentence number 0 is correct.","original_sentence":"This sentence number 0 is correct.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":1,"input_sentence":"This sentence has a mistak here.","original_sentence":"This sentence has a mistake here.","incorrect_word":"mistak","correct_word":"mistake","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_sc_hsb","id":2,"input_sentence":"This sentence number 2 is correct.","original_sentence":"This sentence number 2 is correct.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"hsb"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":3,"input_sentence":"This sentence number 3 is correct.","original_sentence":"This sentence number 3 is correct.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"dsb"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":4,"input_sentence":"Another wrng word appears.","original_sentence":"Another wrong word appears.","incorrect_word":"wrng","correct_word":"wrong","lang":"dsb"}
+{"dataset_id":"wmt2026_lrllm_test_sc_dsb","id":5,"input_sentence":"This sentence number 5 is correct.","original_sentence":"This sentence number 5 is correct.","incorrect_word":"CORRECT","correct_word":"CORRECT","lang":"dsb"}
