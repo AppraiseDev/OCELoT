@@ -1,15 +1,20 @@
 """
 Project OCELoT: Open, Competitive Evaluation Leaderboard of Translations
 """
+import os
 from collections import OrderedDict
 
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.files.storage import FileSystemStorage
 from django.db.models import Count
 from django.http import Http404
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+
+from ocelot.settings import MEDIA_ROOT
 
 from leaderboard.forms import PublicationDescriptionForm
 from leaderboard.forms import PublicationNameForm
@@ -659,3 +664,27 @@ def welcome(request):
         'ocelot_team_verified': ocelot_team_verified,
     }
     return render(request, 'leaderboard/welcome.html', context=context)
+
+
+@staff_member_required
+def upload(request):
+    """Lets a logged-in staff member upload any file to the server.
+
+    Uploaded files are stored under MEDIA_ROOT/uploads/. Access requires a
+    staff account (Django admin login).
+    """
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('file')
+        if not uploaded_file:
+            messages.warning(request, 'No file selected.')
+        else:
+            storage = FileSystemStorage(
+                location=os.path.join(MEDIA_ROOT, 'uploads')
+            )
+            saved_name = storage.save(uploaded_file.name, uploaded_file)
+            messages.success(
+                request, 'Uploaded to uploads/{0}'.format(saved_name)
+            )
+        return HttpResponseRedirect(reverse('upload-view'))
+
+    return render(request, 'leaderboard/upload.html')

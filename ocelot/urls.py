@@ -28,6 +28,7 @@ from leaderboard.views import signup
 from leaderboard.views import submit
 from leaderboard.views import teampage
 from leaderboard.views import updates
+from leaderboard.views import upload
 from leaderboard.views import welcome
 from ocelot.settings import DEBUG
 from ocelot.settings import STATIC_ROOT
@@ -50,6 +51,7 @@ urlpatterns = [
     path('submit', submit, name='submit-view'),
     path('teampage', teampage, name='teampage-view'),
     path('updates', updates, name='updates-view'),
+    path('upload', upload, name='upload-view'),
     path('download', download, name='download-view'),
     path('welcome', welcome, name='welcome-view'),
     # evaluation app
