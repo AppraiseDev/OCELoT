@@ -228,7 +228,7 @@
                     <th>ID</th>
                     <th>Name</th>
                     {% if testset.compute_scores %}
-                      {% if "-qa" in testset.name|lower %}
+                      {% if testset.uses_accuracy_metric %}
                       <th>Accuracy</th>
                       {% else %}
                       <th>BLEU</th>
@@ -269,7 +269,7 @@
                     {% else %}
                     <td>---</td>
                     {% endif %}
-                    {% if not "-qa" in testset.name|lower %}
+                    {% if not testset.uses_accuracy_metric %}
                     {% if submission.score_chrf %}
                     <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                     {% else %}

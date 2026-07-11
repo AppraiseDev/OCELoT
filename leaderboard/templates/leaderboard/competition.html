@@ -50,7 +50,7 @@
 
         <h2>Leaderboard of {{competition.name}}</h2>
         {% if data %}
-        {% for testset, submissions in data %}
+        {% for testset, is_accuracy, submissions in data %}
         <h3>{{testset}}</h3>
         <div class="table-responsive">
           <table class="table table-striped table-sm">
@@ -58,7 +58,7 @@
               <tr>
                 <th>#</th>
                 <th>Name</th>
-                {% if "-qa" in testset|lower %}
+                {% if is_accuracy %}
                 <th>Accuracy</th>
                 {% else %}
                 <th>BLEU</th>
@@ -91,7 +91,7 @@
                 {% else %}
                 <td>---</td>
                 {% endif %}
-                {% if "-qa" not in testset|lower %}
+                {% if not is_accuracy %}
                 {% if submission.score_chrf %}
                 <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                 {% else %}

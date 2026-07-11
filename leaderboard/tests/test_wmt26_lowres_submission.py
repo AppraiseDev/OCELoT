@@ -203,3 +203,10 @@ class WMT26LowResourceSubmissionTests(TestCase):
         self.assertEqual(len(src_segments), 12)
         self.assertEqual(len(hyp_segments), 12)
         self.assertTrue(sub.is_valid)
+
+    def test_uses_accuracy_metric_flags_tasks_correctly(self):
+        # MT is scored with BLEU/chrF, everything else with accuracy.
+        self.assertFalse(self._make_testset('ukr_mt_test').uses_accuracy_metric())
+        for task in ('ukr_qa_test', 'ukr_sc_test', 'ukr_gc_test', 'ukr_mr_test'):
+            with self.subTest(task=task):
+                self.assertTrue(self._make_testset(task).uses_accuracy_metric())

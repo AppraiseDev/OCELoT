@@ -87,6 +87,7 @@ def leaderboard(request, competition_id=None):
 
     # Collect all test sets for the competition
     data = OrderedDict()
+    accuracy_by_key = {}
     test_sets = TestSet.objects.filter(competition=competition).order_by(
         'name'
     )
@@ -108,6 +109,7 @@ def leaderboard(request, competition_id=None):
             key = str(test_set)
             if not key in data.keys():
                 data[key] = []
+                accuracy_by_key[key] = test_set.uses_accuracy_metric()
 
             score_bleu = submission.score
             score_chrf = submission.score_chrf
@@ -135,9 +137,16 @@ def leaderboard(request, competition_id=None):
         ocelot_team_verified,
     ) = _get_team_data(request)
 
+    # Pass (test set label, is_accuracy, submissions) so the template can label
+    # the metric column correctly (Accuracy for QA/SC/GC/MR, BLEU/chrF for MT).
+    data_rows = [
+        (key, accuracy_by_key[key], submissions)
+        for key, submissions in data.items()
+    ]
+
     context = {
         'competition': comp_info,
-        'data': data.items(),
+        'data': data_rows,
         'MAX_SUBMISSION_DISPLAY_COUNT': MAX_SUBMISSION_DISPLAY_COUNT,
         'ocelot_team_name': ocelot_team_name,
         'ocelot_team_email': ocelot_team_email,

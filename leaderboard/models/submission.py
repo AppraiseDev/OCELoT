@@ -498,19 +498,7 @@ class Submission(models.Model):
         source) JSONL file, so no extra configuration is required on the test
         set.
         """
-        if self.test_set.file_format != JSONL_FILE:
-            return None
-        ref_field = self.test_set.ref_file or self.test_set.src_file
-        if not ref_field:
-            return None
-        path = ref_field.name
-        if MEDIA_ROOT:
-            path = str(Path(MEDIA_ROOT) / path)
-        try:
-            jsonl_format = detect_jsonl_format(path)
-        except Exception:
-            return None
-        return jsonl_format if jsonl_format in JSONL_WMT26_LR_FORMATS else None
+        return self.test_set.wmt26_lr_format()
 
     def _compute_score(self):
         """Computes sacreBLEU scores for current submission."""

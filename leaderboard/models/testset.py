@@ -11,10 +11,13 @@ from django.db import models
 
 from leaderboard.utils import analyze_jsonl_file
 from leaderboard.utils import analyze_xml_file
+from leaderboard.utils import detect_jsonl_format
 from leaderboard.utils import process_jsonl_to_text
 from leaderboard.utils import process_json_to_text
 from leaderboard.utils import process_to_text
 from leaderboard.utils import process_xml_to_text
+from leaderboard.utils import JSONL_WMT26_LR_ACCURACY_FORMATS
+from leaderboard.utils import JSONL_WMT26_LR_FORMATS
 from ocelot.settings import MEDIA_ROOT
 
 from .competition import Competition
@@ -311,6 +314,36 @@ class TestSet(models.Model):
     def has_references(self):
         """Returns True when self.ref_file is not None."""
         return bool(self.ref_file)
+
+    def wmt26_lr_format(self):
+        """Return this test set's WMT26 low-resource format, or None.
+
+        The task (and therefore the metric) is detected from the reference (or
+        source) JSONL file, so no extra configuration is required.
+        """
+        if self.file_format != JSONL_FILE:
+            return None
+        ref_field = self.ref_file or self.src_file
+        if not ref_field:
+            return None
+        path = ref_field.name
+        if MEDIA_ROOT and MEDIA_ROOT not in path:
+            path = str(Path(MEDIA_ROOT) / path)
+        try:
+            jsonl_format = detect_jsonl_format(path)
+        except Exception:
+            return None
+        return jsonl_format if jsonl_format in JSONL_WMT26_LR_FORMATS else None
+
+    def uses_accuracy_metric(self):
+        """True if this test set is scored by exact-match accuracy.
+
+        Covers the WMT26 low-resource accuracy tasks (QA, SC, GC, MR) and the
+        legacy WMT25 Slavic QA test sets (detected by name).
+        """
+        if self.wmt26_lr_format() in JSONL_WMT26_LR_ACCURACY_FORMATS:
+            return True
+        return '-qa' in self.name.lower()
 
     def full_clean(self, exclude=None, validate_unique=True):
         """Validates test set files."""
