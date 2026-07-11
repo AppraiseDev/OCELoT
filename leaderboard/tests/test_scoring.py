@@ -131,6 +131,22 @@ class ScoringTests(TestCase):
         # corpus BLEU is exactly 0 for disjoint vocabularies -> -2 sentinel
         self.assertEqual(sub.score, -2)
 
+    def test_zero_sentinel_displays_as_zero(self):
+        """The -2 zero sentinel is shown as 0.0, not -2.0."""
+        testset = self._make_testset(
+            'SentinelDisplayTestSet', 'de', f'{SCORING}/disjoint-src.txt',
+            f'{SCORING}/disjoint-ref.txt'
+        )
+        sub = self._make_submission(testset, f'{SCORING}/disjoint-hyp.txt')
+        self.assertEqual(sub.score, -2)  # stored zero sentinel unchanged
+        self.assertEqual(sub.score_display, 0.0)  # displayed as 0.0
+        self.assertEqual(sub._score(), 0.0)
+        # The -2 sentinel maps to 0.0; -1 (error) and None are left untouched.
+        self.assertEqual(Submission._display_score(-2), 0.0)
+        self.assertEqual(Submission._display_score(-1), -1)
+        self.assertIsNone(Submission._display_score(None))
+        self.assertEqual(Submission._display_score(42.0), 42.0)
+
     def test_qa_testset_triggers_accuracy_branch(self):
         """A '-qa' test set with zero BLEU computes accuracy (0 here -> -2)."""
         testset = self._make_testset(

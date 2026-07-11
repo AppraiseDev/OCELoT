@@ -612,11 +612,34 @@ class Submission(models.Model):
         self.score_chrf = None
         super().save(update_fields=['score', 'score_chrf'])
 
+    @staticmethod
+    def _display_score(value):
+        """Map the internal zero sentinel (-2) to 0.0 for display.
+
+        The scoring code stores -2 to mark a genuine zero score, because 0.0 is
+        falsy and would otherwise be treated as "not yet scored". -1 remains the
+        error sentinel and None means the submission has not been scored.
+        """
+        if value == -2:
+            return 0.0
+        return value
+
+    @property
+    def score_display(self):
+        """Human-facing BLEU/accuracy score (0.0 instead of the -2 sentinel)."""
+        return self._display_score(self.score)
+
+    @property
+    def score_chrf_display(self):
+        """Human-facing chrF score (0.0 instead of the -2 sentinel)."""
+        return self._display_score(self.score_chrf)
+
     def _score(self):
         """Returns human-readable SacreBLEU score."""
+        value = self.score_display
         try:
-            if self.score:
-                return round(self.score, 1)
+            if value is not None:
+                return round(value, 1)
             return '---'
 
         except TypeError:
@@ -624,9 +647,10 @@ class Submission(models.Model):
 
     def _chrf(self):
         """Returns human-readable chrF score."""
+        value = self.score_chrf_display
         try:
-            if self.score_chrf:
-                return round(self.score_chrf, 1)
+            if value is not None:
+                return round(value, 1)
             return '---'
 
         except TypeError:

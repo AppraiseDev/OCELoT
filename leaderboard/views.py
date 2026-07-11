@@ -111,8 +111,8 @@ def leaderboard(request, competition_id=None):
                 data[key] = []
                 accuracy_by_key[key] = test_set.uses_accuracy_metric()
 
-            score_bleu = submission.score
-            score_chrf = submission.score_chrf
+            score_bleu = submission.score_display
+            score_chrf = submission.score_chrf_display
             if not test_set.compute_scores:
                 score_bleu = None
                 score_chrf = None

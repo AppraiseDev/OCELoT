@@ -86,13 +86,13 @@
                   {% endif %}
                 </td>
                 {% endif %}
-                {% if submission.score_bleu %}
+                {% if submission.score_bleu is not None %}
                 <td>{{submission.score_bleu|stringformat:".1f"}}</td>
                 {% else %}
                 <td>---</td>
                 {% endif %}
                 {% if not is_accuracy %}
-                {% if submission.score_chrf %}
+                {% if submission.score_chrf is not None %}
                 <td>{{submission.score_chrf|stringformat:".1f"}}</td>
                 {% else %}
                 <td>---</td>

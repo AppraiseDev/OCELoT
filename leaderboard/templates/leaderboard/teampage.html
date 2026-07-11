@@ -264,14 +264,14 @@
                       {% endif %}
                     </td>
                     {% if testset.compute_scores %}
-                    {% if submission.score %}
-                    <td>{{submission.score|stringformat:".1f"}}</td>
+                    {% if submission.score_display is not None %}
+                    <td>{{submission.score_display|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
                     {% endif %}
                     {% if not testset.uses_accuracy_metric %}
-                    {% if submission.score_chrf %}
-                    <td>{{submission.score_chrf|stringformat:".1f"}}</td>
+                    {% if submission.score_chrf_display is not None %}
+                    <td>{{submission.score_chrf_display|stringformat:".1f"}}</td>
                     {% else %}
                     <td>---</td>
                     {% endif %}
